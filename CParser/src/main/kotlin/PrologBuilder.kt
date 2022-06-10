@@ -12,7 +12,9 @@ class PrologBuilder {
     }
 
     fun equality(value: String) {
-        stringBuilder.append(value)
+        when(value) {
+            "==" -> stringBuilder.append('=')
+        }
     }
 
     fun unaryOperator(operator:String) {

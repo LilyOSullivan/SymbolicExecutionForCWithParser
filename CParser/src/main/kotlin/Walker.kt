@@ -1,6 +1,6 @@
 import org.antlr.v4.runtime.ParserRuleContext
 
-class CWalker(var prologBuilder: PrologBuilder) : CBaseListener()  {
+class Walker(var prologBuilder: PrologBuilder) : CBaseListener()  {
 
     override fun enterFunctionDefinition(ctx: CParser.FunctionDefinitionContext) {
         val returnType = ctx.declarationSpecifiers().text
@@ -76,10 +76,6 @@ class CWalker(var prologBuilder: PrologBuilder) : CBaseListener()  {
 
     override fun enterEqualityOperators(ctx: CParser.EqualityOperatorsContext) {
         prologBuilder.equality(ctx.text)
-    }
-
-    override fun enterRelationalExpression(ctx: CParser.RelationalExpressionContext?) {
-        super.enterRelationalExpression(ctx)
     }
 
     override fun enterRelationalOperators(ctx: CParser.RelationalOperatorsContext) {

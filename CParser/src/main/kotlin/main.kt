@@ -14,7 +14,7 @@ fun main() {
     val walker = ParseTreeWalker()
     val prologBuilder = PrologBuilder()
 
-    val extractor = CWalker(prologBuilder)
+    val extractor = Walker(prologBuilder)
     walker.walk(extractor, tree)
 
     println(prologBuilder.toString())
