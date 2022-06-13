@@ -6,8 +6,8 @@ class PrologBuilder {
     }
 
     fun startFunction(returnType: String,name: String,declarations:List<String>) {
-        val declarations = "[${declarations.joinToString(",") }]"
-        stringBuilder.append("function($returnType,$name,$declarations,[")
+        val declarationsAsString = "[${declarations.joinToString(",") }]"
+        stringBuilder.append("function($returnType,$name,$declarationsAsString,[")
 //        stringBuilder.append("function($returnType,$name,$declarations,body([")
     }
 

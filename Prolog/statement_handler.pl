@@ -1,3 +1,7 @@
+function_handler(Body,Params) :-
+    param_handler(Params),
+    statement_handler(Body,Params,_),
+
 
 param_handler([]).
 param_handler([H|T]) :-
@@ -22,14 +26,10 @@ handle(ifStmt(Constraint,If_body),Params,ReturnFlag) :-
     ptc_solver__sdl(Constraint),
     statement_handler(If_body,Params,ReturnFlag).
 
-
-    % handle(ifStmt(Constraint,If_body,[]),ReturnFlag).
-
-
 handle(ifStmt(Constraint,If_body,Else_body),Params,ReturnFlag) :-
     (
         ptc_solver__sdl(Constraint),
-        statement_handler(If_body,_,ReturnFlag)
+        statement_handler(If_body,Params,ReturnFlag)
     )
         ;
     (
@@ -38,10 +38,9 @@ handle(ifStmt(Constraint,If_body,Else_body),Params,ReturnFlag) :-
     ).
 
 handle(return(Expression),Params,ReturnFlag) :-
-    writeln(Expression),
+    ReturnFlag = true,
     ptc_solver__label_integers(Params),
-    ReturnFlag = true.
-
-
-
+    writeln(Expression),
+    !.  % solves:
+        %function(int,get_sign,[int(X)],[ifStmt(X<0,[return(-1)])]).
 
