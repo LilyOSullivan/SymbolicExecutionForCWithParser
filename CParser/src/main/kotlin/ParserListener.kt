@@ -1,6 +1,6 @@
 import org.antlr.v4.runtime.ParserRuleContext
 
-class Walker(var prologBuilder: PrologBuilder) : CBaseListener()  {
+class ParserListener(var prologBuilder: PrologBuilder) : CBaseListener()  {
 
     override fun enterFunctionDefinition(ctx: CParser.FunctionDefinitionContext) {
         val returnType = ctx.declarationSpecifiers().text

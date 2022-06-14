@@ -8,7 +8,6 @@ class PrologBuilder {
     fun startFunction(returnType: String,name: String,declarations:List<String>) {
         val declarationsAsString = "[${declarations.joinToString(",") }]"
         stringBuilder.append("function($returnType,$name,$declarationsAsString,[")
-//        stringBuilder.append("function($returnType,$name,$declarations,body([")
     }
 
     fun equality(value: String) {
@@ -61,9 +60,3 @@ class PrologBuilder {
 
     override fun toString() = stringBuilder.toString()
 }
-
-enum class PrologVariableTypes {
-    Int,
-    Double,
-}
-

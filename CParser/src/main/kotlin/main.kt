@@ -6,15 +6,16 @@ import java.io.File
 
 fun main(args: Array<String>) {
 
-    if(args.size != 1) {
-        throw IllegalArgumentException(
-            "A path to the C file must be provided.\n " +
-                    "Example first argument: test.C"
+    val path = if(args.size != 1) {
+        println(
+            "Argument not provided, defaulting to test.c" +
+                    "Example first argument: test.c"
         )
+        "./src/main/kotlin/test.C"
+    } else {
+        if (args[0].endsWith(".c",ignoreCase = true) ) args[0] else "$args.c"
     }
-    val path = if (args[0].endsWith(".C",ignoreCase = true) ) args[0]  else "$args.C"
 
-//    val path = "./src/main/kotlin/test.C"
     val input = CharStreams.fromFileName(path)
     val lexer = CLexer(input)
     val tokens = CommonTokenStream(lexer)
@@ -24,8 +25,8 @@ fun main(args: Array<String>) {
     val walker = ParseTreeWalker()
     val prologBuilder = PrologBuilder()
 
-    val extractor = Walker(prologBuilder)
-    walker.walk(extractor, tree)
+    val listener = ParserListener(prologBuilder)
+    walker.walk(listener, tree)
 
     File("parsed.pl").writeText(prologBuilder.toString())
 //    println(prologBuilder.toString())
