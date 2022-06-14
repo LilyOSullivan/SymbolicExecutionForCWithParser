@@ -12,9 +12,6 @@ class ParserListener(var prologBuilder: PrologBuilder) : CBaseListener()  {
             // Parameters Exist
             val declarationComponents = (components[2].getChild(0) as ParserRuleContext).children
             for (i in declarationComponents.indices.step(2)) { // Step to skip ','
-//                if(i % 2 == 1) { // Skip ','
-//                    continue
-//                }
                 val component = declarationComponents[i]
                 val varType = component.getChild(0).text
                 val varName = component.getChild(1).text.uppercase()

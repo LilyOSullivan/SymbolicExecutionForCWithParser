@@ -6,8 +6,8 @@ class PrologBuilder {
     }
 
     fun startFunction(returnType: String,name: String,declarations:List<String>) {
-        val declarationsAsString = "[${declarations.joinToString(",") }]"
-        stringBuilder.append("function($returnType,$name,$declarationsAsString,[")
+        val declarationsJoined = "[${declarations.joinToString(",") }]"
+        stringBuilder.append("function($returnType,$name,$declarationsJoined,[")
     }
 
     fun equality(value: String) {
@@ -39,7 +39,7 @@ class PrologBuilder {
     }
 
     fun ifStart() {
-        stringBuilder.append("ifStmt(")
+        stringBuilder.append("if_stmt(")
     }
 
     fun ifEnd() {

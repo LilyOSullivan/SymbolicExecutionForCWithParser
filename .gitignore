@@ -22,12 +22,26 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 
+# MacOS finder generated file
 .DS_STORE
+
+# Kotlin/Java builds
 CParser/target
 
+# IntelliJ configuration
 CParser/.idea/shelf/
 CParser/.idea/workspace.xml
 CParser/.idea/httpRequests/
 CParser/.idea/dataSources/
 CParser/.idea/dataSources.local.xml
 CParser/.idea/libraries
+
+# Antlr generated files
+CParser/src/main/kotlin/C.interp
+CParser/src/main/kotlin/C.tokens
+CParser/src/main/kotlin/CBaseListener.java
+CParser/src/main/kotlin/CLexer.interp
+CParser/src/main/kotlin/CLexer.java
+CParser/src/main/kotlin/CLexer.tokens
+CParser/src/main/kotlin/CListener.java
+CParser/src/main/kotlin/CParser.java

@@ -1,46 +1,45 @@
 function_handler(Body,Params) :-
-    param_handler(Params),
-    statement_handler(Body,Params,_),
+    parameter_handler(Params),
+    statement_handler(Body,_),
+    label(Params).
 
+label(Params) :-
+    ptc_solver__label_integers(Params),
+    !.
 
-param_handler([]).
-param_handler([H|T]) :-
+parameter_handler([]).
+parameter_handler([H|T]) :-
     handle(H),
-    param_handler(T).
+    parameter_handler(T).
 
-statement_handler([],_,_).
-statement_handler([H|T],Params,ReturnFlag) :-
-    handle(H,Params,ReturnFlag),
+statement_handler([],_).
+statement_handler([H|T],Return_flag) :-
+    handle(H,Return_flag),
     (
-        ReturnFlag == true
-    )
+        Return_flag == true ->
+            true
         ;
-    (
-        statement_handler(T,Params,ReturnFlag)
+            statement_handler(T,Return_flag)
     ).
 
 handle(int(X)) :-
     ptc_solver__variable([X],integer).
 
-handle(ifStmt(Constraint,If_body),Params,ReturnFlag) :-
-    ptc_solver__sdl(Constraint),
-    statement_handler(If_body,Params,ReturnFlag).
+handle(if_stmt(Constraint,If_body),Return_flag) :-
+    handle(if_stmt(Constraint,If_body,[]),Return_flag).
 
-handle(ifStmt(Constraint,If_body,Else_body),Params,ReturnFlag) :-
+handle(if_stmt(Constraint,If_body,Else_body),Return_flag) :-
     (
         ptc_solver__sdl(Constraint),
-        statement_handler(If_body,Params,ReturnFlag)
+        statement_handler(If_body,Return_flag)
     )
         ;
     (
         ptc_solver__sdl(not Constraint),
-        statement_handler(Else_body,Params,ReturnFlag)
+        statement_handler(Else_body,Return_flag)
     ).
 
-handle(return(Expression),Params,ReturnFlag) :-
-    ReturnFlag = true,
-    ptc_solver__label_integers(Params),
-    writeln(Expression),
-    !.  % solves:
-        %function(int,get_sign,[int(X)],[ifStmt(X<0,[return(-1)])]).
+handle(return(Expression),Return_flag) :-
+    Return_flag = true,
+    writeln(Expression).
 
