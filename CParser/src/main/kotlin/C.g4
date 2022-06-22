@@ -94,8 +94,12 @@ multiplicativeExpression
     ;
 
 additiveExpression
-    :   multiplicativeExpression (('+'|'-') multiplicativeExpression)*
+    :   multiplicativeExpression (plusMinus multiplicativeExpression)*
     ;
+
+plusMinus
+	:	('+'|'-')
+	;
 
 shiftExpression
     :   additiveExpression (('<<'|'>>') additiveExpression)*

@@ -1,6 +1,9 @@
 class PrologBuilder {
     private var stringBuilder:StringBuilder = StringBuilder()
 
+    fun genericWrite(value:Char) {
+        stringBuilder.append(value)
+    }
     fun genericWrite(value:String) {
         stringBuilder.append(value)
     }
@@ -31,11 +34,11 @@ class PrologBuilder {
     fun endFunction() {
         if(stringBuilder.last() == ',')
             stringBuilder.setLength(stringBuilder.length - 1)
-        stringBuilder.append("])).")
-    }
-
-    private fun appendComma(toBeAppended:String) {
-        stringBuilder.append("$toBeAppended,")
+        var i = 0
+        while(stringBuilder.indexOf(",]").also { i=it } != -1) {
+            stringBuilder.replace(i,i+1,"]")
+        }
+        stringBuilder.append("]).")
     }
 
     fun ifStart() {
@@ -51,12 +54,21 @@ class PrologBuilder {
     }
 
     fun elseEnd() {
-        stringBuilder.append("])")
+        stringBuilder.append("]),")
     }
 
     fun relationalOperator(op:String) {
         stringBuilder.append(op)
     }
 
+    fun beginDeclaration(type:String) {
+        stringBuilder.append("assignment($type(")
+    }
+
+    fun exitDeclaration() {
+        stringBuilder.append("),")
+    }
+
     override fun toString() = stringBuilder.toString()
+
 }

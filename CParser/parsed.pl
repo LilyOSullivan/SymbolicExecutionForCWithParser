@@ -1,0 +1,1 @@
+function(int,get_sign,[int(X)],[if_stmt(X=0,[return(01)]),if_stmt(X<0,[return(-1)],[return(1)])])).

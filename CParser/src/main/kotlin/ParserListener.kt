@@ -1,6 +1,6 @@
 import org.antlr.v4.runtime.ParserRuleContext
 
-class ParserListener(var prologBuilder: PrologBuilder) : CBaseListener()  {
+class ParserListener(private var prologBuilder: PrologBuilder) : CBaseListener()  {
 
     override fun enterFunctionDefinition(ctx: CParser.FunctionDefinitionContext) {
         val returnType = ctx.declarationSpecifiers().text
@@ -65,6 +65,14 @@ class ParserListener(var prologBuilder: PrologBuilder) : CBaseListener()  {
         }
     }
 
+    override fun enterDeclare(ctx: CParser.DeclareContext) {
+        val type = ctx.declarationSpecifiers().text
+        prologBuilder.beginDeclaration(type)
+    }
+
+    override fun exitDeclare(ctx: CParser.DeclareContext?) {
+        prologBuilder.exitDeclaration()
+    }
     override fun exitJumpStatement(ctx: CParser.JumpStatementContext) {
         when(ctx.children[0].text){
             "return" -> prologBuilder.endReturnStatement()
@@ -74,6 +82,16 @@ class ParserListener(var prologBuilder: PrologBuilder) : CBaseListener()  {
     override fun enterEqualityOperators(ctx: CParser.EqualityOperatorsContext) {
         prologBuilder.equality(ctx.text)
     }
+
+    override fun enterInitDeclarator(ctx: CParser.InitDeclaratorContext) {
+        val name = ctx.declarator().text.uppercase()
+//        val value = ctx.initializer().text
+        prologBuilder.genericWrite("$name),")
+    }
+
+//    override fun enterPlusMinus(ctx: CParser.PlusMinusContext) {
+//        prologBuilder.genericWrite(ctx.text)
+//    }
 
     override fun enterRelationalOperators(ctx: CParser.RelationalOperatorsContext) {
         prologBuilder.relationalOperator(ctx.text)

@@ -1,4 +1,5 @@
 int get_sign(int x) {
+	int z = 5;
     if (x == 0)
         return 0;
     if (x < 0)
