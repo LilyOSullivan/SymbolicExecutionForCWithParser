@@ -45,3 +45,9 @@ CParser/src/main/kotlin/CLexer.java
 CParser/src/main/kotlin/CLexer.tokens
 CParser/src/main/kotlin/CListener.java
 CParser/src/main/kotlin/CParser.java
+
+overcast/shelf/
+overcast/workspace.xml
+overcast/httpRequests/
+overcast/dataSources/
+overcast/dataSources.local.xml
