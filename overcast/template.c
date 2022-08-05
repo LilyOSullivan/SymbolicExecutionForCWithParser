@@ -17,6 +17,7 @@ typedef int (*{{.functionNameType}})(int);
 extern "C"
 int p_external_call_{{.functionName}}()
 {
+    EC_word return_value = EC_arg(1);
     {{ range .declarations }}{{ stringConverter . }}
     {{end}}
 
@@ -24,7 +25,7 @@ int p_external_call_{{.functionName}}()
     {{ end }}
 
     std::string current_dir = get_current_dir();
-    std::string path = current_dir + "\\" + {{.dllNameWithExtension}};
+    std::string path = current_dir + "\\" + "{{.dllNameWithExtension}}";
     HINSTANCE dll = LoadLibrary(path.c_str());
     {{.functionNameType}} {{.functionName}} = ({{.functionNameType}}) GetProcAddress(dll,"{{.functionName}}");
 

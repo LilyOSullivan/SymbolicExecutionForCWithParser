@@ -23,7 +23,12 @@ func (d *Declaration) SafetyCheck() string {
 		builder.WriteString(fmt.Sprintf("if(!EC_arg(%d).is_double(&%s))\n", d.ArgNum, d.VarName))
 		builder.WriteString("\treturn EC_fail;")
 	} else if isIntegerType(d.VarType) {
+		d.VarType = "long"
 		builder.WriteString(fmt.Sprintf("if(!EC_arg(%d).is_long(&%s))\n", d.ArgNum, d.VarName))
+		builder.WriteString("\treturn EC_fail;")
+	} else if isString(d.VarType) {
+		d.VarType = "char*"
+		builder.WriteString(fmt.Sprintf("if(!EC_arg(%d).is_string(&%s))\n", d.ArgNum, d.VarName))
 		builder.WriteString("\treturn EC_fail;")
 	}
 
@@ -65,6 +70,21 @@ func isIntegerType(varType string) bool {
 	case "long":
 		fallthrough
 	case "unsigned long":
+		return true
+
+	default:
+		return false
+	}
+}
+
+func isString(varType string) bool {
+	varType = strings.ToLower(varType)
+	switch varType {
+	case "char":
+		fallthrough
+	case "std::string":
+		fallthrough
+	case "string":
 		return true
 
 	default:

@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"html/template"
+	"io/ioutil"
 	"os"
 	"overcast/helpers"
 	"strconv"
@@ -27,26 +29,33 @@ var templateFile = template.Must(template.New("template.c").Funcs(template.FuncM
 
 func main() {
 
-	dllName := "libSharedLib.dll"
-	functionName := "addOne"
-	returnType := "int"
-	argumentTypes := []string{"double", "double"}
+	dllInformation, err := helpers.ParseJson()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(-1)
+	}
+
+	dllName := dllInformation.Dll_name
+	functionName := dllInformation.Function_name
+	returnType := dllInformation.Return_type
+	argumentTypes := dllInformation.Argument_types
 
 	var declarations []helpers.Declaration
 	var safetyChecks []string
 
 	for i, argumentType := range argumentTypes {
-		i = i + 1
+		i = i + 2
 		declaration := helpers.Declaration{
 			VarType: argumentType,
 			VarName: "arg_" + strconv.Itoa(i),
 			ArgNum:  i,
 		}
-		declarations = append(declarations, declaration)
 		safetyChecks = append(safetyChecks, declaration.SafetyCheck())
+		declarations = append(declarations, declaration)
 	}
 
-	err := templateFile.Execute(os.Stdout, map[string]interface{}{
+	buffer := bytes.NewBuffer(nil)
+	err = templateFile.Execute(buffer, map[string]interface{}{
 		"declarations":         declarations,
 		"safetyChecks":         safetyChecks,
 		"functionName":         functionName,
@@ -60,4 +69,9 @@ func main() {
 		os.Exit(-1)
 	}
 
+	err = ioutil.WriteFile("libSharedLib.c", buffer.Bytes(), 0644)
+	if err != nil {
+		fmt.Println("Error writing file")
+		os.Exit(-1)
+	}
 }

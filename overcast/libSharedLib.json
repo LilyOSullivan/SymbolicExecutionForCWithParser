@@ -1,0 +1,9 @@
+{
+  "dll_name": "libSharedLib.dll",
+  "function_name": "addOne",
+  "return_type": "int",
+  "argument_types": [
+    "int"
+  ],
+  "path": "./"
+}
