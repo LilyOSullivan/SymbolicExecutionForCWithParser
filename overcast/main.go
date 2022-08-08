@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"overcast/helpers"
 	"strconv"
 	"strings"
@@ -15,7 +16,7 @@ var templateFile = template.Must(template.New("template.c").Funcs(template.FuncM
 	"stringConverter": func(i interface{ String() string }) string {
 		return i.String()
 	},
-	"stringToHtml": func(s string) template.HTML {
+	"noEscape": func(s string) template.HTML {
 		return template.HTML(s)
 	},
 	"joinDeclarations": func(declarations []helpers.Declaration) string {
@@ -35,10 +36,10 @@ func main() {
 		os.Exit(-1)
 	}
 
-	dllName := dllInformation.Dll_name
-	functionName := dllInformation.Function_name
-	returnType := dllInformation.Return_type
-	argumentTypes := dllInformation.Argument_types
+	dllName := dllInformation.DllName
+	functionName := dllInformation.FunctionName
+	returnType := dllInformation.ReturnType
+	argumentTypes := dllInformation.ArgumentTypes
 
 	var declarations []helpers.Declaration
 	var safetyChecks []string
@@ -62,6 +63,7 @@ func main() {
 		"functionNameType":     strings.Title(functionName),
 		"dllNameWithExtension": dllName,
 		"resultType":           returnType,
+		"pathToDll":            dllInformation.Path,
 	})
 
 	if err != nil {
@@ -69,9 +71,17 @@ func main() {
 		os.Exit(-1)
 	}
 
-	err = ioutil.WriteFile("libSharedLib.c", buffer.Bytes(), 0644)
+	err = ioutil.WriteFile("libSharedLib.cpp", buffer.Bytes(), 0644)
 	if err != nil {
 		fmt.Println("Error writing file")
 		os.Exit(-1)
+	}
+
+	outputAsBytes, err := exec.Command("nmake", "/f", "EclipseBuilder", "libSharedLib").CombinedOutput()
+	if err != nil {
+		outputAsString := string(outputAsBytes[:])
+		fmt.Println("Error compiling Eclipse Plugin")
+		fmt.Println(outputAsString)
+		os.Exit(1)
 	}
 }

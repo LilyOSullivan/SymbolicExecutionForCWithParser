@@ -20,15 +20,15 @@ func (d *Declaration) SafetyCheck() string {
 	var builder strings.Builder
 
 	if isFloatingPointType(d.VarType) {
-		builder.WriteString(fmt.Sprintf("if(!EC_arg(%d).is_double(&%s))\n", d.ArgNum, d.VarName))
+		builder.WriteString(fmt.Sprintf("if(EC_arg(%d).is_double(&%s))\n", d.ArgNum, d.VarName))
 		builder.WriteString("\treturn EC_fail;")
 	} else if isIntegerType(d.VarType) {
 		d.VarType = "long"
-		builder.WriteString(fmt.Sprintf("if(!EC_arg(%d).is_long(&%s))\n", d.ArgNum, d.VarName))
+		builder.WriteString(fmt.Sprintf("if(EC_arg(%d).is_long(&%s))\n", d.ArgNum, d.VarName))
 		builder.WriteString("\treturn EC_fail;")
 	} else if isString(d.VarType) {
 		d.VarType = "char*"
-		builder.WriteString(fmt.Sprintf("if(!EC_arg(%d).is_string(&%s))\n", d.ArgNum, d.VarName))
+		builder.WriteString(fmt.Sprintf("if(EC_arg(%d).is_string(&%s))\n", d.ArgNum, d.VarName))
 		builder.WriteString("\treturn EC_fail;")
 	}
 
