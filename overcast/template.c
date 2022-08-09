@@ -2,7 +2,7 @@
 #include "windows.h"
 #include <iostream>
 
-typedef int (*{{.functionNameType}})(int);
+typedef {{.resultType}} (*{{.functionNameType}})({{ .argumentTypes}});
 
 extern "C"
 int p_external_call_{{.functionName}}()
@@ -18,7 +18,7 @@ int p_external_call_{{.functionName}}()
     HINSTANCE dll = LoadLibrary(path.c_str());
     {{.functionNameType}} {{.functionName}} = ({{.functionNameType}}) GetProcAddress(dll,"{{.functionName}}");
 
-    {{.resultType}} result = {{.functionName}}({{ joinDeclarations .declarations}});
+    {{.resultType}} result = {{.functionName}}({{ joinDeclarationVarNames .declarations}});
 
     unify(return_value, EC_word(result));
     return EC_succeed;

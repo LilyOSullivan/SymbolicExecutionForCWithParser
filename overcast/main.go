@@ -19,7 +19,7 @@ var templateFile = template.Must(template.New("template.c").Funcs(template.FuncM
 	"noEscape": func(s string) template.HTML {
 		return template.HTML(s)
 	},
-	"joinDeclarations": func(declarations []helpers.Declaration) string {
+	"joinDeclarationVarNames": func(declarations []helpers.Declaration) string {
 		var declarationStrings []string
 		for _, declaration := range declarations {
 			declarationStrings = append(declarationStrings, declaration.VarName)
@@ -64,6 +64,7 @@ func main() {
 		"dllNameWithExtension": dllName,
 		"resultType":           returnType,
 		"pathToDll":            dllInformation.Path,
+		"argumentTypes":        strings.Join(dllInformation.ArgumentTypes[:], ","),
 	})
 
 	if err != nil {
