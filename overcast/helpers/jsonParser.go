@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -38,6 +39,11 @@ func ParseJson() (DllInformation, error) {
 
 	if !strings.HasSuffix(dllInformation.DllName, ".dll") {
 		dllInformation.DllName = dllInformation.DllName + ".dll"
+	}
+
+	if _, err := os.Stat(dllInformation.Path + string(os.PathSeparator) + dllInformation.DllName);
+		errors.Is(err, os.ErrNotExist) {
+		_ = fmt.Errorf("DLL does not exist")
 	}
 	return dllInformation, nil
 }
