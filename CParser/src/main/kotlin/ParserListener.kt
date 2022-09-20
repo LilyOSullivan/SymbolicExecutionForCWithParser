@@ -27,14 +27,14 @@ class ParserListener(private var prologBuilder: PrologBuilder) : CBaseListener()
 
 
     override fun enterSelectionStatement(ctx: CParser.SelectionStatementContext) {
-        when(ctx.children[0].text) { // Can be switch
+        when(ctx.children[0].text) {
             "if" -> prologBuilder.ifStart()
             "else" -> prologBuilder.elseStart()
         }
     }
 
     override fun exitSelectionStatement(ctx: CParser.SelectionStatementContext) {
-        when(ctx.children[0].text) { // Can be switch
+        when(ctx.children[0].text) {
             "if" -> prologBuilder.ifEnd()
         }
     }
@@ -47,8 +47,12 @@ class ParserListener(private var prologBuilder: PrologBuilder) : CBaseListener()
         prologBuilder.genericWrite(",[")
     }
 
-    override fun enterElseStatement(ctx: CParser.ElseStatementContext?) {
+    override fun enterElseCompound(ctx: CParser.ElseCompoundContext?) {
         prologBuilder.elseStart()
+    }
+
+    override fun exitElseCompound(ctx: CParser.ElseCompoundContext?) {
+        prologBuilder.elseEnd()
     }
 
     override fun enterUnaryOperator(ctx: CParser.UnaryOperatorContext) {
@@ -85,7 +89,6 @@ class ParserListener(private var prologBuilder: PrologBuilder) : CBaseListener()
 
     override fun enterInitDeclarator(ctx: CParser.InitDeclaratorContext) {
         val name = ctx.declarator().text.uppercase()
-//        val value = ctx.initializer().text
         prologBuilder.genericWrite("$name),")
     }
 

@@ -462,12 +462,16 @@ expressionStatement
     ;
 
 selectionStatement
-    :   'if' '(' expression leftBracket statement (elseStatement statement)?
+    :   'if' '(' expression leftBracket statement (elseCompound)?
     |   'switch' '(' expression ')' statement
     ;
 
 leftBracket
 	:	')'
+	;
+
+elseCompound
+	:	elseStatement statement
 	;
 
 elseStatement

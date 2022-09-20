@@ -28,7 +28,7 @@ class PrologBuilder {
     }
 
     fun endReturnStatement() {
-        stringBuilder.append(")]")
+        stringBuilder.append(")")
     }
 
     fun endFunction() {
@@ -46,15 +46,19 @@ class PrologBuilder {
     }
 
     fun ifEnd() {
-        stringBuilder.append("),")
+        if(!stringBuilder.endsWith("]")) {
+            stringBuilder.append("]),") // If without else
+        } else {
+            stringBuilder.append("),")
+        }
     }
 
     fun elseStart() {
-        stringBuilder.append(",[")
+        stringBuilder.append("],[") //HACK This also counts as closing an if
     }
 
     fun elseEnd() {
-        stringBuilder.append("]),")
+        stringBuilder.append("]")
     }
 
     fun relationalOperator(op:String) {
