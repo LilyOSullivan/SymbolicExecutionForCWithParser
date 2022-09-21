@@ -134,12 +134,20 @@ inclusiveOrExpression
     ;
 
 logicalAndExpression
-    :   inclusiveOrExpression ('&&' inclusiveOrExpression)*
+    :   inclusiveOrExpression (andAndToken inclusiveOrExpression)*
     ;
 
+andAndToken
+	:	AndAnd
+	;
+
 logicalOrExpression
-    :   logicalAndExpression ( '||' logicalAndExpression)*
+    :   logicalAndExpression ( orOrToken logicalAndExpression)*
     ;
+
+orOrToken
+	:	OrOr
+	;
 
 conditionalExpression
     :   logicalOrExpression ('?' expression ':' conditionalExpression)?
@@ -533,6 +541,8 @@ functionDefinition
 declarationList
     :   declaration+
     ;
+
+
 
 Auto : 'auto';
 Break : 'break';

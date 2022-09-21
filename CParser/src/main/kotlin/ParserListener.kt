@@ -59,6 +59,14 @@ class ParserListener(private var prologBuilder: PrologBuilder) : CBaseListener()
         prologBuilder.unaryOperator(ctx.text)
     }
 
+    override fun enterAndAndToken(ctx: CParser.AndAndTokenContext?) {
+        prologBuilder.genericWrite(" and ")
+    }
+
+    override fun enterOrOrToken(ctx: CParser.OrOrTokenContext?) {
+        prologBuilder.genericWrite(" or ")
+    }
+
     override fun enterPrimaryExpression(ctx: CParser.PrimaryExpressionContext) {
         prologBuilder.genericWrite(ctx.text.uppercase())
     }

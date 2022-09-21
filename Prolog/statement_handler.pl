@@ -43,7 +43,9 @@ handle(return(Expression),Return_flag) :-
     Return_flag = true,
     writeln(Expression).
 
-% Create an assignment handler
-handle(assignment(X,Expression),_) :-
-    % handle(X),
-    ptc_solver__sdl(eq_cast(X, Expression)).
+
+handle(assignment(int(X),Value),_) :-
+    handle(int(X)),
+    ptc_solver__sdl(eq_cast(X, Value)).
+
+
