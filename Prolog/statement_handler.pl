@@ -44,8 +44,33 @@ handle(return(Expression),Return_flag) :-
     writeln(Expression).
 
 
+handle(assignment(int(Z),extern(f(X),LibraryName)),_) :-
+    ptc_solver__variable([X],integer),
+    ptc_solver__variable([Z],integer),
+    handle(extern(f(X),LibraryName),Out),
+    ptc_solver__sdl(eq_cast(Z, Out)),
+    !. % Hack to prevent backtracking
+
 handle(assignment(int(X),Value),_) :-
     handle(int(X)),
     ptc_solver__sdl(eq_cast(X, Value)).
 
+handle(extern(f(X),LibraryName),Out) :-
+    load(LibraryName),
+    external(external_call/2,p_external_call),
+    % Defer execution
+    label([X]),
+    external_call(Result,X),
+    writeln(Result),
+    write_to_file(LibraryName,Params,Result),
+    Out = Result.
 
+% Utilities
+
+write_to_file(LibraryName,Params,ResultOfCall) :-
+    concat_string([LibraryName,".txt"],Filename),
+    open(Filename,append,Stream),
+    write(Stream,Params),
+    write(Stream,ResultOfCall),
+    write(Stream,'\n'),
+    close(Stream).
