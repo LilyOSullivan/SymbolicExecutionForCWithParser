@@ -8,7 +8,7 @@ fun main(args: Array<String>) {
 
     val path = if(args.size != 1) {
         println(
-            "Argument not provided, defaulting to test.c" +
+            "Argument not provided, defaulting to test.c\n" +
                     "Example first argument: test.c"
         )
         "./src/main/kotlin/test.C"

@@ -1,9 +1,9 @@
-int get_sign(int x) {
-	int z = 5;
-    if (x == 0)
-        return 0;
-    if (x < 0)
-        return -1;
-    else
-        return 1;
+int defer_test(int x) {
+	int z = addOne(x);
+	if(x>0 || z>0) {
+		return 1;
+	}
+	else {
+		return 0;
+	}
 }

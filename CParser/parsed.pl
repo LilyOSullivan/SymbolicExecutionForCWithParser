@@ -1,1 +1,1 @@
-function(int,get_sign,[int(X)],[if_stmt(X=0,[return(01)]),if_stmt(X<0,[return(-1)],[return(1)])])).
+function(int,defer_test,[int(X)],[assignment(int(Z),ADDONEX),if_stmt(X>0 or Z>0,[return(1)],[return(0)])]).
