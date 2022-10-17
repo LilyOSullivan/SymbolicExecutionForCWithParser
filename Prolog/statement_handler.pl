@@ -50,7 +50,7 @@ handle(assignment(int(Z),extern(f(X),LibraryName)),_) :-
     ptc_solver__variable([X],integer),
     ptc_solver__variable([Z],integer),
     handle(extern(f(X),LibraryName),Z),
-    !. % Hack to prevent backtracking; Assignment should happen once.
+    !. % Assignment should happen once.
 
 handle(assignment(int(X),Value),_) :-
     handle(int(X)),

@@ -51,3 +51,33 @@ overcast/workspace.xml
 overcast/httpRequests/
 overcast/dataSources/
 overcast/dataSources.local.xml
+overcast/win.exe
+overcast/main
+
+# Kotlin/Java builds
+CParserWithActions/target
+
+# IntelliJ configuration
+CParserWithActions/.idea/shelf/
+CParserWithActions/.idea/workspace.xml
+CParserWithActions/.idea/httpRequests/
+CParserWithActions/.idea/dataSources/
+CParserWithActions/.idea/dataSources.local.xml
+CParserWithActions/.idea/libraries
+
+# Antlr generated files
+CParserWithActions/src/main/kotlin/C.interp
+CParserWithActions/src/main/kotlin/C.tokens
+CParserWithActions/src/main/kotlin/CBaseListener.java
+CParserWithActions/src/main/kotlin/CLexer.interp
+CParserWithActions/src/main/kotlin/CLexer.java
+CParserWithActions/src/main/kotlin/CLexer.tokens
+CParserWithActions/src/main/kotlin/CListener.java
+CParserWithActions/src/main/kotlin/CParser.java
+CParserWithActions/src/main/kotlin/temp.c.txt
+
+overcast/library.so
+overcast/libSharedLib.cpp
+overcast/libSharedLib.dll
+
+Prolog/library.so
