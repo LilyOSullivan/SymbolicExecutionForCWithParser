@@ -16,7 +16,7 @@ write_test_cases(Function_name,Params,Return_value) :-
     concat_string([Test_suite_name,".cpp"],Test_suite_filename),
     open(Test_suite_filename, append,testcase),
     open(Test_suite_filename, read,testcase_read),
-    (check_if_include_needed ->
+    (is_include_needed ->
             write_test_include
         ;
             % Put a new line to space out the test cases instead of being on the same line as each other
@@ -45,7 +45,7 @@ write_assert(Function_name,Params,Return_value) :-
 
 %% Returns the Parameters as a string to be printed
 params_to_string([],_,_).
-params_to_string([declaration(int,[H|_])|T],X,Out) :- % The value X here is a WIP
+params_to_string([declaration(int,[H|_])|T],X,Out) :- %FIXME: The value X here is a WIP
     term_string(H,Int_as_string),
     string_concat(X,Int_as_string,Result),
     Out = Result,
@@ -57,12 +57,12 @@ params_to_string([declaration(int,[H|_])|T],X,Out) :- % The value X here is a WI
 
 %% Check if the test includes are needed
 %% This is primarily for backtracking not to write includes multiple times
-check_if_include_needed :-
+is_include_needed :-
     read_string(testcase_read, 25, First_chars),
     not string_contains(First_chars,"<gtest/gtest.h>").
     % IDEA: It may be possible to allow multiple includes by using #include_once
 
-%% Chek if a string contains a substring
+%% Check if a string contains a substring
 string_contains(Original,Substring) :-
     sub_string(Original, _,_,_, Substring),
     !. % Stop on the first find. Interested exclusively if a substring exists

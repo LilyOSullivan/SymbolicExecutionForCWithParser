@@ -1,5 +1,5 @@
 % IDEA: There likely needed to be a handling of "true" and "false", as C
-%       Possibily true = 1, false = 0?
+%       Possibly true = 1, false = 0?
 
 :- op(1200,xfy,and_then).
 % :- op(1200,xfy,and).

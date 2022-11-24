@@ -1,4 +1,4 @@
-% From Eileens Code
+% From Eileen's Code
 get_all_array_inputs([], []).
 get_all_array_inputs([(_, Value)|Rest], [Value|Rest2]) :-
 	get_all_array_inputs(Rest, Rest2).

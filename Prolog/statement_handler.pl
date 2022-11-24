@@ -17,7 +17,7 @@ parameter_handler([H|T]) :-
     parameter_handler(T).
 
 
-% IDEA: What if instead of Return_flag, it is checked if Return_value is instanciated?
+% IDEA: What if instead of Return_flag, it is checked if Return_value is instantiated?
 % QUESTION: What if a function returns nothing (void return)?
 %% The primary loop dictating the execution of statements
 %% It passes a final parameter of return flag information, in three parts
