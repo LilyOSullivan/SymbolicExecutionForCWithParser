@@ -1,22 +1,32 @@
 % From Eileens Code
 get_all_array_inputs([], []).
-get_all_array_inputs( [(_, Value)|Rest], [Value|Rest2]) :-
+get_all_array_inputs([(_, Value)|Rest], [Value|Rest2]) :-
 	get_all_array_inputs(Rest, Rest2).
 
+% The cut is needed here. Otherwise Prolog attempts to match it with other concretise predicates
+concretise([void]) :- !.
 concretise([]).
-concretise([declaration(intpointer,[H|T])|TT]) :-
+concretise([declaration(intpointer,[H|_])|T]) :-
 	ptc_solver__get_array_index_elements(H, Indexs),
 	get_all_array_inputs(Indexs, Out),
     ptc_solver__label_integers([Out]),
     !,
-    concretise(T), % This labels single-line declarations: int a,b;
-    concretise(TT).
+    concretise(T).
 
-concretise([declaration(int,[H|T])|TT]) :-
+concretise([declaration(charpointer,[H|_])|T]) :-
+    % Treating same as ints
+    % Can call: concretise(char(Out),Result) to get 'char' result
+    ptc_solver__get_array_index_elements(H, Indexs),
+	get_all_array_inputs(Indexs, Out),
+    ptc_solver__label_integers([Out]),
+    % concretise(char(Out),Result),
+    !,
+    concretise(T).
+
+concretise([declaration(int,[H|_])|T]) :-
     ptc_solver__label_integers([H]),
     !,
-    concretise(T),
-    concretise(TT).
+    concretise(T).
 
 % concretise(int(X),Out) :-
     % ptc_solver__label_integers([X]),
