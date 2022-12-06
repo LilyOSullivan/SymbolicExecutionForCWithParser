@@ -5,12 +5,15 @@
 :- export get_c_var_from_key/2.
 :- export get_ptc_var/2.
 :- export get_var_name/2.
+:- export get_type/2.
 
 %IDEA: This module predicates likely should have a prefix name to them
 %      Eg: c_var__get_ptc_var/2
 
-
-% c_var{type,ptc_variable,variable_name}
+%% if int/char:
+%%  c_var{type,ptc_variable,variable_name}
+%% if array:
+%%  c_var{type,ptc_variable,variable_name,array_size}
 :- meta_attribute(c_var, [unify:unify_c_var/2, print:print_c_var/2]).
 
 
@@ -46,8 +49,15 @@ get_c_var(_Var{C_var},Out) :-
         % C_var = Out. %This what a code example showed. Seems odd to me
         Out = C_var.
 
+get_type(Var,Out) :-
+    get_c_var(Var,{Out,_}),
+    !.
 get_ptc_var(Var,Out) :-
     get_c_var(Var,{_,Out,_}).
 
 get_var_name(Var,Out) :-
-    get_c_var(Var,{_,_,Out}).
+    get_c_var(Var,{_,_,Out,_}),
+    !.
+get_var_name(Var,Out) :-
+    get_c_var(Var,{_,_,Out}),
+    !.

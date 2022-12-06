@@ -50,10 +50,32 @@ evaluate_expression(Left<Right,Out) :-
     evaluate_expression(Right,Right_result),
     Out = (Left_result<Right_result).
 
+evaluate_expression(Left-Right,Out) :-
+    evaluate_expression(Left,Left_result),
+    evaluate_expression(Right,Right_result),
+    Out = (Left_result-Right_result).
+
+evaluate_expression(Left+Right,Out) :-
+    evaluate_expression(Left,Left_result),
+    evaluate_expression(Right,Right_result),
+    Out = (Left_result+Right_result).
+
+evaluate_expression(Left*Right,Out) :-
+    evaluate_expression(Left,Left_result),
+    evaluate_expression(Right,Right_result),
+    Out = (Left_result*Right_result).
+
+evaluate_expression(Left/Right,Out) :-
+    evaluate_expression(Left,Left_result),
+    evaluate_expression(Right,Right_result),
+    Out = (Left_result/Right_result).
+
+
 evaluate_expression(Array[Index],Out) :-
+    get_ptc_var(Array,Var),
     % The index could be an expression (Eg: Arr[2+2])
     evaluate_expression(Index,Result),
-    Out = element(Array,[Result]). % IDEA: possibly suspend/defer this, if variable
+    Out = element(Var,[Result]). % IDEA: possibly suspend/defer this, if variable
 
 evaluate_expression(Expression,Out) :-
     (

@@ -1,24 +1,23 @@
 % QUESTION: The test-case outputs likely either needs to be in it's own directory, or
 %       in the same directory as the .C file(s).
 
-% IDEA: In the interest of efficiency, some of the below printf's could be merged.
-%       Flush isn't called on every print, likely not too inefficient.
-
 %IDEA: Keep a running counter for the number of tab-indentation's desired
 
 %IDEA: It may be possible to use/return accumulators as-is instead of Out variables
 
-cunit_write_test_case_all(Function_name,Params,Return_value) :-
-    cunit_write_test_case(Function_name,Params,Return_value),
-    fail.
-cunit_write_test_case_all(_Function_name,_Params,_Return_value).
+cunit_write_test_case_all(Function_name,Params,Return_value,Return_type) :-
+    cunit_write_test_case(Function_name,Params,Return_value,Return_type),
+    fail,
+    !.
 
-cunit_write_test_case(Function_name,[void],_) :-
+%IDEA: Test cases could be generated
+%      Eg assert give_five() == 5
+cunit_write_test_case(Function_name,[void],_,_) :-
     write("No test cases to generate for "),
     writeln(Function_name),
     !.
 
-cunit_write_test_case(Function_name,Params,Return_value) :-
+cunit_write_test_case(Function_name,Params,Return_value,Return_type) :-
     concat_string([Function_name,"_tests"],Test_suite_name),
     concat_string([Test_suite_name,".c"],Test_suite_filename),
     concat_string([Test_suite_name,"_main.c"],Test_main_file),
@@ -26,7 +25,7 @@ cunit_write_test_case(Function_name,Params,Return_value) :-
         cunit_is_first_test(Test_suite_filename) ->
             open(Test_suite_filename, append,testcase),
             open(Test_suite_filename, read,testcase_read),
-            cunit_write_test_include
+            cunit_write_test_include(Function_name)
         ;
             % Put a new line to space out the test cases
             open(Test_suite_filename, append,testcase),
@@ -36,68 +35,49 @@ cunit_write_test_case(Function_name,Params,Return_value) :-
     open(Test_main_file, write,testcase_main),
     get_test_id(Test_id),
     term_string(Test_id,Test_id_as_string),
-    concat_string(["test_",Test_id_as_string],Test_name),
-    append_tests_cases(Test_name),
-    printf(testcase,"void %s(void) {\n\n",[Test_name]),
     New_test_id is Test_id + 1,
     set_test_id(New_test_id),
-
-
-    % %%% WRITE DECLARATION SECTION HERE
+    concat_string(["test_",Test_id_as_string],Test_name),
+    append_tests_cases(Test_name),
     create_declaration_section(Params,"",Declaration_section),
-    printf(testcase,Declaration_section,[]),
-    printf(testcase,"\n",[]),
-
-
-    cunit_write_cu_assert(Function_name,Params,Return_value),
-    printf(testcase,"}\n",[]),
-    cunit_write_main(Function_name,Test_suite_filename),
+    cunit_create_cu_assert(Function_name,Params,Return_value,Return_type,Assert),
+    sprintf(Complete_test_case,"void %s(void) {\n\n %s \n %s}\n",[Test_name,Declaration_section,Assert]),
+    printf(testcase,Complete_test_case,[]),
+    cunit_write_main(Test_suite_filename),
     close(testcase_main),
     close(testcase),
     close(testcase_read).
 
-% IDEA: Split main function string among multiple printf's
-cunit_write_main(Function_name,Tests_filename) :-
-    cunit_add_test_cases_to_suite(Test_cases_to_add_to_suite),
-    printf(testcase_main,"#include \"%s\"\n",[Tests_filename]),
+% IDEA: Split main function string among multiple strings
+cunit_write_main(Test_suite_filename) :-
+    cunit_add_test_cases_to_suite(Add_tests_to_suite_string),
 
     %HACK: Assuming filename and function-names are the same.
-    %      Filenames are not being received from the parser
-    concat_string([Function_name,".c"],File_name),
-    printf(testcase_main,"#include \"%s\"\n\n",[File_name]),
-    printf(testcase_main,"int main()\n{\n   if (CUE_SUCCESS != CU_initialize_registry())\n      return CU_get_error();\n\n   CU_pSuite pSuite = CU_add_suite(\"Suite_1\", NULL, NULL);\n   if (NULL == pSuite) {\n      CU_cleanup_registry();\n      return CU_get_error();\n   }\n\n   %s\n   CU_basic_set_mode(CU_BRM_VERBOSE);\n   CU_basic_run_tests();\n   CU_cleanup_registry();\n   return CU_get_error();\n}\n",[Test_cases_to_add_to_suite]).
+    %      Filenames are not being received from the parser yet
+    printf(testcase_main,"#include \"%s\"\n\n",[Test_suite_filename]),
+    printf(testcase_main,"int main()\n{\n   if (CUE_SUCCESS != CU_initialize_registry())\n      return CU_get_error();\n\n   CU_pSuite pSuite = CU_add_suite(\"Suite_1\", NULL, NULL);\n   if (NULL == pSuite) {\n      CU_cleanup_registry();\n      return CU_get_error();\n   }\n\n   %s\n   CU_basic_set_mode(CU_BRM_VERBOSE);\n   CU_basic_run_tests();\n   CU_cleanup_registry();\n   return CU_get_error();\n}\n",[Add_tests_to_suite_string]).
 
-%Create a string stream
 cunit_add_test_cases_to_suite(Out) :-
-    open(string(""), write, add_to_suite),
     get_test_cases(Tests),
-    cunit_add_to_suite_loop(Tests),
-    set_test_cases(Tests),
-    get_stream_info(add_to_suite, name, Out),
-    close(add_to_suite).
+    cunit_add_to_suite_loop(Tests,"",Out),
+    set_test_cases(Tests).
+% IDEA: The above and below functions could be merged and use a foreach
+cunit_add_to_suite_loop([],Accumulator,Out) :-
+    Out = Accumulator.
+cunit_add_to_suite_loop([Test_case|T],Accumulator,Out) :-
+    % The sprint and concat_string are split to reduce the amount of chars on a single line of code; Readability
+    sprintf(Result,"%s\tif (NULL == CU_add_test(pSuite, \"test case\", %s)) {\n\t\tCU_cleanup_registry();\n\t\treturn CU_get_error();\n\t}\n",[Accumulator,Test_case]),
+    cunit_add_to_suite_loop(T,Result,Out).
 
-cunit_add_to_suite_loop([]).
-cunit_add_to_suite_loop([Test_case|T]) :-
-    printf(add_to_suite,"\tif (NULL == CU_add_test(pSuite, \"test case\", %s)) {\n",[Test_case]),
-    printf(add_to_suite,"\t\tCU_cleanup_registry();\n", []),
-    printf(add_to_suite,"\t\treturn CU_get_error();\n\t}\n",[]),
-    cunit_add_to_suite_loop(T).
-
-%FIXME: I would like the return value to be after the == and function name to be first
-%       Eg: CU_ASSERT(function_name(x,y,z) == 0)
-cunit_write_cu_assert(Function_name,Params,Return_value) :-
-    printf(testcase,"\tCU_ASSERT(",[]),
-    term_string(Return_value,Return_value_as_string),
-    printf(testcase,Return_value_as_string,[]),
-    printf(testcase," == %s(",[Function_name]),
+cunit_create_cu_assert(Function_name,Params,Return_value,Return_type,Out) :-
+    create_return(Return_value,Return_type,Return_value_as_string),
     get_var_names(Params,"",Var_names),
-    printf(testcase,Var_names,[]),
-    printf(testcase,"));\n",[]).
+    sprintf(Out,"\tCU_ASSERT(%s(%s) == %s);\n",[Function_name,Var_names,Return_value_as_string]).
 
 % FIXME: I imagine this is possible to be written without the use of an if
 cunit_is_first_test(Filename) :-
     % The check for file size prevents read_string
-    % from prompting for the amount of characters to read
+    % from prompting for the amount of characters to read if the file is empty/does not exist
     (
         exists(Filename),get_file_info(Filename,size,File_size),File_size > 0 ->
             open(Filename, read,testcase_read),
@@ -108,9 +88,9 @@ cunit_is_first_test(Filename) :-
             true
     ).
 
-cunit_write_test_include :-
-    printf(testcase,"#include \"CUnit/Basic.h\"\n",[]).
-    % printf(testcase,"#include "%s.c"\n",[C_filename]).
+cunit_write_test_include(C_filename) :-
+    printf(testcase,"#include \"CUnit/Basic.h\"\n",[]),
+    printf(testcase,"#include \"%s.c\"\n",[C_filename]).
 
 
 gtest_write_test_case_all(Function_name,[void],_) :-
@@ -140,9 +120,7 @@ gtest_write_test_case(Function_name,Params,Return_value) :-
             % Put a new line to space out the test cases
             printf(testcase,"\n",[])
     ),
-    printf(testcase,"TEST(",[]),
-    printf(testcase,Test_suite_name,[]),
-    printf(testcase,",",[]),
+    printf(testcase,"TEST(%s,",[Test_suite_name]),
     get_test_id(Test_id),
     term_string(Test_id,Test_id_as_string),
     printf(testcase,Test_id_as_string,[]),
@@ -205,14 +183,6 @@ get_test_cases(New_cases) :-
     retract(tests(New_cases)),
     !.
 
-params_to_var_names([],Accumulator,Out) :-
-    strip_right_comma(Accumulator,Out).
-params_to_var_names([declaration(_,[H|_])|T],Accumulator,Out) :-
-    var_names(H,Var_name),
-    string_concat(Accumulator,Var_name,Result),
-    string_concat(Result,",",Result_with_comma),
-    params_to_var_names(T,Result_with_comma,Out).
-
 %IDEA: There could be a second function to remove the if, to simply be Out = In.
 %      Prolog will go to the alternative function when backtracking, however
 %      a choice point will be created, I do not want a choice point here, not
@@ -230,11 +200,10 @@ get_var_names([],Accumulator,Out) :-
     strip_right_comma(Accumulator,Out).
 get_var_names([declaration(_,[H|_])|T],Accumulator,Out) :-
     get_var_name(H,Var_name),
-    string_concat(Accumulator,Var_name,Result),
-    string_concat(Result,",",Result_with_comma),
-    get_var_names(T,Result_with_comma,Out).
+    sprintf(Result,"%s%s,",[Accumulator,Var_name]),
+    get_var_names(T,Result,Out).
 
-% Below modified from
+% Below reduce-predicate is modified from
 % https://stackoverflow.com/a/61809974
 reduce(_, [],  Default, Default).
 reduce(_, [A], _, A).
@@ -242,40 +211,57 @@ reduce(P3, [A,B|T], _, D):-
     call(P3, A, B, C),
     reduce(P3, [C|T], _, D),!.
 
-%IDEA: Some of the below concat's could be merged together
 create_declaration_section([],Accumulator,Out) :-
     Out = Accumulator.
 create_declaration_section([declaration(_,[H|_])|T],Accumulator,Out) :-
-    get_c_var(H,{Type,Var,Var_name}),
-    get_declaration_components(Type,Var,Type_declaration,Value_declaration),
-    string_concat(Accumulator,"\t",Result),
-    string_concat(Result,Type_declaration,Result2),
-    string_concat(Result2," ",Result3),
-    string_concat(Result3,Var_name,Result4),
-    string_concat(Result4," = ",Result5),
-    string_concat(Result5,Value_declaration,Result6),
-    string_concat(Result6,";\n",Result7),
-    create_declaration_section(T,Result7,Out).
+    get_c_var(H,{Type,_,_}),
+    create_single_declaration(Type,H,Declaration),
+    sprintf(Result,"%s%s",[Accumulator,Declaration]),
+    !,
+    create_declaration_section(T,Result,Out).
 
-get_declaration_components(int,Var,Type_declaration,Value_declaration) :-
-    Type_declaration = "int ",
-    term_string(Var,Value_declaration).
+create_single_declaration(int,Var,Out) :-
+    get_c_var(Var,{Type,Ptc_var,Var_name}),
+    term_string(Ptc_var,Value),
+    sprintf(Out,"\t%s %s = %s;\n",[Type,Var_name,Value]).
 
-
-get_declaration_components(intpointer,Var,Type_declaration,Value_declaration) :-
-    Type_declaration = "int[5] ",
-    ptc_solver__get_array_index_elements(Var, Indexs),
+create_single_declaration(intpointer,Var,Out) :-
+    get_c_var(Var,{_,Ptc_var,Var_name,Size}),
+    ptc_solver__get_array_index_elements(Ptc_var, Indexs),
     get_all_array_inputs(Indexs, Values),
     ( foreach(Value, Values), foreach(X, Values_as_string) do
         term_string(Value,Value_as_string),
-        string_concat(Value_as_string,",",X)
+        concat_string([Value_as_string,","],X)
     ),
     reduce(string_concat, Values_as_string, "", Result),
-    strip_right_comma(Result,Value_declaration).
+    strip_right_comma(Result,Result_stripped),
+    sprintf(Array_values,"{%s}",[Result_stripped]),
+    term_string(Size, Size_as_string),
+    sprintf(Out,"\t%s %s[%s] = %s;\n",["int",Var_name,Size_as_string,Array_values]).
+
+    create_single_declaration(charpointer,Var,Out) :-
+        get_c_var(Var,{_,Ptc_var,Var_name,Size}),
+        ptc_solver__get_array_index_elements(Ptc_var, Indexs),
+        get_all_array_inputs(Indexs, Values),
+        ( foreach(Value, Values), foreach(X, Values_as_string) do
+            % term_string(Value,Value_as_string),
+            string_codes(Value_as_string,[Value]),
+            concat_string(["'",Value_as_string,"',"],X)
+        ),
+        reduce(string_concat, Values_as_string, "", Result),
+        strip_right_comma(Result,Result_stripped),
+        sprintf(Array_values,"{%s}",[Result_stripped]),
+        term_string(Size, Size_as_string),
+        sprintf(Out,"\t%s %s[%s] = %s;\n",["char",Var_name,Size_as_string,Array_values]).
 
 % Unused, this provides a fallback
-get_type_declaration(Type,Var,Type_declaration,Value_declaration) :-
-    term_string(Type,Type_declaration),
-    term_string(Var,Value_declaration).
+create_single_declaration(Type,Var,Out) :-
+    get_c_var(Var,{Type,Ptc_var,Var_name}),
+    term_string(Ptc_var,Value),
+    sprintf(Out,"\t%s %s = %s;\n",[Type,Var_name,Value]).
 
-
+create_return(Return_value,int,Out) :-
+    term_string(Return_value, Out).
+create_return(Return_value,char,Out) :-
+    string_codes(Value_as_string,[Return_value]),
+    concat_string(["'",Value_as_string,"'"],Out)

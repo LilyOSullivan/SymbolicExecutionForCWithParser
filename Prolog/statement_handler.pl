@@ -1,14 +1,16 @@
+:- use_module(concretise).
+
 :- ['test_case_generation'].
 :- ['expressions'].
-:- ['concretise'].
 :- ['declaration'].
 
-function_handler(Function_Name,Body,Params,Return_Type) :-
+function_handler(Function_Name,Body,Params,Return_type) :-
     parameter_handler(Params),
-    statement_handler(Body,[_,Return_Value,Return_Type]),
+    statement_handler(Body,[_,Return_Value,Return_type]),
     concretise(Params),
     % gtest_write_test_case_all(Function_Name,Params,Return_Value).
-    cunit_write_test_case_all(Function_Name,Params,Return_Value).
+    cunit_write_test_case(Function_Name,Params,Return_Value,Return_type).
+% function_handler(_,_,_,_).
 
 % Without cut below it is matching [H|T] with H being void
 parameter_handler([void]):- !.
@@ -56,13 +58,15 @@ handle(if_statement(_Line_Number,expression(Constraint),If_body,Else_body),Retur
 handle(return(Expression),[Return_flag,Return_value,Return_type]) :-
     Return_flag = true,
     evaluate_expression(Expression,Expression_Result),
+    !,
     concretise(Expression_Result,Return_type,Out),
     Return_value = Out,
     writeln(Out).
 
 handle(assignment(X,Value),_) :-
     evaluate_expression(Value,Out),
-    ptc_solver__sdl(X=Out).
+    get_ptc_var(X,Var),
+    ptc_solver__sdl(Var=Out).
     % QUESTION: Is eq_cast needed above if X is an int?
     %           Eg: (Assuming is_integer returns true for integer variables)
     %               is_integer(X) ->
