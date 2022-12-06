@@ -16,6 +16,10 @@ evaluate_expression(not(Expression)) :-
     ptc_solver__sdl(not Result),
     !.
 
+% HACK: If this is not first, it will infinitely recurse into andop with get_sign, not sure why
+evaluate_expression(Expression,Out) :-
+    get_ptc_var(Expression,Out).
+
 evaluate_expression(andop(Left,Right),Out) :-
     evaluate_expression(Left,Left_Result),
     evaluate_expression(Right,Right_Result),
@@ -28,12 +32,23 @@ evaluate_expression(orop(Left,Right),Out) :-
 
 evaluate_expression(not(Expression),Out) :-
     evaluate_expression(Expression,Result),
-    Result = (not Out).
+    % Result = (not Out).
+    Out = (not Result).
 
 evaluate_expression(Left==Right,Out) :-
     evaluate_expression(Left,Left_result),
     evaluate_expression(Right,Right_result),
     Out = (Left_result=Right_result).
+
+evaluate_expression(Left>Right,Out) :-
+    evaluate_expression(Left,Left_result),
+    evaluate_expression(Right,Right_result),
+    Out = (Left_result>Right_result).
+
+evaluate_expression(Left<Right,Out) :-
+    evaluate_expression(Left,Left_result),
+    evaluate_expression(Right,Right_result),
+    Out = (Left_result<Right_result).
 
 evaluate_expression(Array[Index],Out) :-
     % The index could be an expression (Eg: Arr[2+2])
@@ -49,7 +64,7 @@ evaluate_expression(Expression,Out) :-
             Out = Expression
                 ;
         ptc_solver__sdl(Expression) -> % Default to ptc_solver__sdl
-            Out = true
+            Out = true  %QUESTION: What should be returned here?
     ).
 
 

@@ -7,7 +7,8 @@ function_handler(Function_Name,Body,Params,Return_Type) :-
     parameter_handler(Params),
     statement_handler(Body,[_,Return_Value,Return_Type]),
     concretise(Params),
-    write_test_cases(Function_Name,Params,Return_Value).
+    % gtest_write_test_case_all(Function_Name,Params,Return_Value).
+    cunit_write_test_case_all(Function_Name,Params,Return_Value).
 
 % Without cut below it is matching [H|T] with H being void
 parameter_handler([void]):- !.
@@ -15,7 +16,6 @@ parameter_handler([]).
 parameter_handler([H|T]) :-
     H, % This calls declaration predicates in declaration.pl
     parameter_handler(T).
-
 
 % IDEA: What if instead of Return_flag, it is checked if Return_value is instantiated?
 % QUESTION: What if a function returns nothing (void return)?

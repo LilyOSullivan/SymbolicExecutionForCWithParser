@@ -7,16 +7,18 @@ get_all_array_inputs([(_, Value)|Rest], [Value|Rest2]) :-
 concretise([void]) :- !.
 concretise([]).
 concretise([declaration(intpointer,[H|_])|T]) :-
-	ptc_solver__get_array_index_elements(H, Indexs),
+    get_ptc_var(H,Var),
+	ptc_solver__get_array_index_elements(Var, Indexs),
 	get_all_array_inputs(Indexs, Out),
     ptc_solver__label_integers([Out]),
     !,
     concretise(T).
 
-concretise([declaration(charpointer,[H|_])|T]) :-
+concretise([declaration([H|_])|T]) :-
     % Treating same as ints
     % Can call: concretise(char(Out),Result) to get 'char' result
-    ptc_solver__get_array_index_elements(H, Indexs),
+    get_ptc_var(H,Var),
+    ptc_solver__get_array_index_elements(Var, Indexs),
 	get_all_array_inputs(Indexs, Out),
     ptc_solver__label_integers([Out]),
     % concretise(char(Out),Result),
@@ -24,7 +26,8 @@ concretise([declaration(charpointer,[H|_])|T]) :-
     concretise(T).
 
 concretise([declaration(int,[H|_])|T]) :-
-    ptc_solver__label_integers([H]),
+    get_ptc_var(H,Var),
+    ptc_solver__label_integers([Var]),
     !,
     concretise(T).
 
