@@ -1,16 +1,16 @@
 :- use_module(concretise).
 
 :- ['test_case_generation'].
-:- ['expressions'].
-:- ['declaration'].
+:- use_module(declaration).
+:- use_module(expressions).
 
-function_handler(Function_Name,Body,Params,Return_type) :-
+function_handler(Filename,Function_Name,Body,Params,Return_type) :-
     parameter_handler(Params),
     statement_handler(Body,[_,Return_Value,Return_type]),
     concretise(Params),
-    % gtest_write_test_case_all(Function_Name,Params,Return_Value).
-    cunit_write_test_case(Function_Name,Params,Return_Value,Return_type).
-% function_handler(_,_,_,_).
+    % gtest_write_test_case_all(Filename,Function_Name,Params,Return_Value).
+    cunit_write_test_case_all(Filename,Function_Name,Params,Return_Value,Return_type).
+function_handler(_,_,_,_,_).
 
 % Without cut below it is matching [H|T] with H being void
 parameter_handler([void]):- !.
@@ -62,6 +62,11 @@ handle(return(Expression),[Return_flag,Return_value,Return_type]) :-
     concretise(Expression_Result,Return_type,Out),
     Return_value = Out,
     writeln(Out).
+
+handle(return,[Return_flag,Return_value,_]) :-
+    Return_flag = true,
+    Return_value = void,
+    writeln("Void Return").
 
 handle(assignment(X,Value),_) :-
     evaluate_expression(Value,Out),

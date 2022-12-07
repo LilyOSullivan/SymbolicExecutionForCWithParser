@@ -5,19 +5,22 @@
 
 %IDEA: It may be possible to use/return accumulators as-is instead of Out variables
 
-cunit_write_test_case_all(Function_name,Params,Return_value,Return_type) :-
-    cunit_write_test_case(Function_name,Params,Return_value,Return_type),
+:- use_module(utils).
+
+cunit_write_test_case_all(Filename,Function_name,Params,Return_value,Return_type) :-
+    cunit_write_test_case(Filename,Function_name,Params,Return_value,Return_type),
     fail,
     !.
 
-%IDEA: Test cases could be generated
+%IDEA: Test cases could be generated,
+%      though this assumes determinism
 %      Eg assert give_five() == 5
-cunit_write_test_case(Function_name,[void],_,_) :-
+cunit_write_test_case(_,Function_name,[void],_,_) :-
     write("No test cases to generate for "),
     writeln(Function_name),
     !.
 
-cunit_write_test_case(Function_name,Params,Return_value,Return_type) :-
+cunit_write_test_case(Filename,Function_name,Params,Return_value,Return_type) :-
     concat_string([Function_name,"_tests"],Test_suite_name),
     concat_string([Test_suite_name,".c"],Test_suite_filename),
     concat_string([Test_suite_name,"_main.c"],Test_main_file),
@@ -25,7 +28,7 @@ cunit_write_test_case(Function_name,Params,Return_value,Return_type) :-
         cunit_is_first_test(Test_suite_filename) ->
             open(Test_suite_filename, append,testcase),
             open(Test_suite_filename, read,testcase_read),
-            cunit_write_test_include(Function_name)
+            cunit_write_test_include(Filename)
         ;
             % Put a new line to space out the test cases
             open(Test_suite_filename, append,testcase),
@@ -51,9 +54,6 @@ cunit_write_test_case(Function_name,Params,Return_value,Return_type) :-
 % IDEA: Split main function string among multiple strings
 cunit_write_main(Test_suite_filename) :-
     cunit_add_test_cases_to_suite(Add_tests_to_suite_string),
-
-    %HACK: Assuming filename and function-names are the same.
-    %      Filenames are not being received from the parser yet
     printf(testcase_main,"#include \"%s\"\n\n",[Test_suite_filename]),
     printf(testcase_main,"int main()\n{\n   if (CUE_SUCCESS != CU_initialize_registry())\n      return CU_get_error();\n\n   CU_pSuite pSuite = CU_add_suite(\"Suite_1\", NULL, NULL);\n   if (NULL == pSuite) {\n      CU_cleanup_registry();\n      return CU_get_error();\n   }\n\n   %s\n   CU_basic_set_mode(CU_BRM_VERBOSE);\n   CU_basic_run_tests();\n   CU_cleanup_registry();\n   return CU_get_error();\n}\n",[Add_tests_to_suite_string]).
 
@@ -209,7 +209,8 @@ reduce(_, [],  Default, Default).
 reduce(_, [A], _, A).
 reduce(P3, [A,B|T], _, D):-
     call(P3, A, B, C),
-    reduce(P3, [C|T], _, D),!.
+    reduce(P3, [C|T], _, D),
+    !.
 
 create_declaration_section([],Accumulator,Out) :-
     Out = Accumulator.
@@ -228,7 +229,7 @@ create_single_declaration(int,Var,Out) :-
 create_single_declaration(intpointer,Var,Out) :-
     get_c_var(Var,{_,Ptc_var,Var_name,Size}),
     ptc_solver__get_array_index_elements(Ptc_var, Indexs),
-    get_all_array_inputs(Indexs, Values),
+    utils__get_all_array_inputs(Indexs, Values),
     ( foreach(Value, Values), foreach(X, Values_as_string) do
         term_string(Value,Value_as_string),
         concat_string([Value_as_string,","],X)
@@ -242,7 +243,7 @@ create_single_declaration(intpointer,Var,Out) :-
     create_single_declaration(charpointer,Var,Out) :-
         get_c_var(Var,{_,Ptc_var,Var_name,Size}),
         ptc_solver__get_array_index_elements(Ptc_var, Indexs),
-        get_all_array_inputs(Indexs, Values),
+        utils__get_all_array_inputs(Indexs, Values),
         ( foreach(Value, Values), foreach(X, Values_as_string) do
             % term_string(Value,Value_as_string),
             string_codes(Value_as_string,[Value]),

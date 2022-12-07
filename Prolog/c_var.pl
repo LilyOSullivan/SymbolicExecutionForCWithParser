@@ -49,11 +49,16 @@ get_c_var(_Var{C_var},Out) :-
         % C_var = Out. %This what a code example showed. Seems odd to me
         Out = C_var.
 
+get_ptc_from_c_var(C_var,Out) :-
+    C_var = {_,Out,_}.
+
 get_type(Var,Out) :-
     get_c_var(Var,{Out,_}),
     !.
+
 get_ptc_var(Var,Out) :-
-    get_c_var(Var,{_,Out,_}).
+    get_c_var(Var,{_,Out,_}),
+    !.
 
 get_var_name(Var,Out) :-
     get_c_var(Var,{_,_,Out,_}),
