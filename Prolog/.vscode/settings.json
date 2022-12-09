@@ -9,7 +9,10 @@
         "gtest",
         "Indexs",
         "intpointer",
+        "nonvar",
         "orop",
+        "sprintf",
+        "symb",
         "writeln"
     ]
 }
