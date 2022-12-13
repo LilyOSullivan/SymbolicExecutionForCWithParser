@@ -56,22 +56,12 @@ evaluate_expression(Left==Right,Out) :-
 evaluate_expression(Left>Right,Out) :-
     evaluate_expression(Left,Left_result),
     evaluate_expression(Right,Right_result),
-    (
-        ptc_solver__sdl(Left_result>Right_result) ->
-            Out = 1
-        ;
-            Out = 0
-    ).
+    Out = (Left_result<Right_result).
 
 evaluate_expression(Left<Right,Out) :-
     evaluate_expression(Left,Left_result),
     evaluate_expression(Right,Right_result),
-    (
-        ptc_solver__sdl(Left_result<Right_result) ->
-            Out = 1
-        ;
-            Out = 0
-    ).
+    Out = (Left_result<Right_result).
 
 evaluate_expression(Left-Right,Out) :-
     evaluate_expression(Left,Left_result),
