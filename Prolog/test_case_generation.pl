@@ -6,6 +6,8 @@
 %IDEA: It may be possible to use/return accumulators as-is instead of Out variables
 
 :- use_module(utils).
+:- use_module(c_var).
+
 
 cunit_write_test_case_all(Filename,Function_name,Params,Return_value,Return_type) :-
     cunit_write_test_case(Filename,Function_name,Params,Return_value,Return_type),
@@ -222,12 +224,12 @@ create_declaration_section([declaration(_,[H|_])|T],Accumulator,Out) :-
     create_declaration_section(T,Result,Out).
 
 create_single_declaration(int,Var,Out) :-
-    get_c_var(Var,{Type,Ptc_var,Var_name}),
-    term_string(Ptc_var,Value),
+    get_c_var(Var,{Type,{Ptc_in,_},Var_name}),
+    term_string(Ptc_in,Value),
     sprintf(Out,"\t%s %s = %s;\n",[Type,Var_name,Value]).
 
 create_single_declaration(intpointer,Var,Out) :-
-    get_c_var(Var,{_,Ptc_var,Var_name,Size}),
+    get_c_var(Var,{_,{Ptc_var,_},Var_name,Size}),
     ptc_solver__get_array_index_elements(Ptc_var, Indexs),
     utils__get_all_array_inputs(Indexs, Values),
     ( foreach(Value, Values), foreach(X, Values_as_string) do
@@ -240,24 +242,24 @@ create_single_declaration(intpointer,Var,Out) :-
     term_string(Size, Size_as_string),
     sprintf(Out,"\t%s %s[%s] = %s;\n",["int",Var_name,Size_as_string,Array_values]).
 
-    create_single_declaration(charpointer,Var,Out) :-
-        get_c_var(Var,{_,Ptc_var,Var_name,Size}),
-        ptc_solver__get_array_index_elements(Ptc_var, Indexs),
-        utils__get_all_array_inputs(Indexs, Values),
-        ( foreach(Value, Values), foreach(X, Values_as_string) do
-            % term_string(Value,Value_as_string),
-            string_codes(Value_as_string,[Value]),
-            concat_string(["'",Value_as_string,"',"],X)
-        ),
-        reduce(string_concat, Values_as_string, "", Result),
-        strip_right_comma(Result,Result_stripped),
-        sprintf(Array_values,"{%s}",[Result_stripped]),
-        term_string(Size, Size_as_string),
-        sprintf(Out,"\t%s %s[%s] = %s;\n",["char",Var_name,Size_as_string,Array_values]).
+create_single_declaration(charpointer,Var,Out) :-
+    get_c_var(Var,{_,{Ptc_var,_},Var_name,Size}),
+    ptc_solver__get_array_index_elements(Ptc_var, Indexs),
+    utils__get_all_array_inputs(Indexs, Values),
+    ( foreach(Value, Values), foreach(X, Values_as_string) do
+        % term_string(Value,Value_as_string),
+        string_codes(Value_as_string,[Value]),
+        concat_string(["'",Value_as_string,"',"],X)
+    ),
+    reduce(string_concat, Values_as_string, "", Result),
+    strip_right_comma(Result,Result_stripped),
+    sprintf(Array_values,"{%s}",[Result_stripped]),
+    term_string(Size, Size_as_string),
+    sprintf(Out,"\t%s %s[%s] = %s;\n",["char",Var_name,Size_as_string,Array_values]).
 
 % Unused, this provides a fallback
 create_single_declaration(Type,Var,Out) :-
-    get_c_var(Var,{Type,Ptc_var,Var_name}),
+    get_c_var(Var,{Type,{Ptc_var,_},Var_name}),
     term_string(Ptc_var,Value),
     sprintf(Out,"\t%s %s = %s;\n",[Type,Var_name,Value]).
 

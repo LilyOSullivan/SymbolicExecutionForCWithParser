@@ -30,8 +30,9 @@ evaluate_expression(not(Expression)) :-
 
 % HACK: If this is not first, it will infinitely recurse into andop with get_sign.
 %       I think this might be a tracer-visual bug
+
 evaluate_expression(Expression,Out) :-
-    get_ptc_var(Expression,Out).
+    get_ptc_in(Expression,Out).
 
 evaluate_expression(andop(Left,Right),Out) :-
     evaluate_expression(Left,Left_Result),
@@ -72,8 +73,10 @@ evaluate_expression(Left-Right,Out) :-
 evaluate_expression(Left+Right,Out) :-
     evaluate_expression(Left,Left_result),
     evaluate_expression(Right,Right_result),
-    utils__evaluate_to_int(Left_result+Right_result,Result),
-    Out = Result.
+    % utils__evaluate_to_int(Left_result+Right_result,Result),
+    % Out = Result.
+    Out = (Left_result+Right_result).
+
 
 evaluate_expression(Left*Right,Out) :-
     evaluate_expression(Left,Left_result),

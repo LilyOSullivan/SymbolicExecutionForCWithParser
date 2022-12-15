@@ -13,7 +13,7 @@
 concretise([void]) :- !.
 concretise([]).
 concretise([declaration(intpointer,[H|_])|T]) :-
-    get_ptc_var(H,Var),
+    get_ptc_in(H,Var),
 	ptc_solver__get_array_index_elements(Var, Indexs),
 	utils__get_all_array_inputs(Indexs, Out),
     ptc_solver__label_integers([Out]),
@@ -21,7 +21,7 @@ concretise([declaration(intpointer,[H|_])|T]) :-
     concretise(T).
 
 concretise([declaration(charpointer,[H|_])|T]) :-
-    get_ptc_var(H,Var),
+    get_ptc_in(H,Var),
     ptc_solver__get_array_index_elements(Var, Indexs),
 	utils__get_all_array_inputs(Indexs, Out),
     ptc_solver__label_integers([Out]),
@@ -30,8 +30,11 @@ concretise([declaration(charpointer,[H|_])|T]) :-
     concretise(T).
 
 concretise([declaration(int,[H|_])|T]) :-
-    get_ptc_var(H,Var),
-    ptc_solver__label_integers([Var]),
+    get_ptc_in(H,In),
+    get_ptc_out(H,Out),
+    ptc_solver__label_integers([In]),
+    !,
+    ptc_solver__label_integers([Out]),
     !,
     concretise(T).
 

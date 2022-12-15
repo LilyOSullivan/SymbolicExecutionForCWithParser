@@ -70,7 +70,7 @@ handle(return,[Return_flag,Return_value,_]) :-
 
 handle(assignment(X,Value),_) :-
     evaluate_expression(Value,Out),
-    get_ptc_var(X,Var),
+    get_ptc_out(X,Var),
     ptc_solver__sdl(Var=Out).
     % QUESTION: Is eq_cast needed above if X is an int?
     %           Eg: (Assuming is_integer returns true for integer variables)

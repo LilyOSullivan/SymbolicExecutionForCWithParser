@@ -2,6 +2,7 @@
 
 :- export main/2.
 :- export clean/0.
+:- export temp/0.
 
 :- lib(ptc_solver).
 :- use_module(utils).
@@ -50,3 +51,12 @@ clean :-
     close(testcase_read),
     close(testcase_main),
     close(testcase).
+
+
+temp :-
+    ptc_solver__clean_up,
+    ptc_solver__default_declarations,
+    ptc_solver__variable([Out],integer),
+    ptc_solver__variable([In],integer),
+    ptc_solver__sdl(Out = In + 1),
+    ptc_solver__label_integers([Out,In]),!.
