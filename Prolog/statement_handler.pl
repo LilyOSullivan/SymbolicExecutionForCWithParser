@@ -69,14 +69,13 @@ handle(return,[Return_flag,Return_value,_]) :-
     writeln("Void Return").
 
 handle(assignment(X,Expression),_) :-
-    evaluate_expression(Expression,Out),
+    evaluate_expression(Expression,Evaluated_expression),
     !,
-    c_var__get_out_var(X,Out_c_var),
     c_var__get_type(X,Type),
     utils__ptc_type(Type,Ptc_type),
     ptc_solver__variable([Temp],Ptc_type),
-    ptc_solver__sdl(eq_cast(Temp,Out)),
-    ptc_solver__sdl(eq_cast(Out_c_var,Temp)).
+    ptc_solver__sdl(eq_cast(Temp,Evaluated_expression)),
+    c_var__set_out_var(X,Temp).
     % ptc_solver__sdl(Out_c_var=Var).
     % Set Out variable to Var
 
