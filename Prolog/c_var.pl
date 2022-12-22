@@ -7,13 +7,8 @@
 :- export c_var__get_in_var/2.
 :- export c_var__get_out_var/2.
 
-%IDEA: This module predicates likely should have a prefix name to them
-%      Eg: c_var__get_ptc_var/2
-
 %% if int/char:
 %%  c_var{type,{In,Out},variable_name}
-%% if array:
-%%  c_var{type,ptc_var{In,Out},variable_name,array_size}
 :- meta_attribute(c_var, [unify:unify_c_var/2, print:print_c_var/2]).
 
 % get_attribute(_{Name:Attribute}, A) :-

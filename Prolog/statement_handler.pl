@@ -76,7 +76,7 @@ handle(assignment(X,Expression),_) :-
     utils__ptc_type(Type,Ptc_type),
     ptc_solver__variable([Temp],Ptc_type),
     ptc_solver__sdl(eq_cast(Temp,Out)),
-    ptc_solver__sdl(eq_cast(Out,Temp-1+1)).
+    ptc_solver__sdl(eq_cast(Out,Temp)).
     % ptc_solver__sdl(Out_c_var=Var).
     % Set Out variable to Var
 
