@@ -40,7 +40,7 @@ statement_handler([H|T], [Return_flag|Rest]) :-
 handle(List_Of_Statements, Return_flags) :-
     statement_handler(List_Of_Statements, Return_flags).
 
-%% This occurs if a variable is declared in the function body and are not arguments
+%% This occurs if a variable is declared in the function body
 handle(declaration(Type, Vars), _) :-
     declaration(Type, Vars).
 
@@ -68,15 +68,14 @@ handle(return, [Return_flag, Return_value, _]) :-
     Return_value = void,
     writeln("Void Return").
 
-handle(assignment(X, Expression), _) :-
+handle(assignment(Variable, Expression), _) :-
     evaluate_expression(Expression, Evaluated_expression),
     !,
-    c_var__get_type(X, Type),
+    c_var__get_type(Variable, Type),
     utils__ptc_type(Type, Ptc_type),
     ptc_solver__variable([Temp], Ptc_type),
     ptc_solver__sdl(eq_cast(Temp, Evaluated_expression)),
-    c_var__set_out_var(X, Temp).
-
+    c_var__set_out_var(Variable, Temp).
 
     % QUESTION: Is eq_cast needed above if X is an int?
     %           Eg: (Assuming is_integer returns true for integer variables)

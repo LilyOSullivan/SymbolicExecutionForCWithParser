@@ -80,7 +80,8 @@ cunit_create_cu_assert(Function_name, Params, Return_value, Return_type, Out) :-
 % FIXME: I imagine this is possible to be written without the use of an if
 cunit_is_first_test(Filename) :-
     % The check for file size prevents read_string
-    % from prompting for the amount of characters to read if the file is empty/does not exist
+    % from prompting for the amount of characters to read
+    % if the file is empty/does not exist
     (
         exists(Filename), get_file_info(Filename, size, File_size), File_size > 0 ->
             open(Filename, read, testcase_read),

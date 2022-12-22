@@ -1,8 +1,6 @@
 % IDEA: There likely needed to be a handling of "true" and "false", as C
 %       Possibly true = 1, false = 0?
 
-%FIXME: utils__evaluate_to_int will not work for floats
-
 :- module(expressions).
 
 :- export evaluate_expression/1.
@@ -47,7 +45,6 @@ evaluate_expression(orop(Left, Right), Out) :-
 
 evaluate_expression(not(Expression), Out) :-
     evaluate_expression(Expression, Result),
-    % Result = (not Out).
     Out = (not Result).
 
 evaluate_expression(Left==Right, Out) :-
@@ -84,8 +81,6 @@ evaluate_expression(Left-Right, Out) :-
 evaluate_expression(Left+Right, Out) :-
     evaluate_expression(Left, Left_result),
     evaluate_expression(Right, Right_result),
-    % utils__evaluate_to_int(Left_result+Right_result, Result),
-    % Out = Result.
     Out = (Left_result+Right_result).
 
 
@@ -110,7 +105,7 @@ evaluate_expression(Expression, Out) :-
         number(Expression) ->
             Out = Expression
                 ;
-        ptc_solver__is_integer(Expression) -> %TODO: I think this check if now unneeded
+        ptc_solver__is_integer(Expression) -> %TODO: I think this check is now unneeded
             Out = Expression
             ;
         (

@@ -2,7 +2,6 @@
 
 :- export c_array__create/2.
 :- export c_array__get_all/2.
-% :- export get_ptc_var/2.
 :- export c_array__get_name/2.
 :- export c_array__get_type/2.
 :- export c_array__get_in_var/2.
