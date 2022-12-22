@@ -1,7 +1,5 @@
 :- module(c_var).
 
-:- lib(ptc_solver).
-
 :- export c_var__create/4.
 :- export c_var__get_name/2.
 :- export c_var__get_type/2.
