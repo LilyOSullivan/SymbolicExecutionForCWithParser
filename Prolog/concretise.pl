@@ -47,5 +47,5 @@ concretise(Expression, Type, Var_concrete) :-
             utils__evaluate_to_int(Expression, Var_concrete)
             ;
         Type == char ->
-            utils__evaluate_to_int(Expression, Var_concrete).
+            utils__evaluate_to_int(Expression, Var_concrete)
     ).
