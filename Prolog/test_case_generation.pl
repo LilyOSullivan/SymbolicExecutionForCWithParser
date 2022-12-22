@@ -49,7 +49,7 @@ cunit_write_test_case(Filename, Function_name, Params, Return_value, Return_type
     concat_string(["test_", Test_id_as_string], Test_name),
     append_tests_cases(Test_name),
     create_declaration_section(Params, "", Declaration_section),
-    cunit_create_cu_assert(Function_name, Params, Return_value, Return_type, Assert),
+    cunit_create_assert(Function_name, Params, Return_value, Return_type, Assert),
     sprintf(Complete_test_case, "void %s(void) {\n\n %s \n %s}\n", [Test_name, Declaration_section, Assert]),
     printf(testcase, Complete_test_case, []),
     cunit_write_main(Test_suite_filename),
@@ -68,15 +68,14 @@ cunit_add_test_cases_to_suite(Out) :-
     get_test_cases(Tests),
     cunit_add_to_suite_loop(Tests, "", Out),
     set_test_cases(Tests).
-% IDEA: The above and below functions could be merged and use a foreach
-cunit_add_to_suite_loop([], Accumulator, Out) :-
-    Out = Accumulator.
+
+cunit_add_to_suite_loop([], Accumulator, Accumulator).
 cunit_add_to_suite_loop([Test_case|T], Accumulator, Out) :-
     % The sprint and concat_string are split to reduce the amount of chars on a single line of code; Readability
     sprintf(Result, "%s\tif (NULL == CU_add_test(pSuite, \"test case\", %s)) {\n\t\tCU_cleanup_registry();\n\t\treturn CU_get_error();\n\t}\n", [Accumulator, Test_case]),
     cunit_add_to_suite_loop(T, Result, Out).
 
-cunit_create_cu_assert(Function_name, Params, Return_value, Return_type, Out) :-
+cunit_create_assert(Function_name, Params, Return_value, Return_type, Out) :-
     create_return(Return_value, Return_type, Return_value_as_string),
     get_var_names(Params, "", Var_names),
     sprintf(Out, "\tCU_ASSERT(%s(%s) == %s);\n", [Function_name, Var_names, Return_value_as_string]).
@@ -201,14 +200,10 @@ get_test_cases(New_cases) :-
     retract(tests(New_cases)),
     !.
 
-%IDEA: There could be a second function to remove the if, to simply be Out = In.
-%      Prolog will go to the alternative function when backtracking, however
-%      a choice point will be created, I do not want a choice point here, not
-%      a desire to use a cut
 %% Removes the last character if it is a comma
 strip_right_comma(In, Out) :-
     (
-        sub_string(In, _, 1, 0, ", ") ->
+        sub_string(In, _, 1, 0, ",") ->
             sub_string(In, 0, _, 1, Out)
         ;
             Out = In
@@ -218,23 +213,24 @@ get_var_names([], Accumulator, Out) :-
     strip_right_comma(Accumulator, Out).
 get_var_names([declaration(int, [H|_])|T], Accumulator, Out) :-
     c_var__get_name(H, Var_name),
-    sprintf(Result, "%s%s, ", [Accumulator, Var_name]),
+    sprintf(Result, "%s%s,", [Accumulator, Var_name]),
     get_var_names(T, Result, Out).
 get_var_names([declaration(intpointer, [H|_])|T], Accumulator, Out) :-
     c_array__get_name(H, Var_name),
-    sprintf(Result, "%s%s, ", [Accumulator, Var_name]),
+    sprintf(Result, "%s%s,", [Accumulator, Var_name]),
     get_var_names(T, Result, Out).
 get_var_names([declaration(charpointer, [H|_])|T], Accumulator, Out) :-
     c_array__get_name(H, Var_name),
-    sprintf(Result, "%s%s, ", [Accumulator, Var_name]),
+    sprintf(Result, "%s%s,", [Accumulator, Var_name]),
     get_var_names(T, Result, Out).
 
 % Below reduce-predicate is modified from
 % https://stackoverflow.com/a/61809974
-%% A predicate that applies a function to each element in a list,
+%% Applies a predicate to each element in a list,
 %% and accumulates the return to a singular value.
 %% This is used primarily to concatenate a list of strings together.
-%% An implementation of reduce in the map-reduce pattern.
+%% An implementation of reduce in the map-reduce pattern,
+% or fold-left in some functional languages.
 reduce(_, [],  Default, Default).
 reduce(_, [A], _, A).
 reduce(P3, [A, B|T], _, D):-
@@ -242,10 +238,7 @@ reduce(P3, [A, B|T], _, D):-
     reduce(P3, [C|T], _, D),
     !.
 
-%IDEA: It might be possible to reduce this to a single line assignment
-%      Eg: create_declaration_section([], Out, Out).
-create_declaration_section([], Accumulator, Out) :-
-    Out = Accumulator.
+create_declaration_section([], Accumulator, Accumulator).
 create_declaration_section([declaration(int, [H|_])|T], Accumulator, Out) :-
     c_var__get_type(H, Type),
     create_single_declaration(Type, H, Declaration),
@@ -276,7 +269,7 @@ create_single_declaration(intpointer, Var, Out) :-
     utils__get_all_array_inputs(Indexs, Values),
     ( foreach(Value, Values), foreach(X, Values_as_string) do
         term_string(Value, Value_as_string),
-        concat_string([Value_as_string, ", "], X)
+        concat_string([Value_as_string, ","], X)
     ),
     reduce(string_concat, Values_as_string, "", Result),
     strip_right_comma(Result, Result_stripped),
@@ -291,19 +284,13 @@ create_single_declaration(charpointer, Var, Out) :-
     ( foreach(Value, Values), foreach(X, Values_as_string) do
         % term_string(Value, Value_as_string),
         string_codes(Value_as_string, [Value]),
-        concat_string(["'", Value_as_string, "', "], X)
+        concat_string(["'", Value_as_string, "',"], X)
     ),
     reduce(string_concat, Values_as_string, "", Result),
     strip_right_comma(Result, Result_stripped),
     sprintf(Array_values, "{%s}", [Result_stripped]),
     term_string(Size, Size_as_string),
     sprintf(Out, "\t%s %s[%s] = %s;\n", ["char", Var_name, Size_as_string, Array_values]).
-
-% Unused, this provides a fallback
-create_single_declaration(_, C_var, Out) :-
-    c_var__get_all(C_var, Var_type, Ptc_var, Var_name),
-    term_string(Ptc_var, Ptc_var_as_string),
-    sprintf(Out, "\t%s %s = %s;\n", [Var_type, Var_name, Ptc_var_as_string]).
 
 create_return(Return_value, int, Out) :-
     term_string(Return_value, Out).
