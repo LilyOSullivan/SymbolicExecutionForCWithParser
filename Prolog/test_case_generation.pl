@@ -228,19 +228,19 @@ reduce(P3, [A,B|T], _, D):-
 create_declaration_section([],Accumulator,Out) :-
     Out = Accumulator.
 create_declaration_section([declaration(int,[H|_])|T],Accumulator,Out) :-
-    c_var__get_type(H,{Type,_,_}),
+    c_var__get_type(H,Type),
     create_single_declaration(Type,H,Declaration),
     sprintf(Result,"%s%s",[Accumulator,Declaration]),
     !,
     create_declaration_section(T,Result,Out).
 create_declaration_section([declaration(intpointer,[H|_])|T],Accumulator,Out) :-
-    c_var__get_type(H,{Type,_,_}),
+    c_array__get_type(H,{Type,_,_}),
     create_single_declaration(Type,H,Declaration),
     sprintf(Result,"%s%s",[Accumulator,Declaration]),
     !,
     create_declaration_section(T,Result,Out).
 create_declaration_section([declaration(charpointer,[H|_])|T],Accumulator,Out) :-
-    c_var__get_type(H,{Type,_,_}),
+    c_array__get_type(H,{Type,_,_}),
     create_single_declaration(Type,H,Declaration),
     sprintf(Result,"%s%s",[Accumulator,Declaration]),
     !,
