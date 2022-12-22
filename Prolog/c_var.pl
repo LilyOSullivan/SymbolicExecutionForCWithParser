@@ -51,27 +51,27 @@ c_var__get_all(_Var{C_var},Type,In,Name) :-
         C_var = {Type,In,_,Name}.
 
 %% Returns the type of the c_var
-c_var__get_type(C_var,Type) :-
+c_var__get_type(_Var{C_var},Type) :-
     -?->
-        C_var = {Type,_}.
+        C_var = {Type,_,_,_}.
 
 %% Returns the name in the source code of the c_var
-c_var__get_name(C_var,Name) :-
+c_var__get_name(_Var{C_var},Name) :-
     -?->
         C_var = {_,_,_,Name}.
 
 %% Returns the in-value of the c_var
-c_var__get_in_var(C_var,In_var) :-
+c_var__get_in_var(_Var{C_var},In_var) :-
     -?->
         C_var = {_,In_var,_,_}.
 
 %% Returns the out-value of the c_var
-c_var__get_out_var(C_var,Out_var) :-
+c_var__get_out_var(_Var{C_var},Out_var) :-
     -?->
         C_var = {_,_,Out_var,_}.
 
 %% Returns the out-value of the c_var
-c_var__set_out_var(C_var,Value) :-
+c_var__set_out_var(_Var{C_var},Value) :-
     -?->
         setarg(3,C_var,Value).
         % c_var__get_out_var(C_var,Out_var),
