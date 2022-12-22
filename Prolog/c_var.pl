@@ -61,7 +61,7 @@ c_var__get_name(C_var,Out) :-
     get_c_var(C_var,{_,_,Out,_}),
     !.
 
-c_var__get_name(C_varVar,Out) :-
+c_var__get_name(C_var,Out) :-
     get_c_var(C_var,{_,_,Out}),
     !.
 
@@ -69,6 +69,6 @@ c_var__get_in_var(C_var,Out) :-
     get_c_var(C_var,{_,{Out,_},_}),
     !.
 
-c_var__get_out_var(Var,Out) :-
+c_var__get_out_var(C_var,Out) :-
     get_c_var(C_var,{_,{_,Out},_}),
     !.

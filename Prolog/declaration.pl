@@ -12,7 +12,8 @@ declaration(int,[H|T]) :-
     utils__var_name(H_copy,Name),
     ptc_solver__variable([In],integer),
     ptc_solver__variable([Out],integer),
-    add_to_c_var(C,{int,{In,Out},Name}),
+    ptc_solver__sdl(eq_cast(Out,In-1+1)),
+    c_var__create(C,{int,{In,Out},Name}),
     H = C,
     declaration(int,T),
     !.
