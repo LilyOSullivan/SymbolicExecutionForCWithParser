@@ -14,24 +14,30 @@
 
 %% The entrypoint to the program
 main(Filename_without_extension, Function_name) :-
+    setup_symbEx,
     concat_string([Filename_without_extension, ".pl"], Prolog_file),
     % concat_string([File, ".c"], C_file),
     compile(Prolog_file),
     function_definition(Function_name, Params, Body, Return_type), % Match from database
     symbEx(Filename_without_extension, Function_name, Params, Body, Return_type). % Execute the function
 
+%% Setup the symbolic execution environment
+setup_symbEx :-
+    ptc_solver__clean_up,
+    ptc_solver__default_declarations,
+    ptc_solver__type(char, integer, range_bounds(0, 255)).
+
 function_definition(_, _, _, _).
 
+%% The predicate to begin symbolic execution
 symbEx(Filename, Function_name, Params, Body, Return_Type) :-
-    setup(Filename, Function_name),
+    setup_for_function(Filename, Function_name),
     function_handler(Filename, Function_name, Body, Params, Return_Type).
 
 % QUESTION: How would id's work across multiple functions?
 %           Possibly a merge-term of the function name per assert?
-setup(Filename, Function_name) :-
-    ptc_solver__clean_up,
-    ptc_solver__default_declarations,
-    ptc_solver__type(char, integer, range_bounds(0, 255)),
+%% Setup used for each function
+setup_for_function(Filename, Function_name) :-
     % FIXME: The below may not have permission to delete if the previous Prolog iteration
     % failed, mostly useful for development,
     % As the test cases will leave the streams open

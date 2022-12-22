@@ -12,6 +12,8 @@
 % The cut is needed here. Otherwise Prolog attempts to match it with other concretise predicates
 concretise([void]) :- !.
 concretise([]).
+
+%% Labels an integer array
 concretise([declaration(intpointer, [Variable|_])|Rest]) :-
     c_array__get_in_var(Variable, In_var),
 	ptc_solver__get_array_index_elements(In_var, Indexs),
@@ -20,6 +22,7 @@ concretise([declaration(intpointer, [Variable|_])|Rest]) :-
     !,
     concretise(Rest).
 
+%% Labels a character array
 concretise([declaration(charpointer, [H|_])|T]) :-
     c_array__get_in_var(H, Var),
     ptc_solver__get_array_index_elements(Var, Indexs),
@@ -28,21 +31,21 @@ concretise([declaration(charpointer, [H|_])|T]) :-
     !,
     concretise(T).
 
+%% Labels a singular integer
 concretise([declaration(int, [Variable|_])|Rest]) :-
     c_var__get_in_var(Variable, In_var),
     ptc_solver__label_integers([In_var]),
     !,
     concretise(Rest).
 
-concretise(char(Variable), Var_concrete) :-
-    utils__evaluate_to_int(Variable, Var_concrete).
-
+% IDEA: This predicate is a likely candidate to be removed
+%% Label an expression passed in based on the type desired
 %% This concretise variant is called upon a return statement
-concretise(Variable, Type, Var_concrete) :-
+concretise(Expression, Type, Var_concrete) :-
     (
         Type == int ->
-            utils__evaluate_to_int(Variable, Var_concrete)
+            utils__evaluate_to_int(Expression, Var_concrete)
             ;
         Type == char ->
-            concretise(char(Variable), Var_concrete)
+            utils__evaluate_to_int(Expression, Var_concrete).
     ).

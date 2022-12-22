@@ -17,11 +17,13 @@
 :- op(1200, xfy, or_else).
 % :- op(1200, xfy, or).
 
+%% Evaluate an expression. Failing if it is invalid, passing if it is valid.
 evaluate_expression(Expression) :-
     evaluate_expression(Expression, Result),
     ptc_solver__sdl(Result),
     !.
 
+%% Evaluate a not expression. Failing if it is invalid, passing if it is valid.
 evaluate_expression(not(Expression)) :-
     evaluate_expression(Expression, Result),
     ptc_solver__sdl(not Result),
@@ -67,10 +69,10 @@ evaluate_expression(Left<Right, Out) :-
     evaluate_expression(Right, Right_result),
     Out = (Left_result<Right_result).
 
-    evaluate_expression(Left<=Right, Out) :-
-        evaluate_expression(Left, Left_result),
-        evaluate_expression(Right, Right_result),
-        Out = (Left_result<=Right_result).
+evaluate_expression(Left<=Right, Out) :-
+    evaluate_expression(Left, Left_result),
+    evaluate_expression(Right, Right_result),
+    Out = (Left_result<=Right_result).
 
 evaluate_expression(Left-Right, Out) :-
     evaluate_expression(Left, Left_result),
@@ -82,7 +84,6 @@ evaluate_expression(Left+Right, Out) :-
     evaluate_expression(Left, Left_result),
     evaluate_expression(Right, Right_result),
     Out = (Left_result+Right_result).
-
 
 evaluate_expression(Left*Right, Out) :-
     evaluate_expression(Left, Left_result),
@@ -115,5 +116,3 @@ evaluate_expression(Expression, Out) :-
                 Out = 0
         )
     ).
-
-

@@ -9,6 +9,8 @@
 :- use_module(utils).
 
 declaration(_, []).
+
+%% Declare an integer variable
 declaration(int, [Variable|Rest]) :-
     copy_term(Variable, Variable_copy),
     utils__var_name(Variable_copy, Variable_name),
@@ -18,6 +20,7 @@ declaration(int, [Variable|Rest]) :-
     declaration(int, Rest),
     !.
 
+%% Declare an integer array
 declaration(intpointer, [Variable|Rest]) :-
     % term_string(IndexType, "indexType5"),
     % term_string(ArrayType, "arrayType5"),
@@ -35,6 +38,7 @@ declaration(intpointer, [Variable|Rest]) :-
     declaration(intpointer, Rest),
     !.
 
+%% Declare a character array
 declaration(charpointer, [Variable|Rest]) :-
     % term_string(IndexType, "indexType5"),
     % term_string(ArrayType, "arrayType5"),
