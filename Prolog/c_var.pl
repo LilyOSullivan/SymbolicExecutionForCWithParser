@@ -46,9 +46,7 @@ print_c_var(_{c_var:{_type,_in,_out,Name}},Print_value) :-
 
 %% Constructor for a c_var
 c_var__create(Type,In,Var_name,C_var_instantiated) :-
-    ptc_solver__variable([Out],integer),
-    ptc_solver__sdl(Out=In),
-    add_attribute(C_var_instantiated,{Type,In,Out,Var_name}).
+    add_attribute(C_var_instantiated,{Type,In,In,Var_name}).
 
 c_var__get_all(_Var{C_var},Type,In,Name) :-
     -?->
