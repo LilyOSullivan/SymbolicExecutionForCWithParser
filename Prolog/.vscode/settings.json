@@ -11,6 +11,7 @@
         "intpointer",
         "nonvar",
         "orop",
+        "setarg",
         "sprintf",
         "symb",
         "writeln"

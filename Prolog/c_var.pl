@@ -9,7 +9,7 @@
 :- export c_var__get_all/4.
 
 %% c_var structure:
-%%  c_var{type,In,Out,variable_name}
+%%  c_var{type,in,out,c_source_variable_name}
 
 %% Declare c_var as an attributed variable
 :- meta_attribute(c_var, [unify:unify_c_var/2, print:print_c_var/2]).
@@ -44,33 +44,31 @@ print_c_var(_{c_var:{_type,_in,_out,Name}},Print_value) :-
 
 %% Constructor for a c_var
 c_var__create(Type,In,Var_name,C_var_instantiated) :-
-    add_attribute({Type,In,_Out,Var_name},C_var_instantiated).
+    add_attribute(C_var_instantiated,{Type,In,_Out,Var_name}).
 
-%% Returns all the values 'stored' in a c_var
-%% This is no exported and used internally in the c_var module
-get_c_var(_Var{C_var},Return_value) :-
+c_var__get_all(_Var{C_var},Type,In,Name) :-
     -?->
-        nonvar(C_var),
-        Return_value = C_var.
-
-c_var__get_all(C_var,Type,In,Name) :-
-    get_c_var(C_var,{Type,In,_,Name}).
+        C_var = {Type,In,_,Name}.
 
 %% Returns the type of the c_var
 c_var__get_type(C_var,Type) :-
-    get_c_var(C_var,{Type,_}).
+    -?->
+        C_var = {Type,_}.
 
 %% Returns the name in the source code of the c_var
 c_var__get_name(C_var,Name) :-
-    get_c_var(C_var,{_,_,Name}).
+    -?->
+        C_var = {_,_,_,Name}.
 
 %% Returns the in-value of the c_var
 c_var__get_in_var(C_var,In_var) :-
-    get_c_var(C_var,{_,In_var,_,_}).
+    -?->
+        C_var = {_,In_var,_,_}.
 
 %% Returns the out-value of the c_var
 c_var__get_out_var(C_var,Out_var) :-
-    get_c_var(C_var,{_,_,Out_var,_}).
+    -?->
+        C_var = {_,_,Out_var,_}.
 
 %% Returns the out-value of the c_var
 c_var__set_out_var(C_var,Value) :-
