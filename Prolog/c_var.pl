@@ -44,31 +44,31 @@ print_c_var(_{c_var:{_type,_in,_out,Name}},Print_value) :-
 
 %% Constructor for a c_var
 c_var__create(Type,In,Var_name,C_var_instantiated) :-
-    add_attribute(C_var_instantiated,{Type,In,In,Var_name}).
+    add_attribute(C_var_instantiated,cvar(Type,In,In,Var_name)).
 
 c_var__get_all(_Var{C_var},Type,In,Name) :-
     -?->
-        C_var = {Type,In,_,Name}.
+        C_var = cvar(Type,In,_,Name).
 
 %% Returns the type of the c_var
 c_var__get_type(_Var{C_var},Type) :-
     -?->
-        C_var = {Type,_,_,_}.
+        C_var = cvar(Type,_,_,_).
 
 %% Returns the name in the source code of the c_var
 c_var__get_name(_Var{C_var},Name) :-
     -?->
-        C_var = {_,_,_,Name}.
+        C_var = cvar(_,_,_,Name).
 
 %% Returns the in-value of the c_var
 c_var__get_in_var(_Var{C_var},In_var) :-
     -?->
-        C_var = {_,In_var,_,_}.
+        C_var = cvar(_,In_var,_,_).
 
 %% Returns the out-value of the c_var
 c_var__get_out_var(_Var{C_var},Out_var) :-
     -?->
-        C_var = {_,_,Out_var,_}.
+        C_var = cvar(_,_,Out_var,_).
 
 %% Returns the out-value of the c_var
 c_var__set_out_var(_Var{C_var},Value) :-
