@@ -11,8 +11,8 @@
 %%  c_var{type,In,Out,variable_name,array_size}
 :- meta_attribute(c_array, [unify:unify_c_array/2, print:print_c_array/2]).
 
-c_array__create(Var,Out) :-
-    add_attribute(Var,Out).
+c_array__create(Var, Out) :-
+    add_attribute(Var, Out).
 
 unify_c_array(_,Attr):-
     var(Attr).

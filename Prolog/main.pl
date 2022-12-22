@@ -2,8 +2,6 @@
 
 :- export main/2.
 :- export clean/0.
-:- export temp/2.
-
 
 :- lib(ptc_solver).
 :- use_module(utils).
@@ -14,36 +12,36 @@
 %FIXME: A charpointer array can generate '\' which breaks the C code.
 
 %% The entrypoint to the program
-main(File,Function_name) :-
-    concat_string([File,".pl"],Prolog_file),
-    % concat_string([File,".c"],C_file),
+main(File, Function_name) :-
+    concat_string([File, ".pl"], Prolog_file),
+    % concat_string([File, ".c"], C_file),
     compile(Prolog_file),
-    function_definition(Function_name,Params,Body,Return_type), % Match from database
-    symbEx(File,Function_name,Params,Body,Return_type). % Execute the function
+    function_definition(Function_name, Params, Body, Return_type), % Match from database
+    symbEx(File, Function_name, Params, Body, Return_type). % Execute the function
 
-function_definition(_,_,_,_).
+function_definition(_, _, _, _).
 
-symbEx(Filename,Function_name,Params,Body,Return_Type) :-
-    setup(Filename,Function_name),
-    function_handler(Filename,Function_name,Body,Params,Return_Type).
+symbEx(Filename, Function_name, Params, Body, Return_Type) :-
+    setup(Filename, Function_name),
+    function_handler(Filename, Function_name, Body, Params, Return_Type).
 
 % QUESTION: How would id's work across multiple functions?
 %           Possibly a merge-term of the function name per assert?
-setup(Filename,Function_name) :-
+setup(Filename, Function_name) :-
     ptc_solver__clean_up,
     ptc_solver__default_declarations,
     ptc_solver__type(char, integer, range_bounds(0, 255)),
     % FIXME: The below may not have permission to delete if the previous Prolog iteration
     % failed, mostly useful for development,
     % As the test cases will leave the streams open
-    concat_string([Function_name,"_tests.c"],Test_filename),
+    concat_string([Function_name, "_tests.c"], Test_filename),
     (
         exists(Test_filename) ->
             delete(Test_filename)
         ;
             true
     ),
-    concat_string([Filename,".names"],Names_filename),
+    concat_string([Filename, ".names"], Names_filename),
     asserta(names_file(Names_filename)),
     asserta(test_id(1)),
     asserta(tests([])).
@@ -54,15 +52,3 @@ clean :-
     close(testcase_read),
     close(testcase_main),
     close(testcase).
-
-
-temp(In,Out) :-
-    ptc_solver__clean_up,
-    ptc_solver__default_declarations,
-    ptc_solver__variable([Out],integer),
-    ptc_solver__variable([In],integer),
-    Expression = (Out+1),
-    % ptc_solver__sdl(Out = In),
-    ptc_solver__sdl(eq_cast(Out,In)),
-    ptc_solver__sdl(eq_cast(Out,Expression)),
-    ptc_solver__label_integers([Out,In]).
