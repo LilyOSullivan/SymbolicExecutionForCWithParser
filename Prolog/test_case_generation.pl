@@ -9,7 +9,7 @@
 :- use_module(c_array).
 :- use_module(c_var).
 
-
+%% Generate test cases with failing backtrack
 cunit_write_test_case_all(Filename, Function_name, Params, Return_value, Return_type) :-
     cunit_write_test_case(Filename, Function_name, Params, Return_value, Return_type),
     fail,
@@ -18,11 +18,14 @@ cunit_write_test_case_all(Filename, Function_name, Params, Return_value, Return_
 %IDEA: Test cases could be generated,
 %      though this assumes determinism
 %      Eg assert give_five() == 5
+%% Generate test cases for a function with no parameters
+%% A function with no parameters does not generate test cases.
 cunit_write_test_case(_, Function_name, [void], _, _) :-
     write("No test cases to generate for "),
     writeln(Function_name),
     !.
 
+%% Generate a singular test case
 cunit_write_test_case(Filename, Function_name, Params, Return_value, Return_type) :-
     concat_string([Function_name, "_tests"], Test_suite_name),
     concat_string([Test_suite_name, ".c"], Test_suite_filename),
@@ -55,6 +58,7 @@ cunit_write_test_case(Filename, Function_name, Params, Return_value, Return_type
     close(testcase_read).
 
 % IDEA: Split main function string among multiple strings
+%% Create the main function for the test suite
 cunit_write_main(Test_suite_filename) :-
     cunit_add_test_cases_to_suite(Add_tests_to_suite_string),
     printf(testcase_main, "#include \"%s\"\n\n", [Test_suite_filename]),
@@ -78,6 +82,9 @@ cunit_create_cu_assert(Function_name, Params, Return_value, Return_type, Out) :-
     sprintf(Out, "\tCU_ASSERT(%s(%s) == %s);\n", [Function_name, Var_names, Return_value_as_string]).
 
 % FIXME: I imagine this is possible to be written without the use of an if
+%% Checks if this is the first test case being generated.
+%% This is to prevent the inclusion of the CUnit header files multiple times
+%% in the same file due to backtracking
 cunit_is_first_test(Filename) :-
     % The check for file size prevents read_string
     % from prompting for the amount of characters to read
@@ -92,6 +99,7 @@ cunit_is_first_test(Filename) :-
             true
     ).
 
+%% The test include files. Called if it is the first test case
 cunit_write_test_include(C_filename) :-
     printf(testcase, "#include \"CUnit/Basic.h\"\n", []),
     printf(testcase, "#include \"%s.c\"\n", [C_filename]).
@@ -168,21 +176,27 @@ string_contains(Original, Substring) :-
     sub_string(Original, _, _, _, Substring),
     !. % Stop on the first find. Interested exclusively if a substring exists
 
+%% Gets the current test id
 get_test_id(Out) :-
     retract(test_id(Out)),
     !.
 
+%% Sets a new test id
 set_test_id(New_id) :-
     asserta(test_id(New_id)).
 
+%% Adds to the current list of all test cases. This is used in the generation
+%% of the 'main' CUnit function
 append_tests_cases(New_case) :-
     get_test_cases(All_tests),
     append(All_tests, [New_case], New_test_cases),
     set_test_cases(New_test_cases).
 
+%% Updates the test cases in the internal database
 set_test_cases(New_cases) :-
     asserta(tests(New_cases)).
 
+%% Returns the test cases in the internal database
 get_test_cases(New_cases) :-
     retract(tests(New_cases)),
     !.
@@ -217,6 +231,10 @@ get_var_names([declaration(charpointer, [H|_])|T], Accumulator, Out) :-
 
 % Below reduce-predicate is modified from
 % https://stackoverflow.com/a/61809974
+%% A predicate that applies a function to each element in a list,
+%% and accumulates the return to a singular value.
+%% This is used primarily to concatenate a list of strings together.
+%% An implementation of reduce in the map-reduce pattern.
 reduce(_, [],  Default, Default).
 reduce(_, [A], _, A).
 reduce(P3, [A, B|T], _, D):-

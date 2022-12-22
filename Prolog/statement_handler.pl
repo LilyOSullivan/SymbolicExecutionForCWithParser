@@ -4,6 +4,7 @@
 :- use_module(declaration).
 :- use_module(expressions).
 
+%% The entrypoint to function analysis
 function_handler(Filename, Function_Name, Body, Params, Return_type) :-
     parameter_handler(Params),
     statement_handler(Body, [_, Return_Value, Return_type]),
@@ -15,9 +16,9 @@ function_handler(Filename, Function_Name, Body, Params, Return_type) :-
 % Without cut below it is matching [H|T] with H being void
 parameter_handler([void]):- !.
 parameter_handler([]).
-parameter_handler([H|T]) :-
-    H, % This calls declaration predicates in declaration.pl
-    parameter_handler(T).
+parameter_handler([Statement|Rest]) :-
+    Statement, % This calls declaration predicates in declaration.pl
+    parameter_handler(Rest).
 
 % IDEA: What if instead of Return_flag, it is checked if Return_value is instantiated?
 % QUESTION: What if a function returns nothing (void return)?
@@ -37,6 +38,11 @@ statement_handler([H|T], [Return_flag|Rest]) :-
             statement_handler(T, [Return_flag|Rest])
     ).
 
+%% This if a new scope is created using { } not tied to a loop, if or function
+%% int y = 15;
+%% {
+%%     int x = 1;
+%% }
 handle(List_Of_Statements, Return_flags) :-
     statement_handler(List_Of_Statements, Return_flags).
 
@@ -44,6 +50,7 @@ handle(List_Of_Statements, Return_flags) :-
 handle(declaration(Type, Vars), _) :-
     declaration(Type, Vars).
 
+%% If statement handler
 handle(if_statement(_Line_Number, expression(Constraint), If_body, Else_body), Return_flags) :-
     evaluate_expression(Constraint),
     (
@@ -55,6 +62,7 @@ handle(if_statement(_Line_Number, expression(Constraint), If_body, Else_body), R
         statement_handler(Else_body, Return_flags)
     ).
 
+%% Return statement that returns a value
 handle(return(Expression), [Return_flag, Return_value, Return_type]) :-
     Return_flag = true,
     evaluate_expression(Expression, Expression_Result),
@@ -63,11 +71,16 @@ handle(return(Expression), [Return_flag, Return_value, Return_type]) :-
     Return_value = Out,
     writeln(Out).
 
+%% Empty return statement
 handle(return, [Return_flag, Return_value, _]) :-
     Return_flag = true,
     Return_value = void,
     writeln("Void Return").
 
+%% Handles assignment to a variable
+%% This is commonly used as two steps, Declaration and Assignment, of a variable.
+%% int x = 5;
+%% Becomes a declaration, handled above, and an assignment below
 handle(assignment(Variable, Expression), _) :-
     evaluate_expression(Expression, Evaluated_expression),
     !,
@@ -76,11 +89,6 @@ handle(assignment(Variable, Expression), _) :-
     ptc_solver__variable([Temp], Ptc_type),
     ptc_solver__sdl(eq_cast(Temp, Evaluated_expression)),
     c_var__set_out_var(Variable, Temp).
-
-    % QUESTION: Is eq_cast needed above if X is an int?
-    %           Eg: (Assuming is_integer returns true for integer variables)
-    %               is_integer(X) ->
-    %                   ptc_solver__sdl(eq_cast(X, Value)).
 
 % handle(assignment(int(Z), extern(f(X), Library_Name)), _) :-
 %     ptc_solver__variable([X], integer),
