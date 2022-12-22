@@ -60,10 +60,20 @@ evaluate_expression(Left>Right,Out) :-
     evaluate_expression(Right,Right_result),
     Out = (Left_result>Right_result).
 
+evaluate_expression(Left>=Right,Out) :-
+    evaluate_expression(Left,Left_result),
+    evaluate_expression(Right,Right_result),
+    Out = (Left_result>=Right_result).
+
 evaluate_expression(Left<Right,Out) :-
     evaluate_expression(Left,Left_result),
     evaluate_expression(Right,Right_result),
     Out = (Left_result<Right_result).
+
+    evaluate_expression(Left<=Right,Out) :-
+        evaluate_expression(Left,Left_result),
+        evaluate_expression(Right,Right_result),
+        Out = (Left_result<=Right_result).
 
 evaluate_expression(Left-Right,Out) :-
     evaluate_expression(Left,Left_result),
