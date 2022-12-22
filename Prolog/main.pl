@@ -4,6 +4,7 @@
 :- export clean/0.
 
 :- lib(ptc_solver).
+
 :- use_module(utils).
 :- use_module(c_var).
 :- use_module(expressions).
@@ -12,12 +13,12 @@
 %FIXME: A charpointer array can generate '\' which breaks the C code.
 
 %% The entrypoint to the program
-main(File, Function_name) :-
-    concat_string([File, ".pl"], Prolog_file),
+main(Filename_without_extension, Function_name) :-
+    concat_string([Filename_without_extension, ".pl"], Prolog_file),
     % concat_string([File, ".c"], C_file),
     compile(Prolog_file),
     function_definition(Function_name, Params, Body, Return_type), % Match from database
-    symbEx(File, Function_name, Params, Body, Return_type). % Execute the function
+    symbEx(Filename_without_extension, Function_name, Params, Body, Return_type). % Execute the function
 
 function_definition(_, _, _, _).
 

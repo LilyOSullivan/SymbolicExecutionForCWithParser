@@ -38,7 +38,8 @@ unify_c_var_c_var(_Y, _AttrX, AttrY) :-
 
 %% Used internally by ECLiPSe for printing a c_var
 %% Additionally controls how the debugger displays the value
-print_c_var(_{c_var:{_type, _in, _out, Name}}, Print_value) :-
+print_c_var(_{c_var(_Type, _In, _Out, Name)}, Print_value) :-
+% print_c_var(_{cvar(_Type, _In, _Out, Name)}, Print_value) :- % TODO: This or above?
     -?->
         Print_value = Name.
 

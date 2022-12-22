@@ -6,6 +6,7 @@
         "charpointer",
         "concat",
         "cunit",
+        "cvar",
         "gtest",
         "Indexs",
         "intpointer",
