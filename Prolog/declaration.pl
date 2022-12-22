@@ -53,7 +53,7 @@ declaration(charpointer, [Variable|Rest]) :-
     Size = 5,
 
     c_array__create(C, {charpointer, {In, Out}, Name_stripped, Size}),
-    H = C,
+    Variable = C,
     % ptc_solver__is_array(H),
     declaration(intpointer, Rest),
     !.
