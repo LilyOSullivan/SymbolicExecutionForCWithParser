@@ -96,70 +96,70 @@ cunit_write_test_include(C_filename) :-
     printf(testcase,"#include \"%s.c\"\n",[C_filename]).
 
 
-gtest_write_test_case_all(Function_name,[void],_) :-
-    write("No test cases to generate for "),
-    writeln(Function_name),
-    !.
+% gtest_write_test_case_all(Function_name,[void],_) :-
+%     write("No test cases to generate for "),
+%     writeln(Function_name),
+%     !.
 
-gtest_write_test_case_all(Function_name,Params,Return_value) :-
-    gtest_write_test_case(Function_name,Params,Return_value),
-    fail,
-    !.
+% gtest_write_test_case_all(Function_name,Params,Return_value) :-
+%     gtest_write_test_case(Function_name,Params,Return_value),
+%     fail,
+%     !.
 
-gtest_write_test_case(Function_name,[void],_) :-
-    write("No test cases to generate for "),
-    writeln(Function_name),
-    !.
+% gtest_write_test_case(Function_name,[void],_) :-
+%     write("No test cases to generate for "),
+%     writeln(Function_name),
+%     !.
 
-gtest_write_test_case(Function_name,Params,Return_value) :-
-    concat_string([Function_name,"_tests"],Test_suite_name),
-    concat_string([Test_suite_name,".cpp"],Test_suite_filename),
-    open(Test_suite_filename, append,testcase),
-    open(Test_suite_filename, read,testcase_read),
-    (
-        gtest_is_first_test ->
-            gtest_write_test_include
-        ;
-            % Put a new line to space out the test cases
-            printf(testcase,"\n",[])
-    ),
-    printf(testcase,"TEST(%s,",[Test_suite_name]),
-    get_test_id(Test_id),
-    term_string(Test_id,Test_id_as_string),
-    printf(testcase,Test_id_as_string,[]),
-    printf(testcase,") {\n",[]),
-    New_test_id is Test_id + 1,
-    set_test_id(New_test_id),
-    gtest_write_assert_eq(Function_name,Params,Return_value),
-    printf(testcase,"}\n",[]),
-    close(testcase),
-    close(testcase_read).
+% gtest_write_test_case(Function_name,Params,Return_value) :-
+%     concat_string([Function_name,"_tests"],Test_suite_name),
+%     concat_string([Test_suite_name,".cpp"],Test_suite_filename),
+%     open(Test_suite_filename, append,testcase),
+%     open(Test_suite_filename, read,testcase_read),
+%     (
+%         gtest_is_first_test ->
+%             gtest_write_test_include
+%         ;
+%             % Put a new line to space out the test cases
+%             printf(testcase,"\n",[])
+%     ),
+%     printf(testcase,"TEST(%s,",[Test_suite_name]),
+%     get_test_id(Test_id),
+%     term_string(Test_id,Test_id_as_string),
+%     printf(testcase,Test_id_as_string,[]),
+%     printf(testcase,") {\n",[]),
+%     New_test_id is Test_id + 1,
+%     set_test_id(New_test_id),
+%     gtest_write_assert_eq(Function_name,Params,Return_value),
+%     printf(testcase,"}\n",[]),
+%     close(testcase),
+%     close(testcase_read).
 
-gtest_write_assert_eq(Function_name,Params,Return_value) :-
-    printf(testcase,"\tASSERT_EQ(",[]),
-    printf(testcase,Function_name,[]),
-    printf(testcase,"(",[]),
-    params_to_string(Params,"",Out),
-    printf(testcase,Out,[]),
-    printf(testcase,"),",[]),
-    term_string(Return_value,Return_value_as_string),
-    printf(testcase,Return_value_as_string,[]),
-    printf(testcase,");\n",[]).
+% gtest_write_assert_eq(Function_name,Params,Return_value) :-
+%     printf(testcase,"\tASSERT_EQ(",[]),
+%     printf(testcase,Function_name,[]),
+%     printf(testcase,"(",[]),
+%     params_to_string(Params,"",Out),
+%     printf(testcase,Out,[]),
+%     printf(testcase,"),",[]),
+%     term_string(Return_value,Return_value_as_string),
+%     printf(testcase,Return_value_as_string,[]),
+%     printf(testcase,");\n",[]).
 
-%% Check if the test includes are needed
-%% This is primarily for backtracking not to write includes multiple times
-gtest_is_first_test :-
-    read_string(testcase_read, 25, First_chars),
-    not string_contains(First_chars,"<gtest/gtest.h>").
+% %% Check if the test includes are needed
+% %% This is primarily for backtracking not to write includes multiple times
+% gtest_is_first_test :-
+%     read_string(testcase_read, 25, First_chars),
+%     not string_contains(First_chars,"<gtest/gtest.h>").
 
 
-%% Write out any includes necessary for the test suite
-%% Necessary to ensure the gtest comes first
-%% Due to a check for the necessity of writing an include checking for gtest
-%% As a first line in the file
-gtest_write_test_include :-
-    printf(testcase,"#include <gtest/gtest.h>\n",[]).
-    % printf(testcase,"#include "%s.c"\n",[C_filename]).
+% %% Write out any includes necessary for the test suite
+% %% Necessary to ensure the gtest comes first
+% %% Due to a check for the necessity of writing an include checking for gtest
+% %% As a first line in the file
+% gtest_write_test_include :-
+%     printf(testcase,"#include <gtest/gtest.h>\n",[]).
+%     % printf(testcase,"#include "%s.c"\n",[C_filename]).
 
 
 %% Check if a string contains a substring
@@ -202,15 +202,15 @@ strip_right_comma(In,Out) :-
 get_var_names([],Accumulator,Out) :-
     strip_right_comma(Accumulator,Out).
 get_var_names([declaration(int,[H|_])|T],Accumulator,Out) :-
-    c_var__get_var_name(H,Var_name),
+    c_var__get_name(H,Var_name),
     sprintf(Result,"%s%s,",[Accumulator,Var_name]),
     get_var_names(T,Result,Out).
 get_var_names([declaration(intpointer,[H|_])|T],Accumulator,Out) :-
-    c_array__get_var_name(H,Var_name),
+    c_array__get_name(H,Var_name),
     sprintf(Result,"%s%s,",[Accumulator,Var_name]),
     get_var_names(T,Result,Out).
 get_var_names([declaration(charpointer,[H|_])|T],Accumulator,Out) :-
-    c_array__get_var_name(H,Var_name),
+    c_array__get_name(H,Var_name),
     sprintf(Result,"%s%s,",[Accumulator,Var_name]),
     get_var_names(T,Result,Out).
 
@@ -247,9 +247,9 @@ create_declaration_section([declaration(charpointer,[H|_])|T],Accumulator,Out) :
     create_declaration_section(T,Result,Out).
 
 create_single_declaration(int,Var,Out) :-
-    c_var__get_all(Var,{Type,{Ptc_in,_},Var_name}),
-    term_string(Ptc_in,Value),
-    sprintf(Out,"\t%s %s = %s;\n",[Type,Var_name,Value]).
+    c_var__get_all(Var,Var_Type,Ptc_in_var,Var_name),
+    term_string(Ptc_in_var,Value),
+    sprintf(Out,"\t%s %s = %s;\n",[Var_Type,Var_name,Value]).
 
 create_single_declaration(intpointer,Var,Out) :-
     c_array__get_all(Var,{_,{Ptc_var,_},Var_name,Size}),
@@ -281,10 +281,10 @@ create_single_declaration(charpointer,Var,Out) :-
     sprintf(Out,"\t%s %s[%s] = %s;\n",["char",Var_name,Size_as_string,Array_values]).
 
 % Unused, this provides a fallback
-create_single_declaration(Type,Var,Out) :-
-    c_var__get_all(Var,{Type,{Ptc_var,_},Var_name}),
-    term_string(Ptc_var,Value),
-    sprintf(Out,"\t%s %s = %s;\n",[Type,Var_name,Value]).
+create_single_declaration(_,C_var,Out) :-
+    c_var__get_all(C_var,Var_type,Ptc_var,Var_name),
+    term_string(Ptc_var,Ptc_var_as_string),
+    sprintf(Out,"\t%s %s = %s;\n",[Var_type,Var_name,Ptc_var_as_string]).
 
 create_return(Return_value,int,Out) :-
     term_string(Return_value, Out).

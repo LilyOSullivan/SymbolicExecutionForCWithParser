@@ -2,7 +2,6 @@
 
 :- export main/2.
 :- export clean/0.
-:- export temp/0.
 :- export temp/2.
 
 
@@ -22,6 +21,8 @@ main(File,Function_name) :-
     function_definition(Function_name,Params,Body,Return_type), % Match from database
     symbEx(File,Function_name,Params,Body,Return_type). % Execute the function
 
+function_definition(_,_,_,_).
+
 symbEx(Filename,Function_name,Params,Body,Return_Type) :-
     setup(Filename,Function_name),
     function_handler(Filename,Function_name,Body,Params,Return_Type).
@@ -32,9 +33,9 @@ setup(Filename,Function_name) :-
     ptc_solver__clean_up,
     ptc_solver__default_declarations,
     ptc_solver__type(char, integer, range_bounds(0, 255)),
-    %FIXME: The below May not have permission to delete if the previous Prolog iteration
-    %failed, mostly useful for development,
-    %As the test cases will leave the streams open
+    % FIXME: The below may not have permission to delete if the previous Prolog iteration
+    % failed, mostly useful for development,
+    % As the test cases will leave the streams open
     concat_string([Function_name,"_tests.c"],Test_filename),
     (
         exists(Test_filename) ->
@@ -65,7 +66,3 @@ temp(In,Out) :-
     ptc_solver__sdl(eq_cast(Out,In)),
     ptc_solver__sdl(eq_cast(Out,Expression)),
     ptc_solver__label_integers([Out,In]).
-
-%FIXME: The below is very slow?
-% Try X+X
- 

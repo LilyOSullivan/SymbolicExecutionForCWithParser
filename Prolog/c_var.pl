@@ -1,69 +1,81 @@
 :- module(c_var).
 
-:- export c_var__create/2.
-:- export c_var__get_all/2.
+:- export c_var__create/4.
 :- export c_var__get_name/2.
 :- export c_var__get_type/2.
 :- export c_var__get_in_var/2.
 :- export c_var__get_out_var/2.
+:- export c_var__set_out_var/2.
+:- export c_var__get_all/4.
 
-%% if int/char:
-%%  c_var{type,{In,Out},variable_name}
+%% c_var structure:
+%%  c_var{type,In,Out,variable_name}
+
+%% Declare c_var as an attributed variable
 :- meta_attribute(c_var, [unify:unify_c_var/2, print:print_c_var/2]).
 
-% get_attribute(_{Name:Attribute}, A) :-
-%     -?->
-%         A = Attribute.
-
-c_var__create(C_var,Out) :-
-    add_attribute(C_var,Out).
-
+%% Used internally by ECLiPSe
+%% This is a unification handler
 unify_c_var(_,Attr):-
     var(Attr).
 unify_c_var(Term,Attr) :-
     nonvar(Attr),
-    % compound(Attr),
     unify_term_c_var(Term,Attr).
 
-
+%% This is used for Unification, as part of the unification handler
 unify_term_c_var(Value,_Attr) :-
 	nonvar(Value).
 unify_term_c_var(Y{AttrY},AttrX) :-
 	-?->
 	    unify_c_var_c_var(Y,AttrX,AttrY).
 
+%% This is used for Unification, as part of the unification handler
 unify_c_var_c_var(_Y,AttrX,AttrY) :-
     var(AttrY),
     AttrX=AttrY.
 unify_c_var_c_var(_Y,_AttrX,AttrY) :-
     nonvar(AttrY).
 
-print_c_var(_{c_var:{_type,_in_out,Name}},Out) :-
-% print_c_var(_{c_var:{_Type,_Ptc_var,Val}},Out) :-
+%% Used internally by ECLiPSe for printing a c_var
+%% Additionally controls how the debugger displays the value
+print_c_var(_{c_var:{_type,_in,_out,Name}},Print_value) :-
     -?->
-        Out = Name.
+        Print_value = Name.
 
-get_c_var(_Var{C_var},Out) :-
+%% Constructor for a c_var
+c_var__create(Type,In,Var_name,C_var_instantiated) :-
+    add_attribute({Type,In,_Out,Var_name},C_var_instantiated).
+
+%% Returns all the values 'stored' in a c_var
+%% This is no exported and used internally in the c_var module
+get_c_var(_Var{C_var},Return_value) :-
     -?->
         nonvar(C_var),
-        Out = C_var.
+        Return_value = C_var.
 
-c_var__get_type(C_var,Out) :-
-    get_c_var(C_var,{Out,_,_}), %FIXME: More than one underscore should not be needed here
-    !.
+c_var__get_all(C_var,Type,In,Name) :-
+    get_c_var(C_var,{Type,In,_,Name}).
 
-c_var__get_name(C_var,Out) :-
-    get_c_var(C_var,{_,_,Out,_}),
-    !.
+%% Returns the type of the c_var
+c_var__get_type(C_var,Type) :-
+    get_c_var(C_var,{Type,_}).
 
-c_var__get_name(C_var,Out) :-
-    get_c_var(C_var,{_,_,Out}),
-    !.
+%% Returns the name in the source code of the c_var
+c_var__get_name(C_var,Name) :-
+    get_c_var(C_var,{_,_,Name}).
 
-c_var__get_in_var(C_var,Out) :-
-    get_c_var(C_var,{_,{Out,_},_}),
-    !.
+%% Returns the in-value of the c_var
+c_var__get_in_var(C_var,In_var) :-
+    get_c_var(C_var,{_,In_var,_,_}).
 
-c_var__get_out_var(C_var,Out) :-
-    get_c_var(C_var,{_,{_,Out},_}),
-    !.
+%% Returns the out-value of the c_var
+c_var__get_out_var(C_var,Out_var) :-
+    get_c_var(C_var,{_,_,Out_var,_}).
+
+%% Returns the out-value of the c_var
+c_var__set_out_var(C_var,Value) :-
+    -?->
+        setarg(3,C_var,Value).
+        % c_var__get_out_var(C_var,Out_var),
+        % Out_var = Value.
+

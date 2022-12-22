@@ -3,6 +3,7 @@
 :- export declaration/2.
 
 :- use_module(c_var).
+:- use_module(c_array).
 :- use_module(ptc_solver).
 :- use_module(utils).
 
@@ -11,10 +12,10 @@ declaration(int,[H|T]) :-
     copy_term(H,H_copy),
     utils__var_name(H_copy,Name),
     ptc_solver__variable([In],integer),
-    ptc_solver__variable([Out],integer),
-    ptc_solver__sdl(eq_cast(Out,In-1+1)),
-    c_var__create(C,{int,{In,Out},Name}),
-    H = C,
+    % ptc_solver__variable([Out],integer),
+    % ptc_solver__sdl(eq_cast(Out,In)),
+    c_var__create(int,In,Name,C_var_instantiated),
+    H = C_var_instantiated,
     declaration(int,T),
     !.
 
@@ -27,7 +28,7 @@ declaration(intpointer,[H|T]) :-
     ptc_solver__variable([Out], arrayType5),
     copy_term(H,H_copy),
     utils__var_name(H_copy,Name),
-    %TODO: This might be a mistake from the parser. Eg int *buf vs int* buf
+    %TODO: This might be a 'mistake' from the parser. Eg int *buf vs int* buf
     sub_string(Name,1,_,0,Name_stripped), % Strip "*" from name
 
 
