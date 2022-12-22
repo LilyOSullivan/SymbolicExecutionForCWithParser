@@ -33,7 +33,7 @@ declaration(intpointer,[H|T]) :-
     %HACK: This would ideally be suspended if variable
     Size = 5,
 
-    add_to_c_var(C,{intpointer,{In,Out},Name_stripped,Size}),
+    c_array__create(C,{intpointer,{In,Out},Name_stripped,Size}),
     H = C,
     % ptc_solver__is_array(H),
     declaration(intpointer,T),
@@ -48,15 +48,14 @@ declaration(charpointer,[H|T]) :-
     ptc_solver__variable([Out], arrayType5),
     copy_term(H,H_copy),
     utils__var_name(H_copy,Name),
-    %TODO: This might be a mistake from the parser. Eg int *buf vs int* buf
+    %TODO: This might be a 'mistake' from the parser. Eg int *buf vs int* buf
     sub_string(Name,1,_,0,Name_stripped), % Strip "*" from name
 
     %HACK: This would ideally be suspended if variable
     Size = 5,
 
-    add_to_c_var(C,{charpointer,{In,Out},Name_stripped,Size}),
+    c_array__create(C,{charpointer,{In,Out},Name_stripped,Size}),
     H = C,
     % ptc_solver__is_array(H),
     declaration(intpointer,T),
     !.
-

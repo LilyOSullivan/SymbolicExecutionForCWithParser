@@ -6,6 +6,7 @@
 %IDEA: It may be possible to use/return accumulators as-is instead of Out variables
 
 :- use_module(utils).
+:- use_module(c_array).
 :- use_module(c_var).
 
 
@@ -200,8 +201,16 @@ strip_right_comma(In,Out) :-
 
 get_var_names([],Accumulator,Out) :-
     strip_right_comma(Accumulator,Out).
-get_var_names([declaration(_,[H|_])|T],Accumulator,Out) :-
-    get_var_name(H,Var_name),
+get_var_names([declaration(int,[H|_])|T],Accumulator,Out) :-
+    c_var__get_var_name(H,Var_name),
+    sprintf(Result,"%s%s,",[Accumulator,Var_name]),
+    get_var_names(T,Result,Out).
+get_var_names([declaration(intpointer,[H|_])|T],Accumulator,Out) :-
+    c_array__get_var_name(H,Var_name),
+    sprintf(Result,"%s%s,",[Accumulator,Var_name]),
+    get_var_names(T,Result,Out).
+get_var_names([declaration(charpointer,[H|_])|T],Accumulator,Out) :-
+    c_array__get_var_name(H,Var_name),
     sprintf(Result,"%s%s,",[Accumulator,Var_name]),
     get_var_names(T,Result,Out).
 
@@ -214,22 +223,36 @@ reduce(P3, [A,B|T], _, D):-
     reduce(P3, [C|T], _, D),
     !.
 
+%IDEA: It might be possible to reduce this to a single line assignment
+%      Eg: create_declaration_section([],Out,Out).
 create_declaration_section([],Accumulator,Out) :-
     Out = Accumulator.
-create_declaration_section([declaration(_,[H|_])|T],Accumulator,Out) :-
-    get_c_var(H,{Type,_,_}),
+create_declaration_section([declaration(int,[H|_])|T],Accumulator,Out) :-
+    c_var__get_type(H,{Type,_,_}),
+    create_single_declaration(Type,H,Declaration),
+    sprintf(Result,"%s%s",[Accumulator,Declaration]),
+    !,
+    create_declaration_section(T,Result,Out).
+create_declaration_section([declaration(intpointer,[H|_])|T],Accumulator,Out) :-
+    c_var__get_type(H,{Type,_,_}),
+    create_single_declaration(Type,H,Declaration),
+    sprintf(Result,"%s%s",[Accumulator,Declaration]),
+    !,
+    create_declaration_section(T,Result,Out).
+create_declaration_section([declaration(charpointer,[H|_])|T],Accumulator,Out) :-
+    c_var__get_type(H,{Type,_,_}),
     create_single_declaration(Type,H,Declaration),
     sprintf(Result,"%s%s",[Accumulator,Declaration]),
     !,
     create_declaration_section(T,Result,Out).
 
 create_single_declaration(int,Var,Out) :-
-    get_c_var(Var,{Type,{Ptc_in,_},Var_name}),
+    c_var__get_all(Var,{Type,{Ptc_in,_},Var_name}),
     term_string(Ptc_in,Value),
     sprintf(Out,"\t%s %s = %s;\n",[Type,Var_name,Value]).
 
 create_single_declaration(intpointer,Var,Out) :-
-    get_c_var(Var,{_,{Ptc_var,_},Var_name,Size}),
+    c_array__get_all(Var,{_,{Ptc_var,_},Var_name,Size}),
     ptc_solver__get_array_index_elements(Ptc_var, Indexs),
     utils__get_all_array_inputs(Indexs, Values),
     ( foreach(Value, Values), foreach(X, Values_as_string) do
@@ -243,7 +266,7 @@ create_single_declaration(intpointer,Var,Out) :-
     sprintf(Out,"\t%s %s[%s] = %s;\n",["int",Var_name,Size_as_string,Array_values]).
 
 create_single_declaration(charpointer,Var,Out) :-
-    get_c_var(Var,{_,{Ptc_var,_},Var_name,Size}),
+    c_array__get_all(Var,{_,{Ptc_var,_},Var_name,Size}),
     ptc_solver__get_array_index_elements(Ptc_var, Indexs),
     utils__get_all_array_inputs(Indexs, Values),
     ( foreach(Value, Values), foreach(X, Values_as_string) do
@@ -259,7 +282,7 @@ create_single_declaration(charpointer,Var,Out) :-
 
 % Unused, this provides a fallback
 create_single_declaration(Type,Var,Out) :-
-    get_c_var(Var,{Type,{Ptc_var,_},Var_name}),
+    c_var__get_all(Var,{Type,{Ptc_var,_},Var_name}),
     term_string(Ptc_var,Value),
     sprintf(Out,"\t%s %s = %s;\n",[Type,Var_name,Value]).
 
@@ -267,4 +290,4 @@ create_return(Return_value,int,Out) :-
     term_string(Return_value, Out).
 create_return(Return_value,char,Out) :-
     string_codes(Value_as_string,[Return_value]),
-    concat_string(["'",Value_as_string,"'"],Out)
+    concat_string(["'",Value_as_string,"'"],Out).

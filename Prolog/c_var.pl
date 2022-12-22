@@ -1,18 +1,17 @@
 :- module(c_var).
 
-:- export add_to_c_var/2.
-:- export get_c_var/2.
-% :- export get_ptc_var/2.
-:- export get_var_name/2.
-:- export get_type/2.
-:- export get_ptc_in/2.
-:- export get_ptc_out/2.
+:- export c_var__create/2.
+:- export c_var__get_all/2.
+:- export c_var__get_name/2.
+:- export c_var__get_type/2.
+:- export c_var__get_in_var/2.
+:- export c_var__get_out_var/2.
 
 %IDEA: This module predicates likely should have a prefix name to them
 %      Eg: c_var__get_ptc_var/2
 
 %% if int/char:
-%%  c_var{type,ptc_var{In,Out},variable_name}
+%%  c_var{type,{In,Out},variable_name}
 %% if array:
 %%  c_var{type,ptc_var{In,Out},variable_name,array_size}
 :- meta_attribute(c_var, [unify:unify_c_var/2, print:print_c_var/2]).
@@ -21,14 +20,14 @@
 %     -?->
 %         A = Attribute.
 
-add_to_c_var(Var,Out) :-
-    add_attribute(Var,Out).
+c_var__create(C_var,Out) :-
+    add_attribute(C_var,Out).
 
 unify_c_var(_,Attr):-
     var(Attr).
 unify_c_var(Term,Attr) :-
-    % nonvar(Attr),
-    compound(Attr),
+    nonvar(Attr),
+    % compound(Attr),
     unify_term_c_var(Term,Attr).
 
 
@@ -44,38 +43,32 @@ unify_c_var_c_var(_Y,AttrX,AttrY) :-
 unify_c_var_c_var(_Y,_AttrX,AttrY) :-
     nonvar(AttrY).
 
-print_c_var(_{c_var:{_type,Val}},Out) :-
+print_c_var(_{c_var:{_type,_in_out,Name}},Out) :-
 % print_c_var(_{c_var:{_Type,_Ptc_var,Val}},Out) :-
     -?->
-        Out = Val.
+        Out = Name.
 
 get_c_var(_Var{C_var},Out) :-
     -?->
         nonvar(C_var),
         Out = C_var.
 
-get_ptc_from_c_var(C_var,Out) :-
-    C_var = {_,Out,_}.
-
-get_type(Var,Out) :-
-    get_c_var(Var,{Out,_}),
+c_var__get_type(C_var,Out) :-
+    get_c_var(C_var,{Out,_,_}), %FIXME: More than one underscore should not be needed here
     !.
 
-% get_ptc_var(Var,Out) :-
-%     get_c_var(Var,{_,Out,_}),
-%     !.
-
-get_var_name(Var,Out) :-
-    get_c_var(Var,{_,_,Out,_}),
-    !.
-get_var_name(Var,Out) :-
-    get_c_var(Var,{_,_,Out}),
+c_var__get_name(C_var,Out) :-
+    get_c_var(C_var,{_,_,Out,_}),
     !.
 
-get_ptc_in(Var,Out) :-
-    get_c_var(Var,{_,{Out,_},_}),
+c_var__get_name(C_varVar,Out) :-
+    get_c_var(C_var,{_,_,Out}),
     !.
 
-get_ptc_out(Var,Out) :-
-    get_c_var(Var,{_,{_,Out},_}),
+c_var__get_in_var(C_var,Out) :-
+    get_c_var(C_var,{_,{Out,_},_}),
+    !.
+
+c_var__get_out_var(Var,Out) :-
+    get_c_var(C_var,{_,{_,Out},_}),
     !.

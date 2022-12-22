@@ -6,6 +6,7 @@
 
 :- lib(ptc_solver).
 :- use_module(c_var).
+:- use_module(c_array).
 :- use_module(utils).
 
 
@@ -13,7 +14,7 @@
 concretise([void]) :- !.
 concretise([]).
 concretise([declaration(intpointer,[H|_])|T]) :-
-    get_ptc_in(H,Var),
+    c_array__get_in_var(H,Var),
 	ptc_solver__get_array_index_elements(Var, Indexs),
 	utils__get_all_array_inputs(Indexs, Out),
     ptc_solver__label_integers([Out]),
@@ -21,7 +22,7 @@ concretise([declaration(intpointer,[H|_])|T]) :-
     concretise(T).
 
 concretise([declaration(charpointer,[H|_])|T]) :-
-    get_ptc_in(H,Var),
+    c_array__get_in_var(H,Var),
     ptc_solver__get_array_index_elements(Var, Indexs),
 	utils__get_all_array_inputs(Indexs, Out),
     ptc_solver__label_integers([Out]),
@@ -30,23 +31,16 @@ concretise([declaration(charpointer,[H|_])|T]) :-
     concretise(T).
 
 concretise([declaration(int,[H|_])|T]) :-
-    get_ptc_in(H,In),
-    get_ptc_out(H,Out),
+    c_var__get_in_var(H,In),
     ptc_solver__label_integers([In]),
     !,
-    ptc_solver__label_integers([Out]),
-    !,
     concretise(T).
-
-% concretise(int(X),Out) :-
-    % ptc_solver__label_integers([X]),
-    % !.
 
 concretise(char(X),Out) :-
     utils__evaluate_to_int(X,Out).
     % string_codes(Out,[Result]),
 
-
+%% This concretise variant is called upon a return statement
 concretise(X,Type,Out) :-
     (
         Type == int ->

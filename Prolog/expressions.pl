@@ -10,6 +10,7 @@
 
 :- lib(ptc_solver).
 :- use_module(c_var).
+:- use_module(c_array).
 :- use_module(utils).
 
 
@@ -32,7 +33,7 @@ evaluate_expression(not(Expression)) :-
 %       I think this might be a tracer-visual bug
 
 evaluate_expression(Expression,Out) :-
-    get_ptc_in(Expression,Out).
+    c_var__get_out_var(Expression,Out).
 
 evaluate_expression(andop(Left,Right),Out) :-
     evaluate_expression(Left,Left_Result),
@@ -89,17 +90,17 @@ evaluate_expression(Left/Right,Out) :-
     Out = (Left_result/Right_result).
 
 evaluate_expression(Array[Index],Out) :-
-    get_ptc_var(Array,Var),
+    c_array__get_out_var(Array,Var),
     % The index could be an expression (Eg: Arr[2+2])
     evaluate_expression(Index,Result),
-    Out = element(Var,[Result]). % IDEA: possibly suspend/defer this, if variable
+    Out = element(Var,[Result]).
 
 evaluate_expression(Expression,Out) :-
     (
         number(Expression) ->
             Out = Expression
                 ;
-        ptc_solver__is_integer(Expression) ->
+        ptc_solver__is_integer(Expression) -> %TODO: I think this check if now unneeded
             Out = Expression
             ;
         (

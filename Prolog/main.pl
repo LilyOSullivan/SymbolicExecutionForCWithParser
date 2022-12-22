@@ -3,6 +3,8 @@
 :- export main/2.
 :- export clean/0.
 :- export temp/0.
+:- export temp/2.
+
 
 :- lib(ptc_solver).
 :- use_module(utils).
@@ -53,10 +55,17 @@ clean :-
     close(testcase).
 
 
-temp :-
+temp(In,Out) :-
     ptc_solver__clean_up,
     ptc_solver__default_declarations,
     ptc_solver__variable([Out],integer),
     ptc_solver__variable([In],integer),
-    ptc_solver__sdl(Out = In + 1),
-    ptc_solver__label_integers([Out,In]),!.
+    Expression = (Out+1),
+    % ptc_solver__sdl(Out = In),
+    ptc_solver__sdl(eq_cast(Out,In)),
+    ptc_solver__sdl(eq_cast(Out,Expression)),
+    ptc_solver__label_integers([Out,In]).
+
+%FIXME: The below is very slow?
+% Try X+X
+ 

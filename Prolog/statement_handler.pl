@@ -10,7 +10,7 @@ function_handler(Filename,Function_Name,Body,Params,Return_type) :-
     concretise(Params),
     % gtest_write_test_case_all(Filename,Function_Name,Params,Return_Value).
     cunit_write_test_case_all(Filename,Function_Name,Params,Return_Value,Return_type).
-function_handler(_,_,_,_,_).
+% function_handler(_,_,_,_,_).
 
 % Without cut below it is matching [H|T] with H being void
 parameter_handler([void]):- !.
@@ -68,10 +68,19 @@ handle(return,[Return_flag,Return_value,_]) :-
     Return_value = void,
     writeln("Void Return").
 
-handle(assignment(X,Value),_) :-
-    evaluate_expression(Value,Out),
-    get_ptc_out(X,Var),
-    ptc_solver__sdl(Var=Out).
+handle(assignment(X,Expression),_) :-
+    evaluate_expression(Expression,Out),
+    !,
+    get_ptc_out(X,Out_c_var),
+    get_type(X,Type),
+    utils__ptc_type(Type,Ptc_type),
+    ptc_solver__variable([Temp],Ptc_type),
+    ptc_solver__sdl(eq_cast(Temp,Out)),
+    ptc_solver__sdl(eq_cast(Out,Temp-1+1)).
+    % ptc_solver__sdl(Out_c_var=Var).
+    % Set Out variable to Var
+
+
     % QUESTION: Is eq_cast needed above if X is an int?
     %           Eg: (Assuming is_integer returns true for integer variables)
     %               is_integer(X) ->
@@ -98,3 +107,5 @@ handle(assignment(X,Value),_) :-
 %             writeln(Result),
 %             ptc_solver__sdl(eq_cast(Out, Result))
 %     ).
+
+% ptc_solver__variable([Out],integer),ptc_solver__sdl(eq_cast(Out,Out-1+1))
