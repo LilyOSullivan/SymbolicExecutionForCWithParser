@@ -1,0 +1,4 @@
+sha,filename,url,lines,title,comment,priority,category,additional,id,private
+"96aff55d89bcc3686da69233697aa6753c2bdb8c","\Prolog\main.pl","","1:0-1:16","remove","It is easier to run the code manually in tkeclipse if it is not in a module.\nSo remove this module","2","Best Practices","","d7354acb-21c9-4f66-b65d-df01244218ee","0"
+"96aff55d89bcc3686da69233697aa6753c2bdb8c","\Prolog\main.pl","","11:0-11:25","obscure","I do not understnad the effect of this. Why is it needed? What does it do?\nIt probably needs to be removed and whaever problem you had handled differently","2","Code-Style","","49ef65df-ed8e-47fa-ba71-56b606a88e16","0"
+"96aff55d89bcc3686da69233697aa6753c2bdb8c","\Prolog\main.pl","","21:80-21:88","naming","database? \nRephrase: matches corresponding definition in compiled Prolog file","1","Best Practices","","b4036aa3-ae33-4601-a73f-b313a1b45581","0"
