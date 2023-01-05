@@ -18,7 +18,7 @@ main(Filename_without_extension, Function_name) :-
     concat_string([Filename_without_extension, ".pl"], Prolog_file),
     % concat_string([File, ".c"], C_file),
     compile(Prolog_file),
-    function_definition(Function_name, Params, Body, Return_type), % Match from database
+    function_definition(Function_name, Params, Body, Return_type), % Match from compiled prolog file
     symbEx(Filename_without_extension, Function_name, Params, Body, Return_type). % Execute the function
 
 %% Setup the symbolic execution environment
@@ -27,7 +27,7 @@ setup_symbEx :-
     ptc_solver__default_declarations,
     ptc_solver__type(char, integer, range_bounds(0, 255)).
 
-function_definition(_, _, _, _).
+function_definition(_, _, _, _). % Prevents the interpreter from warning of undefined predicates
 
 %% The predicate to begin symbolic execution
 symbEx(Filename, Function_name, Params, Body, Return_Type) :-

@@ -229,7 +229,7 @@ get_var_names([declaration(charpointer, [H|_])|T], Accumulator, Out) :-
 %% Applies a predicate to each element in a list,
 %% and accumulates the return to a singular value.
 %% This is used primarily to concatenate a list of strings together.
-%% An implementation of reduce in the map-reduce pattern,
+%% An implementation of reduce from the map-reduce pattern,
 % or fold-left in some functional languages.
 reduce(_, [],  Default, Default).
 reduce(_, [A], _, A).

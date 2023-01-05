@@ -101,6 +101,7 @@ evaluate_expression(Array[Index], Out) :-
     evaluate_expression(Index, Result),
     Out = element(Var, [Result]).
 
+% Fallback cases, such as the expression being a singular number.
 evaluate_expression(Expression, Out) :-
     (
         number(Expression) ->

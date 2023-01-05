@@ -8,6 +8,7 @@
 :- use_module(c_array).
 :- use_module(utils).
 
+%% Handles a stop condition for the recursive declaration/2 predicate
 declaration(_, []).
 
 %% Declare an integer variable
@@ -51,9 +52,7 @@ declaration(charpointer, [Variable|Rest]) :-
     %TODO: This might be a 'mistake' from the parser. Eg int *buf vs int* buf
     sub_string(Variable_name, 1, _, 0, Name_stripped), % Strip "*" from name
     Size = 5,
-
     c_array__create(C, {charpointer, {In, Out}, Name_stripped, Size}),
     Variable = C,
-    % ptc_solver__is_array(H),
     declaration(intpointer, Rest),
     !.
