@@ -95,13 +95,17 @@ evaluate_expression(Left/Right, Out) :-
     evaluate_expression(Right, Right_result),
     Out = (Left_result/Right_result).
 
+evaluate_expression(-Expression, Out) :-
+    evaluate_expression(Expression, Expression_result),
+    Out = -Expression_result.
+
 evaluate_expression(Array[Index], Out) :-
     c_array__get_out_var(Array, Var),
     % The index could be an expression (Eg: Arr[2+2])
     evaluate_expression(Index, Result),
     Out = element(Var, [Result]).
 
-% Fallback cases, such as the expression being a singular number.
+%% Fallback cases, such as the expression being a singular number.
 evaluate_expression(Expression, Out) :-
     (
         number(Expression) ->
