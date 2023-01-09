@@ -49,6 +49,12 @@ evaluate_expression(not(Expression), Out) :-
     evaluate_expression(Expression, Result),
     Out = (not Result).
 
+evaluate_expression(mod(Left ,Right),Out) :-
+    evaluate_expression(Left, Left_result),
+    evaluate_expression(Right, Right_result),
+    Out = (Left_result mod Right_result).
+    % mod(Left_result,Right_result,Out).
+
 evaluate_expression(Left==Right, Out) :-
     evaluate_expression(Left, Left_result),
     evaluate_expression(Right, Right_result),
@@ -78,6 +84,7 @@ evaluate_expression(Left-Right, Out) :-
     evaluate_expression(Left, Left_result),
     evaluate_expression(Right, Right_result),
     utils__evaluate_to_int(Left_result-Right_result, Result),
+    %FIXME: Return a non-evaluated value, just like plus
     Out = Result.
 
 evaluate_expression(Left+Right, Out) :-
@@ -89,6 +96,23 @@ evaluate_expression(Left*Right, Out) :-
     evaluate_expression(Left, Left_result),
     evaluate_expression(Right, Right_result),
     Out = (Left_result*Right_result).
+
+evaluate_expression(Left/Right, Out) :-
+    evaluate_expression(Left, Left_result),
+    evaluate_expression(Right, Right_result),
+    Out = (Left_result/Right_result).
+
+evaluate_expression(post_increment(Assign_to, Increment_operation), Out) :-
+    evaluate_expression(Assign_to, Assign_to_result),
+    evaluate_expression(Increment_operation, Increment_operation_result),
+    Out = Assign_to,
+    ptc_solver__sdl(Assign_to_result = Increment_operation_result).
+
+evaluate_expression(pre_increment(Assign_to, Increment_operation), Out) :-
+    evaluate_expression(Assign_to, Assign_to_result),
+    evaluate_expression(Increment_operation, Increment_operation_result),
+    ptc_solver__sdl(Assign_to_result = Increment_operation_result),
+    Out = Assign_to.
 
 evaluate_expression(Left/Right, Out) :-
     evaluate_expression(Left, Left_result),
