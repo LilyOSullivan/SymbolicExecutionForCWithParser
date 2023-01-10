@@ -113,8 +113,7 @@ evaluate_expression(Left/Right, Out) :-
 evaluate_expression(post_increment(Assign_to, Increment_operation), Out) :-
     evaluate_expression(Assign_to, Out),
     evaluate_expression(Increment_operation, Increment_operation_result),
-    c_var__get_type(Assign_to, Type),
-    utils__ptc_type(Type, Ptc_type),
+    c_var__get_ptc_type(Assign_to, Ptc_type),
     ptc_solver__variable([Temp], Ptc_type),
     ptc_solver__sdl(eq_cast(Temp, Increment_operation_result)),
     c_var__set_out_var(Assign_to, Temp).
@@ -124,8 +123,7 @@ evaluate_expression(post_increment(Assign_to, Increment_operation), Out) :-
 evaluate_expression(pre_increment(Assign_to, Increment_operation), Out) :-
     % evaluate_expression(Assign_to, Assign_to_result),
     evaluate_expression(Increment_operation, Increment_operation_result),
-    c_var__get_type(Assign_to, Type),
-    utils__ptc_type(Type, Ptc_type),
+    c_var__get_ptc_type(Assign_to, Ptc_type),
     ptc_solver__variable([Temp], Ptc_type),
     ptc_solver__sdl(eq_cast(Temp, Increment_operation_result)),
     Out = Temp,
@@ -136,8 +134,7 @@ evaluate_expression(pre_increment(Assign_to, Increment_operation), Out) :-
 evaluate_expression(post_decrement(Assign_to, Increment_operation), Out) :-
     evaluate_expression(Assign_to, Out),
     evaluate_expression(Increment_operation, Increment_operation_result),
-    c_var__get_type(Assign_to, Type),
-    utils__ptc_type(Type, Ptc_type),
+    c_var__get_ptc_type(Assign_to, Ptc_type),
     ptc_solver__variable([Temp], Ptc_type),
     ptc_solver__sdl(eq_cast(Temp, Increment_operation_result)),
     c_var__set_out_var(Assign_to, Temp).
@@ -147,8 +144,7 @@ evaluate_expression(post_decrement(Assign_to, Increment_operation), Out) :-
 evaluate_expression(pre_decrement(Assign_to, Increment_operation), Out) :-
     % evaluate_expression(Assign_to, Assign_to_result),
     evaluate_expression(Increment_operation, Increment_operation_result),
-    c_var__get_type(Assign_to, Type),
-    utils__ptc_type(Type, Ptc_type),
+    c_var__get_ptc_type(Assign_to, Ptc_type),
     ptc_solver__variable([Temp], Ptc_type),
     ptc_solver__sdl(eq_cast(Temp, Increment_operation_result)),
     Out = Temp,

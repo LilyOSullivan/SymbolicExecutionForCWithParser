@@ -84,8 +84,7 @@ handle(return, [Return_flag, Return_value, _]) :-
 handle(assignment(Variable, Expression), _) :-
     evaluate_expression(Expression, Evaluated_expression),
     !,
-    c_var__get_type(Variable, Type),
-    utils__ptc_type(Type, Ptc_type),
+    c_var__get_ptc_type(Variable, Ptc_type),
     ptc_solver__variable([Temp], Ptc_type),
     ptc_solver__sdl(eq_cast(Temp, Evaluated_expression)),
     c_var__set_out_var(Variable, Temp).

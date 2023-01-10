@@ -19,7 +19,7 @@ main(Filename_without_extension, Function_name) :-
     % concat_string([File, ".c"], C_file),
     compile(Prolog_file),
     function_definition(Function_name, Params, Body, Return_type), % Match from compiled prolog file
-    symbolic_Execution(Filename_without_extension, Function_name, Params, Body, Return_type). % Execute the function
+    do_symbolic_execution(Filename_without_extension, Function_name, Params, Body, Return_type). % Execute the function
 
 %% Setup the symbolic execution environment
 setup_symbolic_Execution :-
@@ -30,7 +30,7 @@ setup_symbolic_Execution :-
 function_definition(_, _, _, _). % Prevents the interpreter from warning of undefined predicates
 
 %% The predicate to begin symbolic execution
-symbolic_Execution(Filename, Function_name, Params, Body, Return_Type) :-
+do_symbolic_execution(Filename, Function_name, Params, Body, Return_Type) :-
     setup_for_function(Filename, Function_name),
     function_handler(Filename, Function_name, Body, Params, Return_Type).
 

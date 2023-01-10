@@ -16,7 +16,7 @@ declaration(int, [Variable|Rest]) :-
     copy_term(Variable, Variable_copy),
     utils__var_name(Variable_copy, Variable_name),
     ptc_solver__variable([In], integer),
-    c_var__create(int, In, Variable_name, C_var_instantiated),
+    c_var__create(int, integer, In, Variable_name, C_var_instantiated),
     Variable = C_var_instantiated,
     declaration(int, Rest),
     !.

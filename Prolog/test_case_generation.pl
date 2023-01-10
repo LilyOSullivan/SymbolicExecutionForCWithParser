@@ -240,7 +240,7 @@ reduce(P3, [A, B|T], _, D):-
 
 create_declaration_section([], Accumulator, Accumulator).
 create_declaration_section([declaration(int, [H|_])|T], Accumulator, Out) :-
-    c_var__get_type(H, Type),
+    c_var__get_c_type(H, Type),
     create_single_declaration(Type, H, Declaration),
     sprintf(Result, "%s%s", [Accumulator, Declaration]),
     !,
@@ -259,9 +259,9 @@ create_declaration_section([declaration(charpointer, [H|_])|T], Accumulator, Out
     create_declaration_section(T, Result, Out).
 
 create_single_declaration(int, Var, Out) :-
-    c_var__get_all(Var, Var_Type, Ptc_in_var, Var_name),
+    c_var__get_all(Var, Var_c_type, Ptc_in_var, Var_name),
     term_string(Ptc_in_var, Value),
-    sprintf(Out, "\t%s %s = %s;\n", [Var_Type, Var_name, Value]).
+    sprintf(Out, "\t%s %s = %s;\n", [Var_c_type, Var_name, Value]).
 
 create_single_declaration(intpointer, Var, Out) :-
     c_array__get_all(Var, {_, {Ptc_var, _}, Var_name, Size}),
