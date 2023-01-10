@@ -62,7 +62,7 @@ cunit_write_test_case(Filename, Function_name, Params, Return_value, Return_type
 cunit_write_main(Test_suite_filename) :-
     cunit_add_test_cases_to_suite(Add_tests_to_suite_string),
     printf(testcase_main, "#include \"%s\"\n\n", [Test_suite_filename]),
-    printf(testcase_main, "int main()\n{\n   if (CUE_SUCCESS != CU_initialize_registry())\n      return CU_get_error();\n\n   CU_pSuite pSuite = CU_add_suite(\"Suite_1\", NULL, NULL);\n   if (NULL == pSuite) {\n      CU_cleanup_registry();\n      return CU_get_error();\n   }\n\n   %s\n   CU_basic_set_mode(CU_BRM_VERBOSE);\n   CU_basic_run_tests();\n   CU_cleanup_registry();\n   return CU_get_error();\n}\n", [Add_tests_to_suite_string]).
+    printf(testcase_main, "int main()\n{\n   if (CUE_SUCCESS != CU_initialize_registry())\n      return CU_get_error();\n\n   CU_pSuite pSuite = CU_add_suite(\"Suite_1\", NULL, NULL);\n   if (NULL == pSuite) {\n      CU_cleanup_registry();\n      return CU_get_error();\n   }\n\n%s\n   CU_basic_set_mode(CU_BRM_VERBOSE);\n   CU_basic_run_tests();\n   CU_cleanup_registry();\n   return CU_get_error();\n}\n", [Add_tests_to_suite_string]).
 
 cunit_add_test_cases_to_suite(Out) :-
     get_test_cases(Tests),
@@ -101,7 +101,7 @@ cunit_is_first_test(Filename) :-
 %% The test include files. Called if it is the first test case
 cunit_write_test_include(C_filename) :-
     printf(testcase, "#include \"CUnit/Basic.h\"\n", []),
-    printf(testcase, "#include \"%s.c\"\n", [C_filename]).
+    printf(testcase, "#include \"%s.c\"\n\n", [C_filename]).
 
 
 % gtest_write_test_case_all(Function_name, [void], _) :-
