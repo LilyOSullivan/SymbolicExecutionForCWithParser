@@ -1,11 +1,5 @@
-% QUESTION: The test-case outputs likely either needs to be in it's own directory, or
-%       in the same directory as the .C file(s).
-
 %IDEA: Keep a running counter for the number of tab-indentation's desired
 
-%IDEA: It may be possible to use/return accumulators as-is instead of Out variables
-
-:- use_module(utils).
 :- use_module(c_array).
 :- use_module(c_var).
 

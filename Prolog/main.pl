@@ -1,14 +1,11 @@
-:- module(main).
-
-:- export main/2.
-:- export clean/0.
-
 :- lib(ptc_solver).
 
-:- use_module(utils).
+:- ['utils'].
 :- use_module(c_var).
 :- use_module(expressions).
 :- ['statement_handler'].
+
+:- dynamic var_names/2.
 
 %FIXME: A charpointer array can generate '\' which breaks the C code.
 
@@ -19,8 +16,8 @@ main(Filename_without_extension, Function_name) :-
     % concat_string([File, ".c"], C_file),
     compile(Prolog_file),
     function_definition(Function_name, Params, Body, Return_type), % Match from compiled prolog file
-    setup_for_function(Filename, Function_name),
-    function_handler(Filename, Function_name, Body, Params, Return_Type). % From Statement_handler.pl
+    setup_for_function(Filename_without_extension, Function_name),
+    function_handler(Filename_without_extension, Function_name, Body, Params, Return_type). % From Statement_handler.pl
 
 %% Setup the symbolic execution environment
 setup_symbEx :-
@@ -46,8 +43,13 @@ setup_for_function(Filename, Function_name) :-
             true
     ),
     concat_string([Filename, ".names"], Names_filename),
-    asserta(names_file(Names_filename)),
+    compile(Names_filename),
+
+    % The initial Id used to identify test cases generated. Used in test_generation.pl
     asserta(test_id(1)),
+
+    % A list holding the names of test cases in the form ["test_1","test_2"...] used in test_generation.pl
+    % when generating the '_main' cunit .c file
     asserta(tests([])).
 
 %% Shortcut predicate to close streams, useful for debugging.

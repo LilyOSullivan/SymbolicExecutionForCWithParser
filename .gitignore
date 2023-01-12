@@ -81,3 +81,7 @@ overcast/libSharedLib.cpp
 overcast/libSharedLib.dll
 
 Prolog/library.so
+
+Prolog/cunit/
+
+Prolog/gtest/

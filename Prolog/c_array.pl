@@ -1,6 +1,6 @@
 :- module(c_array).
 
-:- export c_array__create/2.
+:- export c_array__create/5.
 :- export c_array__get_all/2.
 :- export c_array__get_name/2.
 :- export c_array__get_type/2.
@@ -12,7 +12,7 @@
 
 %% Declare c_var as an attributed variable
 c_array__create(Type, In, Var_name,Array_size, C_array_instantiated) :-
-    add_attribute(C_array_instantiated, carray(Type, In, In, Var_name)).
+    add_attribute(C_array_instantiated, carray(Type, In, In, Var_name,Array_size)).
 
 %% Used internally by ECLiPSe
 %% This is a unification handler

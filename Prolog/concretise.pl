@@ -1,13 +1,7 @@
-:- module(concretise).
-
-:- export concretise/1.
-:- export concretise/3.
-
 :- lib(ptc_solver).
 
 :- use_module(c_var).
 :- use_module(c_array).
-:- use_module(utils).
 
 % The cut is needed here. Otherwise Prolog attempts to match it with other concretise predicates
 concretise([void]) :- !.

@@ -8,8 +8,20 @@
 :- export c_var__set_out_var/2.
 :- export c_var__get_all/4.
 
+
+%% The module for the c_var attributed variable
+%% It maintains meta-data about a singular non-collection variable
+%% declared in the C source
+%%
+%% It holds the following information:
+%%      Type: The variable type: Eg Int, Float, Char...
+%%      In: A Ptc_solver variable of the attributed variables initial data.
+%%      Out: A Ptc_solver variable that is modified upon assignment or value change.
+%%      c_source_variable_name: The variable name in the C-source-code
+%%
 %% c_var structure:
 %%  c_var{type,in,out,c_source_variable_name}
+
 
 %% Declare c_var as an attributed variable
 :- meta_attribute(c_var, [unify:unify_c_var/2, print:print_c_var/2]).
@@ -38,10 +50,9 @@ unify_c_var_c_var(_Y, _AttrX, AttrY) :-
 
 %% Used internally by ECLiPSe for printing a c_var
 %% Additionally controls how the debugger displays the value
-print_c_var(_{c_var(_Type, _In, _Out, Name)}, Print_value) :-
-% print_c_var(_{cvar(_Type, _In, _Out, Name)}, Print_value) :- % TODO: This or above?
+print_c_var(_{cvar(_Type, _In, _Out, Name)}, Print_value) :-
     -?->
-        Print_value = Name.
+        Print_value = cvar(Name).
 
 %% Constructor for a c_var
 c_var__create(Type, In, Var_name, C_var_instantiated) :-
