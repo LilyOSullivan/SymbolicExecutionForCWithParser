@@ -19,7 +19,8 @@ main(Filename_without_extension, Function_name) :-
     % concat_string([File, ".c"], C_file),
     compile(Prolog_file),
     function_definition(Function_name, Params, Body, Return_type), % Match from compiled prolog file
-    symbEx(Filename_without_extension, Function_name, Params, Body, Return_type). % Execute the function
+    setup_for_function(Filename, Function_name),
+    function_handler(Filename, Function_name, Body, Params, Return_Type). % From Statement_handler.pl
 
 %% Setup the symbolic execution environment
 setup_symbEx :-
@@ -29,10 +30,6 @@ setup_symbEx :-
 
 function_definition(_, _, _, _). % Prevents the interpreter from warning of undefined predicates
 
-%% The predicate to begin symbolic execution
-symbEx(Filename, Function_name, Params, Body, Return_Type) :-
-    setup_for_function(Filename, Function_name),
-    function_handler(Filename, Function_name, Body, Params, Return_Type).
 
 % QUESTION: How would id's work across multiple functions?
 %           Possibly a merge-term of the function name per assert?
