@@ -5,6 +5,7 @@
         "charpointer",
         "concat",
         "cunit",
+        "cvar",
         "intpointer",
         "orop",
         "sprintf",

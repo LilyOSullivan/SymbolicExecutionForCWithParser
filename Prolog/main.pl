@@ -1,8 +1,3 @@
-:- module(main).
-
-:- export main/2.
-:- export clean/0.
-
 :- lib(ptc_solver).
 
 :- use_module(utils).
