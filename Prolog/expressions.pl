@@ -13,9 +13,7 @@
 
 
 :- op(1200, xfy, and_then).
-% :- op(1200, xfy, and).
 :- op(1200, xfy, or_else).
-% :- op(1200, xfy, or).
 
 %% Evaluate an expression. Failing if it is invalid, passing if it is valid.
 evaluate_expression(Expression) :-
@@ -23,7 +21,7 @@ evaluate_expression(Expression) :-
     ptc_solver__sdl(Result),
     !.
 
-%% Evaluate a not expression. Failing if it is invalid, passing if it is valid.
+%% Evaluate a not expression (!). Failing if it is invalid, passing if it is valid.
 evaluate_expression(not(Expression)) :-
     evaluate_expression(Expression, Result),
     ptc_solver__sdl(not Result),
@@ -37,20 +35,35 @@ evaluate_expression(Expression, Out) :-
     number(Expression),
     Out = Expression.
 
+%% And Operator (&&)
 evaluate_expression(andop(Left, Right), Left_Result and_then Right_result) :-
     evaluate_expression(Left, Left_Result),
     evaluate_expression(Right, Right_result).
 
+%% Or Operator (||)
 evaluate_expression(orop(Left, Right), Left_Result or_else Right_result) :-
     evaluate_expression(Left, Left_Result),
     evaluate_expression(Right, Right_result).
 
+%% Not Operator (!)
 evaluate_expression(not(Expression), not Result) :-
     evaluate_expression(Expression, Result).
 
 evaluate_expression(mod(Left ,Right), Left_result mod Right_result) :-
     evaluate_expression(Left, Left_result),
     evaluate_expression(Right, Right_result).
+
+%% Not Equal (!=)
+evaluate_expression(Left<>Right, Out) :-
+    evaluate_expression(Left, Left_result),
+    evaluate_expression(Right, Right_result),
+    Out = (Left_result <> Right_result).
+
+%% Modulo Operator (%)
+evaluate_expression(mod(Left ,Right), Out) :-
+    evaluate_expression(Left, Left_result),
+    evaluate_expression(Right, Right_result),
+    Out = (Left_result mod Right_result).
 
 evaluate_expression(Left==Right, Left_result=Right_result) :-
     evaluate_expression(Left, Left_result),
@@ -88,6 +101,7 @@ evaluate_expression(Left/Right, Left_result/Right_result) :-
     evaluate_expression(Left, Left_result),
     evaluate_expression(Right, Right_result).
 
+
 evaluate_expression(post_increment(Assign_to, Increment_operation), Assign_to) :-
     evaluate_expression(Assign_to, Assign_to_result),
     evaluate_expression(Increment_operation, Increment_operation_result),
@@ -100,10 +114,54 @@ evaluate_expression(pre_increment(Assign_to, Increment_operation), Assign_to) :-
     ptc_solver__sdl(Assign_to_result = Increment_operation_result).
     % Out = Assign_to.
 
+%% Increment with ++ on the right side (Post-increment)
+%% Eg: x++
+evaluate_expression(post_increment(Assign_to, Increment_operation), Out) :-
+    evaluate_expression(Assign_to, Out),
+    evaluate_expression(Increment_operation, Increment_operation_result),
+    c_var__get_ptc_type(Assign_to, Ptc_type),
+    ptc_solver__variable([Temp], Ptc_type),
+    ptc_solver__sdl(eq_cast(Temp, Increment_operation_result)),
+    c_var__set_out_var(Assign_to, Temp).
+
+%% Increment with ++ on the left side (Pre-increment)
+%% Eg: ++x
+evaluate_expression(pre_increment(Assign_to, Increment_operation), Out) :-
+    % evaluate_expression(Assign_to, Assign_to_result),
+    evaluate_expression(Increment_operation, Increment_operation_result),
+    c_var__get_ptc_type(Assign_to, Ptc_type),
+    ptc_solver__variable([Temp], Ptc_type),
+    ptc_solver__sdl(eq_cast(Temp, Increment_operation_result)),
+    Out = Temp,
+    c_var__set_out_var(Assign_to, Increment_operation_result).
+
+%% Increment with -- on the right side (Post-decrement)
+%% Eg: x--
+evaluate_expression(post_decrement(Assign_to, Increment_operation), Out) :-
+    evaluate_expression(Assign_to, Out),
+    evaluate_expression(Increment_operation, Increment_operation_result),
+    c_var__get_ptc_type(Assign_to, Ptc_type),
+    ptc_solver__variable([Temp], Ptc_type),
+    ptc_solver__sdl(eq_cast(Temp, Increment_operation_result)),
+    c_var__set_out_var(Assign_to, Temp).
+
+%% Increment with -- on the left side (Pre-decrement)
+%% Eg: --x
+evaluate_expression(pre_decrement(Assign_to, Increment_operation), Out) :-
+    % evaluate_expression(Assign_to, Assign_to_result),
+    evaluate_expression(Increment_operation, Increment_operation_result),
+    c_var__get_ptc_type(Assign_to, Ptc_type),
+    ptc_solver__variable([Temp], Ptc_type),
+    ptc_solver__sdl(eq_cast(Temp, Increment_operation_result)),
+    Out = Temp,
+    c_var__set_out_var(Assign_to, Increment_operation_result).
+
 evaluate_expression(Left/Right, Left_result/Right_result) :-
     evaluate_expression(Left, Left_result),
     evaluate_expression(Right, Right_result).
 
+%% A value being turned negative with the minus operator
+%% Eg: -x
 evaluate_expression(-Expression, -Expression_result) :-
     evaluate_expression(Expression, Expression_result).
 
@@ -112,5 +170,3 @@ evaluate_expression(Array[Index], element(Var, [Result])) :-
     % The index could be an expression (Eg: Arr[2+2])
     evaluate_expression(Index, Result).
     % Out = element(Var, [Result]).
-
-

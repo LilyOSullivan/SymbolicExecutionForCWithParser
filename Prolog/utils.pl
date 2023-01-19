@@ -9,8 +9,6 @@ utils__evaluate_to_int(Expression, Out) :-
     ptc_solver__variable([Out], integer),
     ptc_solver__sdl(Out = Expression).
 
-utils__ptc_type(int, integer).
-
 % Strip \n from the end of a string
 utils__strip_right_newline(In, Out) :-
     (
@@ -19,18 +17,6 @@ utils__strip_right_newline(In, Out) :-
         ;
             Out = In
     ).
-
-
-
-% utils__right_strip_newline(String, String_without_newline) :-
-%     string_list(String, List_of_ascii_characters),
-%     (foreach(Character, List_of_ascii_characters), foreach(New_character, List_of_ascii_characters_without_newline) do
-%         Character = 10 -> % 10 is the ascii code for \n
-%             true % do nothing
-%         ;
-%             New_character = Character
-%     ),
-%     string_codes(String_without_newline,List_of_ascii_characters_without_newline).
 
 utils__replace_spaces_with_underscores([], []).
 utils__replace_spaces_with_underscores(String_with_spaces,String_with_underscores) :-

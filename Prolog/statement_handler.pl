@@ -83,13 +83,63 @@ handle(return, return(true, void, _)) :-
 handle(assignment(Variable, Expression), _) :-
     evaluate_expression(Expression, Evaluated_expression),
     !,
-    c_var__get_type(Variable, Type),
-    utils__ptc_type(Type, Ptc_type),
+    c_var__get_ptc_type(Variable, Ptc_type),
     ptc_solver__variable([Temp], Ptc_type),
     ptc_solver__sdl(eq_cast(Temp, Evaluated_expression)),
     c_var__set_out_var(Variable, Temp).
 
-% handle(assignment(int(Z), extern(f(X), Library_Name)), _) :-
+%% Handle the += operator
+%%  Breakdown: Variable += Expression
+%%  Eg: x += 2;
+handle(add_assignment(Variable, Expression), _) :-
+    Expression_with_add = (Variable + Expression),
+    handle(assignment(Variable, Expression_with_add), _).
+
+%% Handle the -= operator
+%%  Breakdown: Variable -= Expression
+%%  Eg: x -= 2;
+handle(sub_assignment(Variable, Expression), _) :-
+    Expression_with_subtraction = (Variable - Expression),
+    handle(assignment(Variable, Expression_with_subtraction), _).
+
+%% Handle the *= operator
+%%  Breakdown: Variable *= Expression
+%%  Eg: x *= 2;
+handle(mul_assignment(Variable, Expression), _) :-
+    Expression_with_multiplication = (Variable * Expression),
+    handle(assignment(Variable, Expression_with_multiplication), _).
+
+%% Handle the /= operator
+%%  Breakdown: Variable /= Expression
+%%  Eg: x /= 2;
+handle(div_assignment(Variable, Expression), _) :-
+    Expression_with_divide = (Variable / Expression),
+    handle(assignment(Variable, Expression_with_divide), _).
+
+% Handle the %= operator
+%  Breakdown: Variable %= Expression
+%  Eg: x %= 2;
+handle(mod_assignment(Variable, Expression), _) :-
+    Expression_with_mod = mod(Variable,Expression),
+    handle(assignment(Variable, Expression_with_mod), _).
+
+%% Handles the ++ post-increment-operator as a single line statement
+%% Eg: x++;
+handle(post_increment(Assign_to, Expression), _) :-
+    handle(assignment(Assign_to, Expression), _).
+
+%% Handles the ++ pre-increment-operator as a single line statement
+%% Eg: ++x;
+handle(pre_increment(Assign_to, Expression), _) :-
+    handle(assignment(Assign_to, Expression), _).
+
+handle(post_decrement(Assign_to, Expression), _) :-
+    handle(assignment(Assign_to, Expression), _).
+
+handle(pre_decrement(Assign_to, Expression), _) :-
+    handle(assignment(Assign_to, Expression), _).
+
+% handle(assignment(int(Z), extern(f(X), Library_hName)), _) :-
 %     ptc_solver__variable([X], integer),
 %     ptc_solver__variable([Z], integer),
 %     handle(extern(f(X), Library_Name), Z),

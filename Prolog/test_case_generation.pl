@@ -64,7 +64,7 @@ cunit_write_test_case(Filename, Function_name, Params, Return_value, Return_type
 cunit_write_main(Test_suite_filename) :-
     cunit_add_test_cases_to_suite(Add_tests_to_suite_string),
     printf(testcase_main, "#include \"%s\"\n\n", [Test_suite_filename]),
-    printf(testcase_main, "int main()\n{\n   if (CUE_SUCCESS != CU_initialize_registry())\n      return CU_get_error();\n\n   CU_pSuite pSuite = CU_add_suite(\"Suite_1\", NULL, NULL);\n   if (NULL == pSuite) {\n      CU_cleanup_registry();\n      return CU_get_error();\n   }\n\n   %s\n   CU_basic_set_mode(CU_BRM_VERBOSE);\n   CU_basic_run_tests();\n   CU_cleanup_registry();\n   return CU_get_error();\n}\n", [Add_tests_to_suite_string]).
+    printf(testcase_main, "int main()\n{\n   if (CUE_SUCCESS != CU_initialize_registry())\n      return CU_get_error();\n\n   CU_pSuite pSuite = CU_add_suite(\"Suite_1\", NULL, NULL);\n   if (NULL == pSuite) {\n      CU_cleanup_registry();\n      return CU_get_error();\n   }\n\n%s\n   CU_basic_set_mode(CU_BRM_VERBOSE);\n   CU_basic_run_tests();\n   CU_cleanup_registry();\n   return CU_get_error();\n}\n", [Add_tests_to_suite_string]).
 
 cunit_add_test_cases_to_suite(Out) :-
     get_test_cases(Tests),
@@ -103,7 +103,7 @@ cunit_is_first_test(Filename) :-
 %% The test include files. Called if it is the first test case
 cunit_write_test_include(C_filename) :-
     printf(testcase, "#include \"CUnit/Basic.h\"\n", []),
-    printf(testcase, "#include \"%s.c\"\n", [C_filename]).
+    printf(testcase, "#include \"%s.c\"\n\n", [C_filename]).
 
 
 % gtest_write_test_case_all(Function_name, [void], _) :-
@@ -247,7 +247,7 @@ reduce(P3, [A, B|T], _, D):-
 
 create_declaration_section([], Accumulator, Accumulator).
 create_declaration_section([declaration(int, [H|_])|T], Accumulator, Out) :-
-    c_var__get_type(H, Type),
+    c_var__get_c_type(H, Type),
     create_single_declaration(Type, H, Declaration),
     sprintf(Result, "%s%s", [Accumulator, Declaration]),
     !,
@@ -266,9 +266,9 @@ create_declaration_section([declaration(charpointer, [H|_])|T], Accumulator, Out
     create_declaration_section(T, Result, Out).
 
 create_single_declaration(int, Var, Out) :-
-    c_var__get_all(Var, Var_Type, Ptc_in_var, Var_name),
+    c_var__get_all(Var, Var_c_type, Ptc_in_var, Var_name),
     term_string(Ptc_in_var, Value),
-    sprintf(Out, "\t%s %s = %s;\n", [Var_Type, Var_name, Value]).
+    sprintf(Out, "\t%s %s = %s;\n", [Var_c_type, Var_name, Value]).
 
 create_single_declaration(intpointer, Var, Out) :-
     c_array__get_all(Var, {_, {Ptc_var, _}, Var_name, Size}),

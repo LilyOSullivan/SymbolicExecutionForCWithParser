@@ -12,7 +12,7 @@
 
 %% The entrypoint to the program
 main(Filename_without_extension, Function_name) :-
-    setup_symbEx,
+    setup_symbolic_Execution,
     concat_string([Filename_without_extension, ".pl"], Prolog_file),
     % concat_string([File, ".c"], C_file),
     compile(Prolog_file),
@@ -21,7 +21,7 @@ main(Filename_without_extension, Function_name) :-
     function_handler(Filename_without_extension, Function_name, Body, Params, Return_type). % From Statement_handler.pl
 
 %% Setup the symbolic execution environment
-setup_symbEx :-
+setup_symbolic_Execution :-
     ptc_solver__clean_up,
     ptc_solver__default_declarations,
     ptc_solver__type(char, integer, range_bounds(0, 255)).
