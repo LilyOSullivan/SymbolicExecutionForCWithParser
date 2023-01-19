@@ -35,15 +35,15 @@ setup_for_function(Filename, Function_name) :-
     % FIXME: The below may not have permission to delete if the previous Prolog iteration
     % failed, mostly useful for development,
     % As the test cases will leave the streams open
-    concat_string([Function_name, "_tests.c"], Test_filename),
-    (
-        exists(Test_filename) ->
-            delete(Test_filename)
-        ;
-            true
-    ),
     concat_string([Filename, ".names"], Names_filename),
     compile(Names_filename),
+
+    % Foldername used for the generated test cases
+    date(Current_date_as_string), % Date as a string
+    utils__strip_right_newline(Current_date_as_string, Current_date_stripped),
+    concat_string([Function_name, "_tests_",Current_date_stripped], Folder_name_with_spaces),
+    utils__replace_spaces_with_underscores(Folder_name_with_spaces, Folder_name),
+    asserta(test_folder_name(Folder_name)),
 
     % The initial Id used to identify test cases generated. Used in test_generation.pl
     asserta(test_id(1)),
