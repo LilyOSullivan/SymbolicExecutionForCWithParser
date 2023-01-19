@@ -4,7 +4,7 @@
 :- use_module(c_array).
 
 % The cut is needed here. Otherwise Prolog attempts to match it with other label predicates
-label([void]) :- !.
+label([void]).
 label([]).
 
 %% Labels an integer array

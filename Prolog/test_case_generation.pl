@@ -3,6 +3,10 @@
 :- use_module(c_array).
 :- use_module(c_var).
 
+:- dynamic get_and_set_test_folder_name/1.
+:- dynamic set_test_cases/1.
+:- dynamic set_test_id/1.
+
 %% Generate test cases with failing backtrack
 cunit_write_test_case_all(Filename, Function_name, Params, Return_value, Return_type) :-
     cunit_write_test_case(Filename, Function_name, Params, Return_value, Return_type),

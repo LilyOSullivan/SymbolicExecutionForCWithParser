@@ -6,6 +6,7 @@
 :- ['statement_handler'].
 
 :- dynamic var_names/2.
+:- dynamic setup_for_function/2.
 
 %FIXME: A charpointer array can generate '\' which breaks the C code.
 
@@ -27,7 +28,7 @@ setup_symbEx :-
 
 function_definition(_, _, _, _). % Prevents the interpreter from warning of undefined predicates
 
-
+% IDEA: Name predicate: setup_test_driver
 % QUESTION: How would id's work across multiple functions?
 %           Possibly a merge-term of the function name per assert?
 %% Setup used for each function
