@@ -1,32 +1,30 @@
-:- module(utils).
-
-:- export utils__var_name/2.
-:- export utils__get_all_array_inputs/2.
-:- export utils__evaluate_to_int/2.
-:- dynamic utils__var_name/2.
-:- dynamic var_names/1.
-
 :- lib(ptc_solver).
-
-%HACK: The function below was greatly hacked. It needs to be fixed up.
-%% Reads from the .names file
-utils__var_name(Prolog_var_name, C_var_name) :-
-    retract(names_file(Names_filename))@main,
-    !,
-    compile(Names_filename),
-    asserta(names_file(Names_filename))@main,
-    !,
-    var_names(Prolog_var_name, C_var_name),
-    !.
 
 % From Eileen's Code
 utils__get_all_array_inputs([], []).
 utils__get_all_array_inputs([(_, Value)|Rest], [Value|Rest2]) :-
 	utils__get_all_array_inputs(Rest, Rest2).
 
-
 utils__evaluate_to_int(Expression, Out) :-
     ptc_solver__variable([Out], integer),
-    ptc_solver__sdl(Out = Expression),
-    % ptc_solver__label_integers([Out]),
-    !. % FIXME: Check if this leaves a choice-point. Cut might not be needed
+    ptc_solver__sdl(Out = Expression).
+
+% Strip \n from the end of a string
+utils__strip_right_newline(In, Out) :-
+    (
+        sub_string(In, _, 1, 0, "\n") ->
+            sub_string(In, 0, _, 1, Out)
+        ;
+            Out = In
+    ).
+
+utils__replace_spaces_with_underscores([], []).
+utils__replace_spaces_with_underscores(String_with_spaces,String_with_underscores) :-
+    string_list(String_with_spaces,List_of_ascii_characters),
+    (foreach(Character, List_of_ascii_characters), foreach(New_character, List_of_ascii_characters_with_underscore) do
+        Character = 32 ->
+            New_character = 95
+        ;
+            New_character = Character
+    ),
+    string_codes(String_with_underscores,List_of_ascii_characters_with_underscore).

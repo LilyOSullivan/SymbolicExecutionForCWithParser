@@ -1,9 +1,12 @@
 :- lib(ptc_solver).
 
-:- use_module(utils).
+:- ['utils'].
 :- use_module(c_var).
 :- use_module(expressions).
 :- ['statement_handler'].
+
+:- dynamic var_names/2.
+:- dynamic setup_for_function/2.
 
 %FIXME: A charpointer array can generate '\' which breaks the C code.
 
@@ -14,7 +17,8 @@ main(Filename_without_extension, Function_name) :-
     % concat_string([File, ".c"], C_file),
     compile(Prolog_file),
     function_definition(Function_name, Params, Body, Return_type), % Match from compiled prolog file
-    do_symbolic_execution(Filename_without_extension, Function_name, Params, Body, Return_type). % Execute the function
+    setup_for_function(Filename_without_extension, Function_name),
+    function_handler(Filename_without_extension, Function_name, Body, Params, Return_type). % From Statement_handler.pl
 
 %% Setup the symbolic execution environment
 setup_symbolic_Execution :-
@@ -24,11 +28,7 @@ setup_symbolic_Execution :-
 
 function_definition(_, _, _, _). % Prevents the interpreter from warning of undefined predicates
 
-%% The predicate to begin symbolic execution
-do_symbolic_execution(Filename, Function_name, Params, Body, Return_Type) :-
-    setup_for_function(Filename, Function_name),
-    function_handler(Filename, Function_name, Body, Params, Return_Type).
-
+% IDEA: Name predicate: setup_test_driver
 % QUESTION: How would id's work across multiple functions?
 %           Possibly a merge-term of the function name per assert?
 %% Setup used for each function
@@ -36,16 +36,21 @@ setup_for_function(Filename, Function_name) :-
     % FIXME: The below may not have permission to delete if the previous Prolog iteration
     % failed, mostly useful for development,
     % As the test cases will leave the streams open
-    concat_string([Function_name, "_tests.c"], Test_filename),
-    (
-        exists(Test_filename) ->
-            delete(Test_filename)
-        ;
-            true
-    ),
     concat_string([Filename, ".names"], Names_filename),
-    asserta(names_file(Names_filename)),
+    compile(Names_filename),
+
+    % Foldername used for the generated test cases
+    date(Current_date_as_string), % Date as a string
+    utils__strip_right_newline(Current_date_as_string, Current_date_stripped),
+    concat_string([Function_name, "_tests_",Current_date_stripped], Folder_name_with_spaces),
+    utils__replace_spaces_with_underscores(Folder_name_with_spaces, Folder_name),
+    asserta(test_folder_name(Folder_name)),
+
+    % The initial Id used to identify test cases generated. Used in test_generation.pl
     asserta(test_id(1)),
+
+    % A list holding the names of test cases in the form ["test_1","test_2"...] used in test_generation.pl
+    % when generating the '_main' cunit .c file
     asserta(tests([])).
 
 %% Shortcut predicate to close streams, useful for debugging.

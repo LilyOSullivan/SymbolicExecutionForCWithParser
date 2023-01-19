@@ -1,13 +1,11 @@
-% QUESTION: The test-case outputs likely either needs to be in it's own directory, or
-%       in the same directory as the .C file(s).
-
 %IDEA: Keep a running counter for the number of tab-indentation's desired
 
-%IDEA: It may be possible to use/return accumulators as-is instead of Out variables
-
-:- use_module(utils).
 :- use_module(c_array).
 :- use_module(c_var).
+
+:- dynamic get_and_set_test_folder_name/1.
+:- dynamic set_test_cases/1.
+:- dynamic set_test_id/1.
 
 %% Generate test cases with failing backtrack
 cunit_write_test_case_all(Filename, Function_name, Params, Return_value, Return_type) :-
@@ -27,11 +25,15 @@ cunit_write_test_case(_, Function_name, [void], _, _) :-
 
 %% Generate a singular test case
 cunit_write_test_case(Filename, Function_name, Params, Return_value, Return_type) :-
+    get_and_set_test_folder_name(Folder_name),
+    concat_string(["./", Folder_name, "/"], Relative_path_to_test_directory),
+
     concat_string([Function_name, "_tests"], Test_suite_name),
-    concat_string([Test_suite_name, ".c"], Test_suite_filename),
-    concat_string([Test_suite_name, "_main.c"], Test_main_file),
+    concat_string([Relative_path_to_test_directory, Test_suite_name, ".c"], Test_suite_filename),
+    concat_string([Relative_path_to_test_directory, Test_suite_name, "_main.c"], Test_main_file),
     (
         cunit_is_first_test(Test_suite_filename) ->
+            mkdir(Folder_name),
             open(Test_suite_filename, append, testcase),
             open(Test_suite_filename, read, testcase_read),
             cunit_write_test_include(Filename)
@@ -199,6 +201,11 @@ set_test_cases(New_cases) :-
 get_test_cases(New_cases) :-
     retract(tests(New_cases)),
     !.
+
+get_and_set_test_folder_name(Folder_name) :-
+    retract(test_folder_name(Folder_name)),
+    !,
+    asserta(test_folder_name(Folder_name)).
 
 %% Removes the last character if it is a comma
 strip_right_comma(In, Out) :-
