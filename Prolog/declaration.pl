@@ -9,6 +9,7 @@ declaration(_, []).
 %% Declare an integer variable
 declaration(int, [C_variable|Rest]) :-
     copy_term(C_variable, Variable_copy),
+    % FIXME: Variable name is matching to the first as free variables
     var_names(Variable_copy, Variable_name),
     ptc_solver__variable([In], integer),
     c_var__create(int, integer, In, Variable_name, C_variable),

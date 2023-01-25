@@ -18,6 +18,8 @@ utils__strip_right_newline(In, Out) :-
             Out = In
     ).
 
+% Question: Is there a better way to do this?
+%           Thre likely exists a more-standard method this task
 utils__replace_spaces_with_underscores([], []).
 utils__replace_spaces_with_underscores(String_with_spaces,String_with_underscores) :-
     string_list(String_with_spaces,List_of_ascii_characters),

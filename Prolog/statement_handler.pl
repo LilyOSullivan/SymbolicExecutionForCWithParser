@@ -7,10 +7,9 @@
 %% The entrypoint to function analysis
 function_handler(Filename, Function_Name, Body, Params, Return_type) :-
     parameter_handler(Params),
-    statement_handler(Body, return(_, Return_Value, Return_type)),
-    label(Params),
-    % gtest_write_test_case_all(Filename, Function_Name, Params, Return_Value).
-    cunit_write_test_case_all(Filename, Function_Name, Params, Return_Value, Return_type).
+    statement_handler(Body, return(_, Return_value, Return_type)),
+    label_collectively(Params),
+    cunit_write_test_case_all(Filename, Function_Name, Params, Return_value, Return_type).
 % function_handler(_, _, _, _, _).
 
 parameter_handler([]).
@@ -54,7 +53,6 @@ handle(declaration(Type, Vars), _) :-
 
 %% If statement handler
 handle(if_statement(_Line_Number, expression(Constraint), If_body, Else_body), Return_flags) :-
-    % evaluate_expression(Constraint),
     (
         evaluate_expression(Constraint),
         statement_handler(If_body, Return_flags)

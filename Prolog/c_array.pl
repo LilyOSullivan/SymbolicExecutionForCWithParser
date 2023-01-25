@@ -6,8 +6,10 @@
 :- export c_array__get_type/2.
 :- export c_array__get_in_var/2.
 :- export c_array__get_out_var/2.
+:- export c_array__get_size/2.
+:- export c_array__is_array/1.
 
-%%  c_var{type,In,Out,variable_name,array_size}
+%%  c_array{type,In,Out,variable_name,array_size}
 :- meta_attribute(c_array, [unify:unify_c_array/2, print:print_c_array/2]).
 
 %% Declare c_var as an attributed variable
@@ -38,10 +40,9 @@ unify_c_array_c_array(_Y,_AttrX,AttrY) :-
 
 %% Used internally by ECLiPSe for printing a c_array
 %% Additionally controls how the debugger displays the value
-print_c_array(_{c_array:{_type,Val}},Out) :-
-% print_c_var(_{c_array:{_Type,_Ptc_var,Val}},Out) :-
+print_c_array(_{carray(_type,_In,_Out,Variable_name,_Size)},Display_value) :-
     -?->
-        Out = Val.
+        Display_value = Variable_name.
 
 get_c_array(_Var{C_array},Return_value) :-
     -?->
@@ -76,3 +77,11 @@ c_array__get_in_var(Var,Out) :-
 c_array__get_out_var(Var,Out) :-
     get_c_array(Var,{_,{_,Out},_}),
     !.
+
+%% Returns the size of the array
+c_array__get_size(Var,Size) :-
+    get_c_array(Var,{_,{_,_},_,Size}),
+    !.
+
+%% Checks if a variable is a c_array variable
+c_array__is_array(_{carray(_)})

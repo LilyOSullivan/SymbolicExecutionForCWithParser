@@ -8,6 +8,7 @@
 :- export c_var__get_all/4.
 :- export c_var__get_c_type/2.
 :- export c_var__get_ptc_type/2.
+:- export c_var__is_variable/1.
 
 
 %% The module for the c_var attributed variable
@@ -92,3 +93,5 @@ c_var__get_out_var(_Var{C_var}, Out_var) :-
 c_var__set_out_var(_Var{C_var}, Value) :-
     -?->
         setarg(4, C_var, Value).
+
+c_var__is_variable(_{cvar(_)}).
