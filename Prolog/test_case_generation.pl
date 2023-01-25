@@ -178,13 +178,14 @@ string_contains(Original, Substring) :-
     !. % Stop on the first find. Interested exclusively if a substring exists
 
 %% Gets the current test id
-get_test_id(Out) :-
-    retract(test_id(Out)),
-    !.
+get_test_id(Id) :-
+    getval(test_id,Id).
+    % retract(test_id(Out)),
+    % !.
 
 %% Sets a new test id
 set_test_id(New_id) :-
-    asserta(test_id(New_id)).
+    setval(test_id, New_id).
 
 %% Adds to the current list of all test cases. This is used in the generation
 %% of the 'main' CUnit function
@@ -195,17 +196,17 @@ append_tests_cases(New_case) :-
 
 %% Updates the test cases in the internal database
 set_test_cases(New_cases) :-
-    asserta(tests(New_cases)).
+    setval(tests,New_cases).
 
 %% Returns the test cases in the internal database
 get_test_cases(New_cases) :-
-    retract(tests(New_cases)),
-    !.
+    getval(tests, New_cases).
+    % retract(tests(New_cases)),
+    % !.
 
+% TODO: Rename below predicate
 get_and_set_test_folder_name(Folder_name) :-
-    retract(test_folder_name(Folder_name)),
-    !,
-    asserta(test_folder_name(Folder_name)).
+    getval(test_folder_name, Folder_name).
 
 %% Removes the last character if it is a comma
 strip_right_comma(In, Out) :-
@@ -237,7 +238,7 @@ get_var_names([declaration(charpointer, [H|_])|T], Accumulator, Out) :-
 %% and accumulates the return to a singular value.
 %% This is used primarily to concatenate a list of strings together.
 %% An implementation of reduce from the map-reduce pattern,
-% or fold-left in some functional languages.
+% or fold-right in some functional languages.
 reduce(_, [],  Default, Default).
 reduce(_, [A], _, A).
 reduce(P3, [A, B|T], _, D):-
@@ -253,12 +254,16 @@ create_declaration_section([declaration(int, [H|_])|T], Accumulator, Out) :-
     !,
     create_declaration_section(T, Result, Out).
 create_declaration_section([declaration(intpointer, [H|_])|T], Accumulator, Out) :-
+
+    %FIXME: Below predicate will be broken since changes to internal structures of attributed variable
     c_array__get_type(H, {Type, _, _}),
     create_single_declaration(Type, H, Declaration),
     sprintf(Result, "%s%s", [Accumulator, Declaration]),
     !,
     create_declaration_section(T, Result, Out).
 create_declaration_section([declaration(charpointer, [H|_])|T], Accumulator, Out) :-
+
+    %FIXME: Below predicate will be broken since changes to internal structures of attributed variable
     c_array__get_type(H, {Type, _, _}),
     create_single_declaration(Type, H, Declaration),
     sprintf(Result, "%s%s", [Accumulator, Declaration]),
