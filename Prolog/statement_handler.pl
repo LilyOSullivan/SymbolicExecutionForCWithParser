@@ -8,8 +8,8 @@
 function_handler(Filename, Function_Name, Body, Params, Return_type) :-
     parameter_handler(Params),
     statement_handler(Body, return(Return_value, Return_type)),
-    label(Params),
-    cunit_write_test_case_all(Filename, Function_Name, Params, Return_value, Return_type).
+    label_collectively(Params),
+    cunit__write_test_case_all(Filename, Function_Name, Params, Return_value, Return_type).
 % function_handler(_, _, _, _, _).
 
 %% Declare all parameters as variables
