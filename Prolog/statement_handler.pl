@@ -12,6 +12,7 @@ function_handler(Filename, Function_Name, Body, Params, Return_type) :-
     cunit_write_test_case_all(Filename, Function_Name, Params, Return_value, Return_type).
 % function_handler(_, _, _, _, _).
 
+%% Declare all parameters as variables
 parameter_handler([]).
 parameter_handler([Declaration|More_declarations]) :-
     Declaration \= void,
@@ -29,7 +30,7 @@ statement_handler([], _).
 statement_handler([Statement|More_statements], return(Return_value,Return_type)) :-
     handle(Statement, return(Return_value,Return_type)),
     (
-            % nonvar(Return_value)
+        % nonvar(Return_value)
         nonvar(Return_value) ->
             true
         ;
@@ -131,9 +132,13 @@ handle(post_increment(Assign_to, Expression), _) :-
 handle(pre_increment(Assign_to, Expression), _) :-
     handle(assignment(Assign_to, Expression), _).
 
+%% Handles the -- post-decrement-operator as a single line statement
+%% Eg: x--;
 handle(post_decrement(Assign_to, Expression), _) :-
     handle(assignment(Assign_to, Expression), _).
 
+%% Handles the -- pre-decrement-operator as a single line statement
+%% Eg: --x;
 handle(pre_decrement(Assign_to, Expression), _) :-
     handle(assignment(Assign_to, Expression), _).
 

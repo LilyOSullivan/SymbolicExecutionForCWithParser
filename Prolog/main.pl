@@ -10,7 +10,14 @@
 %FIXME: A charpointer array can generate '\' which breaks the C code.
 
 %% The entrypoint to the program
+%% Filename_without_extension: The name of the file without the .pl extension
+%%                             This should be a string. Eg: "sign"
+%% Function_name: The entry function to be tested. This should be an atom.
+%                 Eg: get_sign
 main(Filename_without_extension, Function_name) :-
+    string(Filename_without_extension),
+    atom(Function_name),
+
     setup_symbolic_Execution,
     concat_string([Filename_without_extension, ".pl"], Prolog_file),
     compile(Prolog_file),
@@ -25,12 +32,11 @@ setup_symbolic_Execution :-
     ptc_solver__default_declarations,
     ptc_solver__type(char, integer, range_bounds(0, 255)).
 
-function_definition(_, _, _, _). % Prevents the interpreter from warning of undefined predicates
-
 % IDEA: Name predicate: setup_test_driver
+%       Technically it is for analysis of a singular function, not the statement_handler
 % QUESTION: How would id's work across multiple functions?
-%           Possibly a merge-term of the function name per assert?
-%% Setup used for each function
+%           Possibly a merge-term of the function name per setval?
+%% Setup used for each function by the test-driver
 setup_for_function(Filename, Function_name) :-
     % FIXME: The below may not have permission to delete if the previous Prolog iteration
     % failed, mostly useful for development,
