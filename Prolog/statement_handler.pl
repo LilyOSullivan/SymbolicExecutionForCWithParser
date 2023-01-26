@@ -7,8 +7,8 @@
 %% The entrypoint to function analysis
 function_handler(Filename, Function_Name, Body, Params, Return_type) :-
     parameter_handler(Params),
-    statement_handler(Body, return(_, Return_value, Return_type)),
-    label_collectively(Params),
+    statement_handler(Body, return(Return_value, Return_type)),
+    label(Params),
     cunit_write_test_case_all(Filename, Function_Name, Params, Return_value, Return_type).
 % function_handler(_, _, _, _, _).
 
@@ -18,25 +18,25 @@ parameter_handler([Declaration|More_declarations]) :-
     Declaration, % This calls declaration predicates in declaration.pl
     parameter_handler(More_declarations).
 
-% IDEA: What if instead of Return_flag, it is checked if Return_value is instantiated?
 % QUESTION: What if a function returns nothing (void return)?
 %% The primary loop dictating the execution of statements
-%% It passes a final parameter of return flag information, in three parts
-%% The information is a list of: [Return_flag, Return_value, Return_type]
-%%  Return_flag is true of a return statement has been encountered. This is used to stop the statement handler loop
+%% It passes a final parameter of return_flags, among in two parts
+%% The information is in the form:  return(Return_value, Return_type)
 %%  Return_value is the value returned at a return function, used in test generation
+%%               and to stop iterating in statement handler
 %%  Return_type is the function return type, used to ensure the correct type is returned
 statement_handler([], _).
-statement_handler([Statement|More_statements], return(Return_flag,Return_value,Return_type)) :-
-    handle(Statement, return(Return_flag,Return_value,Return_type)),
+statement_handler([Statement|More_statements], return(Return_value,Return_type)) :-
+    handle(Statement, return(Return_value,Return_type)),
     (
-        Return_flag == true ->
+            % nonvar(Return_value)
+        nonvar(Return_value) ->
             true
         ;
-            statement_handler(More_statements, return(Return_flag,Return_value,Return_type))
+            statement_handler(More_statements, return(Return_value,Return_type))
     ).
 
-%% This if a new scope is created using { } not tied to a loop, if or function
+%% This is if a new scope is created using { } not tied to a loop, if or function
 %% Eg:
 %%  int y = 15;
 %%  {
@@ -64,20 +64,20 @@ handle(if_statement(_Line_Number, expression(Constraint), If_body, Else_body), R
     ).
 
 %% Return statement that returns a value
-handle(return(Expression), return(true, Out, Return_type)) :-
+handle(return(Expression), return(Return_value, Return_type)) :-
     evaluate_expression(Expression, Expression_Result),
     !,
-    label(Expression_Result, Return_type, Out),
-    writeln(Out).
+    label(Expression_Result, Return_type, Return_value),
+    writeln(Return_value).
 
 %% Empty return statement
-handle(return, return(true, void, _)) :-
+handle(return, return(void, _)) :-
     writeln("Void Return").
 
 %% Handles assignment to a variable
 %% This is commonly used as two steps, Declaration and Assignment, of a variable.
 %% int x = 5;
-%% Becomes a declaration, handled above, and an assignment below
+%% This becomes a declaration, handled above, and an assignment below
 handle(assignment(Variable, Expression), _) :-
     evaluate_expression(Expression, Evaluated_expression),
     !,
