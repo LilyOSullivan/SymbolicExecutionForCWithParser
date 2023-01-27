@@ -30,11 +30,10 @@ statement_handler([], _).
 statement_handler([Statement|More_statements], return(Return_value,Return_type)) :-
     handle(Statement, return(Return_value,Return_type)),
     (
-        % nonvar(Return_value)
-        nonvar(Return_value) ->
-            true
-        ;
+        var(Return_value) ->
             statement_handler(More_statements, return(Return_value,Return_type))
+        ;
+            true
     ).
 
 %% This is if a new scope is created using { } not tied to a loop, if or function

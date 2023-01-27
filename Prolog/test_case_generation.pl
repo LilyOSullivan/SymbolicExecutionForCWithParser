@@ -6,7 +6,7 @@
 
 %% Generate test cases with failing backtrack
 cunit__write_test_case_all(Filename, Function_name, Params, Return_value, Return_type) :-
-    cunit_write_test_case(Filename, Function_name, Params, Return_value, Return_type),
+    cunit__write_test_case(Filename, Function_name, Params, Return_value, Return_type),
     fail,
     !.
 
@@ -22,18 +22,18 @@ cunit__write_test_case(_, Function_name, [void], _, _) :-
 
 %% Generate a singular test case
 cunit__write_test_case(Filename, Function_name, Params, Return_value, Return_type) :-
-    get_and_set_test_folder_name(Folder_name),
+    get_test_folder_name(Folder_name),
     concat_string(["./", Folder_name, "/"], Relative_path_to_test_directory),
     concat_string([Function_name, "_tests"], Test_suite_name),
-    concat_string([Relative_path_to_test_directory, Test_suite_name, ".c"], Test_suite_filename),
     concat_string([Test_suite_name, ".c"], CFile_Include_filename),
+    concat_string([Relative_path_to_test_directory, Test_suite_name, ".c"], Test_suite_filename),
     concat_string([Relative_path_to_test_directory, Test_suite_name, "_main.c"], Test_main_file),
     (
         cunit__is_first_test(Test_suite_filename) ->
             mkdir(Folder_name),
             open(Test_suite_filename, append, testcase),
             open(Test_suite_filename, read, testcase_read),
-            cunit_write_test_include(Filename)
+            cunit__write_test_include(Filename)
         ;
             % Put a new line to visually space out the test cases
             open(Test_suite_filename, append, testcase),
@@ -44,8 +44,7 @@ cunit__write_test_case(Filename, Function_name, Params, Return_value, Return_typ
     get_test_name(Test_name),
     create_declaration_section(Params, "", Declaration_section),
     cunit__create_assert(Function_name, Params, Return_value, Return_type, Assert),
-    sprintf(Complete_test_case, "void %s(void) {\n\n %s \n %s}\n", [Test_name, Declaration_section, Assert]),
-    printf(testcase, Complete_test_case, []),
+    printf(testcase, "void %s(void) {\n\n %s \n %s}\n", [Test_name, Declaration_section, Assert]),
     cunit__write_main(CFile_Include_filename),
     close(testcase_main),
     close(testcase),
@@ -60,8 +59,7 @@ cunit__write_main(Test_suite_filename) :-
 
 cunit__add_test_cases_to_suite(Out) :-
     get_test_cases(Tests),
-    cunit__add_to_suite_loop(Tests, "", Out),
-    set_test_cases(Tests).
+    cunit__add_to_suite_loop(Tests, "", Out).
 
 cunit__add_to_suite_loop([], Accumulator, Accumulator).
 cunit__add_to_suite_loop([Test_case|T], Accumulator, Out) :-
@@ -165,6 +163,8 @@ cunit__write_test_include(C_filename) :-
 
 
 %% Check if a string contains a substring
+%% First parameter is the string to check if it contains the substring
+%% The substring to be checked if contained within the first parameter
 string_contains(Original, Substring) :-
     sub_string(Original, _, _, _, Substring),
     !. % Stop on the first find. Interested exclusively if a substring exists
@@ -174,11 +174,11 @@ string_contains(Original, Substring) :-
 %% Eg: "test_12" (for the 12th test case)
 get_test_name(Test_name) :-
     getval(test_id,Current_id),
-    New_id is Id + 1,
+    New_id is Current_id + 1,
     set_test_id(New_id),
     term_string(Current_id, Current_id_as_string),
     concat_string(["test_", Current_id_as_string], Test_name),
-    append_tests_cases(Test_name),
+    append_tests_cases(Test_name).
 
 %% Sets a new test id
 set_test_id(New_id) :-
@@ -199,33 +199,32 @@ set_test_cases(New_cases) :-
 get_test_cases(New_cases) :-
     getval(tests, New_cases).
 
-% TODO: Rename below predicate
-get_and_set_test_folder_name(Folder_name) :-
+get_test_folder_name(Folder_name) :-
     getval(test_folder_name, Folder_name).
 
 %% Removes the last character if it is a comma
-strip_right_comma(In, Out) :-
+strip_right_comma(String_with_comma, String_without_comma) :-
     (
-        sub_string(In, _, 1, 0, ",") ->
-            sub_string(In, 0, _, 1, Out)
+        sub_string(String_with_comma, _, 1, 0, ",") ->
+            sub_string(String_with_comma, 0, _, 1, String_without_comma)
         ;
-            Out = In
+            String_without_comma = String_with_comma
     ).
 
-get_var_names([], Accumulator, Out) :-
-    strip_right_comma(Accumulator, Out).
-get_var_names([declaration(int, [H|_])|T], Accumulator, Out) :-
+get_var_names([], Variable_name_accumulator, All_variable_names) :-
+    strip_right_comma(Variable_name_accumulator, All_variable_names).
+get_var_names([declaration(int, [H|_])|T], Variable_name_accumulator, All_variable_names) :-
     c_var__get_name(H, Var_name),
-    sprintf(Result, "%s%s,", [Accumulator, Var_name]),
-    get_var_names(T, Result, Out).
-get_var_names([declaration(intpointer, [H|_])|T], Accumulator, Out) :-
+    sprintf(Result, "%s%s,", [Variable_name_accumulator, Var_name]),
+    get_var_names(T, Result, All_variable_names).
+get_var_names([declaration(intpointer, [H|_])|T], Variable_name_accumulator, All_variable_names) :-
     c_array__get_name(H, Var_name),
-    sprintf(Result, "%s%s,", [Accumulator, Var_name]),
-    get_var_names(T, Result, Out).
-get_var_names([declaration(charpointer, [H|_])|T], Accumulator, Out) :-
+    sprintf(Result, "%s%s,", [Variable_name_accumulator, Var_name]),
+    get_var_names(T, Result, All_variable_names).
+get_var_names([declaration(charpointer, [H|_])|T], Variable_name_accumulator, All_variable_names) :-
     c_array__get_name(H, Var_name),
-    sprintf(Result, "%s%s,", [Accumulator, Var_name]),
-    get_var_names(T, Result, Out).
+    sprintf(Result, "%s%s,", [Variable_name_accumulator, Var_name]),
+    get_var_names(T, Result, All_variable_names).
 
 % Below reduce-predicate is modified from
 % https://stackoverflow.com/a/61809974
@@ -277,9 +276,8 @@ create_single_declaration(intpointer, Var, Out) :-
     ),
     reduce(string_concat, Values_as_string, "", Result),
     strip_right_comma(Result, Result_stripped),
-    sprintf(Array_values, "{%s}", [Result_stripped]),
     term_string(Size, Size_as_string),
-    sprintf(Out, "\t%s %s[%s] = %s;\n", ["int", Var_name, Size_as_string, Array_values]).
+    sprintf(Out, "\t%s %s[%s] = {%s};\n", ["int", Var_name, Size_as_string, Result_stripped]).
 
 create_single_declaration(charpointer, Var, Out) :-
     c_array__get_all(Var, {_, {Ptc_var, _}, Var_name, Size}),
@@ -292,9 +290,8 @@ create_single_declaration(charpointer, Var, Out) :-
     ),
     reduce(string_concat, Values_as_string, "", Result),
     strip_right_comma(Result, Result_stripped),
-    sprintf(Array_values, "{%s}", [Result_stripped]),
     term_string(Size, Size_as_string),
-    sprintf(Out, "\t%s %s[%s] = %s;\n", ["char", Var_name, Size_as_string, Array_values]).
+    sprintf(Out, "\t%s %s[%s] = {%s};\n", ["char", Var_name, Size_as_string, Result_stripped]).
 
 create_return(Return_value, int, Out) :-
     term_string(Return_value, Out).

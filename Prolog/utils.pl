@@ -10,6 +10,8 @@ utils__evaluate_to_int(Expression, Integer_result) :-
     ptc_solver__sdl(Integer_result = Expression).
 
 %% Strip \n from the end of a string
+%% The first parameter is the string with the newline (Eg: "Hello\n")
+%% The second parameter is the string without the newline (Eg: "Hello")
 utils__strip_right_newline(String_with_newline, String_stripped) :-
     (
         sub_string(String_with_newline, _, 1, 0, "\n") ->
@@ -22,6 +24,8 @@ utils__strip_right_newline(String_with_newline, String_stripped) :-
 %           There likely exists a more-standard method for this task
 %% Replace all spaces with underscores
 %% This is used to convert the date predicate results to a non-space string in main::setup_for_function
+%% The first parameter is the string with spaces (Eg: "Hello World")
+%% The second parameter is the string with underscores (Eg: "Hello_World")
 utils__replace_spaces_with_underscores([], []).
 utils__replace_spaces_with_underscores(String_with_spaces,String_with_underscores) :-
     string_list(String_with_spaces,List_of_ascii_characters),

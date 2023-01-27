@@ -45,7 +45,7 @@ setup_for_function(Filename, Function_name) :-
     compile(Names_filename),
 
     % Foldername used for the generated test cases
-    date(Current_date_as_string), % Date as a string
+    date(Current_date_as_string),
     utils__strip_right_newline(Current_date_as_string, Current_date_stripped),
     concat_string([Function_name, "_tests_",Current_date_stripped], Folder_name_with_spaces),
     utils__replace_spaces_with_underscores(Folder_name_with_spaces, Folder_name),
@@ -53,12 +53,10 @@ setup_for_function(Filename, Function_name) :-
 
     % The initial Id used to identify test cases generated. Used in test_generation.pl
     setval(test_id,1),
-    % asserta(test_id(1)),
 
     % A list holding the names of test cases in the form ["test_1","test_2"...] used in test_generation.pl
     % when generating the '_main' cunit .c file
     setval(tests,[]).
-    % asserta(tests([])).
 
 %% Shortcut predicate to close streams, useful for debugging.
 clean :-

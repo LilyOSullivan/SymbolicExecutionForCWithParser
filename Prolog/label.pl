@@ -8,14 +8,17 @@ label([void]).
 label([]).
 
 %% Collectively pass integer-variables to be labelled to the solver
+%% The parameter must be in the form [[Type,[Var1,Var2,...]]]
+%% Eg: [[integer,[x,y]],[double,[a,b]]]
+%% This structure is created by the predicate label__group_by_ptc_type
 label([[integer,Integers_to_label]|More_to_label]) :-
-    is_list(Integers_to_label),
-    
     ptc_solver__label_integers(Integers_to_label),
     !,
     label(More_to_label).
 
 %% Groups variables by type and labels them collectively instead of individually
+%% The parameter is a list of declaration predicates, as output by the parser
+%% Eg: [declaration(integer,[x]),declaration(double,[a])]
 label_collectively(Parameters) :-
     label__group_by_ptc_type(Parameters,[],Grouped_parameters),
     label(Grouped_parameters).
@@ -52,7 +55,7 @@ label(Expression, Type, Concrete_variable) :-
     (
         Type == int ->
             utils__evaluate_to_int(Expression, Concrete_variable)
-            ;
+        ;
         Type == char ->
             utils__evaluate_to_int(Expression, Concrete_variable)
     ).
@@ -62,7 +65,6 @@ label(Expression, Type, Concrete_variable) :-
 % Eg: [[integer,[x,y]],[double,[a,b]]]
 label__group_by_ptc_type([],Accumulator,Accumulator).
 label__group_by_ptc_type([declaration(_type,[Variable])|More_variables],Accumulator,Grouped_by_type_result) :-
-    is_list(Accumulator),
     c_var__is_variable(Variable),
 
     c_var__get_ptc_type(Variable,Type),
@@ -71,7 +73,7 @@ label__group_by_ptc_type([declaration(_type,[Variable])|More_variables],Accumula
         member([Type,Vars],Accumulator) ->
             append(Vars,[In_var],New_vars),
             select([Type,Vars],Accumulator,New_accumulator),
-            append(New_accumulator,[[Type,New_vars]],Accumulator2) % Should this not be [[Type,[New_vars]]]?
+            append(New_accumulator,[[Type,New_vars]],Accumulator2)
         ;
             append(Accumulator,[[Type,[In_var]]],Accumulator2)
     ),
