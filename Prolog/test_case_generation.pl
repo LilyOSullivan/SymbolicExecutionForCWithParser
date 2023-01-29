@@ -22,31 +22,31 @@ cunit__write_test_case(_, Function_name, [void], _, _) :-
 
 %% Generate a singular test case
 cunit__write_test_case(Filename, Function_name, Params, Return_value, Return_type) :-
-    get_test_folder_name(Folder_name),
-    concat_string(["./", Folder_name, "/"], Relative_path_to_test_directory),
+    get_test_folder_path(Path_to_test_directory),
     concat_string([Function_name, "_tests"], Test_suite_name),
-    concat_string([Relative_path_to_test_directory, Test_suite_name, ".c"], Test_suite_filepath),
-    concat_string([Relative_path_to_test_directory, Test_suite_name, "_main.c"], Test_main_filepath),
+    concat_string([Path_to_test_directory, Test_suite_name, ".c"], Test_suite_filepath),
     (
         cunit__is_first_test(Test_suite_filepath) ->
-            mkdir(Folder_name),
+            mkdir(Path_to_test_directory),
             open(Test_suite_filepath, append, testcase),
             cunit__write_test_include(Filename)
         ;
-            % Put a new line to visually space out the test cases
             open(Test_suite_filepath, append, testcase),
+            % Put a new line to visually space out the test cases
             printf(testcase, "\n", [])
     ),
-    get_test_name(Test_name),
     create_declaration_section(Params, "", Declaration_section),
-    cunit__create_assert(Function_name, Params, Return_value, Return_type, Assert),
-    printf(testcase, "void %s(void) {\n\n %s \n %s}\n", [Test_name, Declaration_section, Assert]),
-    cunit__write_main(Test_suite_name,Test_main_filepath),
+    cunit__create_assert(Function_name, Params, Return_value, Return_type, CUnit_assert),
+    get_test_name(Test_name),
+    printf(testcase, "void %s(void) {\n\n %s \n %s}\n", [Test_name, Declaration_section, CUnit_assert]),
+    cunit__write_main(Test_suite_name),
     close(testcase).
 
 % IDEA: Split main function string among multiple strings
 %% Create the main function for the test suite
-cunit__write_main(Test_suite_name,Filepath_to_main) :-
+cunit__write_main(Test_suite_name) :-
+    get_test_folder_path(Path_to_test_directory),
+    concat_string([Path_to_test_directory, Test_suite_name, "_main.c"], Filepath_to_main),
     open(Filepath_to_main, write, testcase_main),
     concat_string([Test_suite_name, ".c"], Test_suite_filename),
     cunit__add_test_cases_to_suite(Add_tests_to_suite_string),
@@ -54,20 +54,18 @@ cunit__write_main(Test_suite_name,Filepath_to_main) :-
     printf(testcase_main, "int main()\n{\n\tif (CUE_SUCCESS != CU_initialize_registry())\n\t\treturn CU_get_error();\n\n\tCU_pSuite pSuite = CU_add_suite(\"Suite_1\", NULL, NULL);\n\tif (NULL == pSuite) {\n\t\tCU_cleanup_registry();\n\t\treturn CU_get_error();\n\t}\n\n%s\n\tCU_basic_set_mode(CU_BRM_VERBOSE);\n\tCU_basic_run_tests();\n\tCU_cleanup_registry();\n\treturn CU_get_error();\n}\n", [Add_tests_to_suite_string]),
     close(testcase_main).
 
-cunit__add_test_cases_to_suite(Out) :-
+cunit__add_test_cases_to_suite(Add_all_test_cases_to_suite_string) :-
     get_test_cases(Tests),
-    cunit__add_to_suite_loop(Tests, "", Out).
-
-cunit__add_to_suite_loop([], Accumulator, Accumulator).
-cunit__add_to_suite_loop([Test_case|T], Accumulator, Out) :-
-    % The sprint and concat_string are split to reduce the amount of chars on a single line of code; Readability
+    cunit__add_test_cases_to_suite(Tests, "", Add_all_test_cases_to_suite_string).
+cunit__add_test_cases_to_suite([], Accumulator, Accumulator).
+cunit__add_test_cases_to_suite([Test_case|More_test_cases], Accumulator, Add_all_test_cases_to_suite_string) :-
     sprintf(Result, "%s\tif (NULL == CU_add_test(pSuite, \"test case\", %s)) {\n\t\tCU_cleanup_registry();\n\t\treturn CU_get_error();\n\t}\n", [Accumulator, Test_case]),
-    cunit__add_to_suite_loop(T, Result, Out).
+    cunit__add_test_cases_to_suite(More_test_cases, Result, Add_all_test_cases_to_suite_string).
 
-cunit__create_assert(Function_name, Params, Return_value, Return_type, Out) :-
+cunit__create_assert(Function_name, Params, Return_value, Return_type, CUnit_assert) :-
     create_return(Return_value, Return_type, Return_value_as_string),
     get_var_names(Params, "", Var_names),
-    sprintf(Out, "\tCU_ASSERT(%s(%s) == %s);\n", [Function_name, Var_names, Return_value_as_string]).
+    sprintf(CUnit_assert, "\tCU_ASSERT(%s(%s) == %s);\n", [Function_name, Var_names, Return_value_as_string]).
 
 % FIXME: I imagine this is possible to be written without the use of an if
 %% Checks if this is the first test case being generated.
@@ -80,6 +78,8 @@ cunit__is_first_test(Filename) :-
     (
         exists(Filename), get_file_info(Filename, size, File_size), File_size > 0 ->
             open(Filename, read, testcase_read),
+
+            % TODO: Read only the first line, instead of all characters
             read_string(testcase_read, _, First_chars),
             close(testcase_read),
             not string_contains(First_chars, "CUnit/Basic.h")
@@ -91,72 +91,6 @@ cunit__is_first_test(Filename) :-
 cunit__write_test_include(C_filename) :-
     printf(testcase, "#include \"CUnit/Basic.h\"\n", []),
     printf(testcase, "#include \"%s.c\"\n\n", [C_filename]).
-
-
-% gtest_write_test_case_all(Function_name, [void], _) :-
-%     write("No test cases to generate for "),
-%     writeln(Function_name),
-%     !.
-
-% gtest_write_test_case_all(Function_name, Params, Return_value) :-
-%     gtest_write_test_case(Function_name, Params, Return_value),
-%     fail,
-%     !.
-
-% gtest_write_test_case(Function_name, [void], _) :-
-%     write("No test cases to generate for "),
-%     writeln(Function_name),
-%     !.
-
-% gtest_write_test_case(Function_name, Params, Return_value) :-
-%     concat_string([Function_name, "_tests"], Test_suite_name),
-%     concat_string([Test_suite_name, ".cpp"], Test_suite_filename),
-%     open(Test_suite_filename, append, testcase),
-%     open(Test_suite_filename, read, testcase_read),
-%     (
-%         gtest_is_first_test ->
-%             gtest_write_test_include
-%         ;
-%             % Put a new line to space out the test cases
-%             printf(testcase, "\n", [])
-%     ),
-%     printf(testcase, "TEST(%s, ", [Test_suite_name]),
-%     get_test_id(Test_id),
-%     term_string(Test_id, Test_id_as_string),
-%     printf(testcase, Test_id_as_string, []),
-%     printf(testcase, ") {\n", []),
-%     New_test_id is Test_id + 1,
-%     set_test_id(New_test_id),
-%     gtest_write_assert_eq(Function_name, Params, Return_value),
-%     printf(testcase, "}\n", []),
-%     close(testcase),
-%     close(testcase_read).
-
-% gtest_write_assert_eq(Function_name, Params, Return_value) :-
-%     printf(testcase, "\tASSERT_EQ(", []),
-%     printf(testcase, Function_name, []),
-%     printf(testcase, "(", []),
-%     params_to_string(Params, "", Out),
-%     printf(testcase, Out, []),
-%     printf(testcase, "), ", []),
-%     term_string(Return_value, Return_value_as_string),
-%     printf(testcase, Return_value_as_string, []),
-%     printf(testcase, ");\n", []).
-
-% %% Check if the test includes are needed
-% %% This is primarily for backtracking not to write includes multiple times
-% gtest_is_first_test :-
-%     read_string(testcase_read, 25, First_chars),
-%     not string_contains(First_chars, "<gtest/gtest.h>").
-
-
-% %% Write out any includes necessary for the test suite
-% %% Necessary to ensure the gtest comes first
-% %% Due to a check for the necessity of writing an include checking for gtest
-% %% As a first line in the file
-% gtest_write_test_include :-
-%     printf(testcase, "#include <gtest/gtest.h>\n", []).
-%     % printf(testcase, "#include "%s.c"\n", [C_filename]).
 
 
 %% Check if a string contains a substring
@@ -196,8 +130,8 @@ set_test_cases(New_cases) :-
 get_test_cases(New_cases) :-
     getval(tests, New_cases).
 
-get_test_folder_name(Folder_name) :-
-    getval(test_folder_name, Folder_name).
+get_test_folder_path(Folder_path) :-
+    getval(test_folder_path, Folder_path).
 
 %% Removes the last character if it is a comma
 strip_right_comma(String_with_comma, String_without_comma) :-
@@ -295,8 +229,76 @@ create_single_declaration(charpointer, Var, Out) :-
     term_string(Size, Size_as_string),
     sprintf(Out, "\t%s %s[%s] = {%s};\n", ["char", Var_name, Size_as_string, Result_stripped]).
 
-create_return(Return_value, int, Out) :-
-    term_string(Return_value, Out).
-create_return(Return_value, char, Out) :-
+create_return(Return_value, int, Return_value_as_string) :-
+    term_string(Return_value, Return_value_as_string).
+create_return(Return_value, char, Return_value_as_string) :-
     string_codes(Value_as_string, [Return_value]),
-    concat_string(["'", Value_as_string, "'"], Out).
+    concat_string(["'", Value_as_string, "'"], Return_value_as_string).
+
+
+% <== Below are all Google Test related predicates ==>
+
+% gtest_write_test_case_all(Function_name, [void], _) :-
+%     write("No test cases to generate for "),
+%     writeln(Function_name),
+%     !.
+
+% gtest_write_test_case_all(Function_name, Params, Return_value) :-
+%     gtest_write_test_case(Function_name, Params, Return_value),
+%     fail,
+%     !.
+
+% gtest_write_test_case(Function_name, [void], _) :-
+%     write("No test cases to generate for "),
+%     writeln(Function_name),
+%     !.
+
+% gtest_write_test_case(Function_name, Params, Return_value) :-
+%     concat_string([Function_name, "_tests"], Test_suite_name),
+%     concat_string([Test_suite_name, ".cpp"], Test_suite_filename),
+%     open(Test_suite_filename, append, testcase),
+%     open(Test_suite_filename, read, testcase_read),
+%     (
+%         gtest_is_first_test ->
+%             gtest_write_test_include
+%         ;
+%             % Put a new line to space out the test cases
+%             printf(testcase, "\n", [])
+%     ),
+%     printf(testcase, "TEST(%s, ", [Test_suite_name]),
+%     get_test_id(Test_id),
+%     term_string(Test_id, Test_id_as_string),
+%     printf(testcase, Test_id_as_string, []),
+%     printf(testcase, ") {\n", []),
+%     New_test_id is Test_id + 1,
+%     set_test_id(New_test_id),
+%     gtest_write_assert_eq(Function_name, Params, Return_value),
+%     printf(testcase, "}\n", []),
+%     close(testcase),
+%     close(testcase_read).
+
+% gtest_write_assert_eq(Function_name, Params, Return_value) :-
+%     printf(testcase, "\tASSERT_EQ(", []),
+%     printf(testcase, Function_name, []),
+%     printf(testcase, "(", []),
+%     params_to_string(Params, "", Out),
+%     printf(testcase, Out, []),
+%     printf(testcase, "), ", []),
+%     term_string(Return_value, Return_value_as_string),
+%     printf(testcase, Return_value_as_string, []),
+%     printf(testcase, ");\n", []).
+
+% %% Check if the test includes are needed
+% %% This is primarily for backtracking not to write includes multiple times
+% gtest_is_first_test :-
+%     read_string(testcase_read, 25, First_chars),
+%     not string_contains(First_chars, "<gtest/gtest.h>").
+
+
+% %% Write out any includes necessary for the test suite
+% %% Necessary to ensure the gtest comes first
+% %% Due to a check for the necessity of writing an include checking for gtest
+% %% As a first line in the file
+% gtest_write_test_include :-
+%     printf(testcase, "#include <gtest/gtest.h>\n", []).
+%     % printf(testcase, "#include "%s.c"\n", [C_filename]).

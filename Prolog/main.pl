@@ -33,7 +33,6 @@ setup_symbolic_Execution :-
     ptc_solver__type(char, integer, range_bounds(0, 255)).
 
 % IDEA: Name predicate: setup_test_driver
-%       Technically it is for analysis of a singular function, not the statement_handler
 % QUESTION: How would id's work across multiple functions?
 %           Possibly a merge-term of the function name per setval?
 %% Setup used for each function by the test-driver
@@ -49,7 +48,8 @@ setup_for_function(Filename, Function_name) :-
     utils__strip_right_newline(Current_date_as_string, Current_date_stripped),
     concat_string([Function_name, "_tests_",Current_date_stripped], Folder_name_with_spaces),
     utils__replace_spaces_with_underscores(Folder_name_with_spaces, Folder_name),
-    setval(test_folder_name,Folder_name),
+    concat_string(["./", Folder_name, "/"], Path_to_test_directory),
+    setval(test_folder_path,Path_to_test_directory),
 
     % The initial Id used to identify test cases generated. Used in test_generation.pl
     setval(test_id,1),
