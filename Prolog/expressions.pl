@@ -166,6 +166,19 @@ evaluate_expression(Left/Right, Left_result/Right_result) :-
 evaluate_expression(-Expression, -Expression_result) :-
     evaluate_expression(Expression, Expression_result).
 
+% FIXME: This will likely fail if the left is not a variable
+% Eg: 2 = x or 2 = 2
+%% Assignment operator (=)
+%% Eg: x = 2
+evaluate_expression(assignment(Assign_to,Expression), Expression_result) :-
+    evaluate_expression(Assign_to, Left_result),
+    evaluate_expression(Expression, Right_result),
+    c_var__get_ptc_type(Left_result, Ptc_type),
+    ptc_solver__variable([Temp], Ptc_type),
+    ptc_solver__sdl(eq_cast(Temp, Right_result)),
+    c_var__set_out_var(Assign_to, Temp),
+    Expression_result = Temp.
+
 %% Accessing an array element (Index)
 evaluate_expression(Array[Index], element(Var, [Result])) :-
     c_array__get_out_var(Array, Var),
