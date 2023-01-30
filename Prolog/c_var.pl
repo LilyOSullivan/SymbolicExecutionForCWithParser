@@ -9,6 +9,7 @@
 :- export c_var__get_c_type/2.
 :- export c_var__get_ptc_type/2.
 :- export c_var__is_variable/1.
+:- export c_var__create_declaration/2.
 
 
 %% The module for the c_var attributed variable
@@ -94,4 +95,17 @@ c_var__set_out_var(_Var{C_var}, Value) :-
     -?->
         setarg(4, C_var, Value).
 
+%% Passes if the variable is a c_var
+%% Fails otherwise
 c_var__is_variable(_{cvar(_)}).
+
+c_var__create_declaration(Variable,Declaration) :-
+    c_var__is_variable(Variable),
+
+    c_var__get_c_type(Variable,Type),
+    c_var__create_declaration(Variable,Type,Declaration).
+
+c_var__create_declaration(Variable,int,Declaration) :-
+    c_var__get_all(Variable, _, Ptc_in_var, Var_name),
+    term_string(Ptc_in_var, Value),
+    sprintf(Declaration, "\t%s %s = %s;\n", [int, Var_name, Value]).

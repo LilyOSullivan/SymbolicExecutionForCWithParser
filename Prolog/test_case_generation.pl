@@ -14,7 +14,7 @@ cunit__write_test_case_all(Filename, Function_name, Params, Return_value, Return
 %      though this assumes determinism
 %      Eg assert give_five() == 5
 %% Generate test cases for a function with no parameters
-%% A function with no parameters does not generate test cases.
+%% A function with no parameters does not generate test cases, for now.
 cunit__write_test_case(_, Function_name, [void], _, _) :-
     write("No test cases to generate for "),
     writeln(Function_name),
@@ -38,7 +38,7 @@ cunit__write_test_case(Filename, Function_name, Params, Return_value, Return_typ
     create_declaration_section(Params, "", Declaration_section),
     cunit__create_assert(Function_name, Params, Return_value, Return_type, CUnit_assert),
     get_test_name(Test_name),
-    printf(testcase, "void %s(void) {\n\n %s \n %s}\n", [Test_name, Declaration_section, CUnit_assert]),
+    printf(testcase, "void %s(void) {\n\n%s\n%s}\n", [Test_name, Declaration_section, CUnit_assert]),
     cunit__write_main(Test_suite_name),
     close(testcase).
 
@@ -57,14 +57,14 @@ cunit__write_main(Test_suite_name) :-
 cunit__add_test_cases_to_suite(Add_all_test_cases_to_suite_string) :-
     get_test_cases(Tests),
     cunit__add_test_cases_to_suite(Tests, "", Add_all_test_cases_to_suite_string).
-cunit__add_test_cases_to_suite([], Accumulator, Accumulator).
-cunit__add_test_cases_to_suite([Test_case|More_test_cases], Accumulator, Add_all_test_cases_to_suite_string) :-
-    sprintf(Result, "%s\tif (NULL == CU_add_test(pSuite, \"test case\", %s)) {\n\t\tCU_cleanup_registry();\n\t\treturn CU_get_error();\n\t}\n", [Accumulator, Test_case]),
-    cunit__add_test_cases_to_suite(More_test_cases, Result, Add_all_test_cases_to_suite_string).
+cunit__add_test_cases_to_suite([], Add_to_suite_accumulator, Add_to_suite_accumulator).
+cunit__add_test_cases_to_suite([Test_case|More_test_cases], Add_to_suite_accumulator, Add_all_test_cases_to_suite_string) :-
+    sprintf(Accumulator_with_current_test_case, "%s\tif (NULL == CU_add_test(pSuite, \"test case\", %s)) {\n\t\tCU_cleanup_registry();\n\t\treturn CU_get_error();\n\t}\n", [Add_to_suite_accumulator, Test_case]),
+    cunit__add_test_cases_to_suite(More_test_cases, Accumulator_with_current_test_case, Add_all_test_cases_to_suite_string).
 
 cunit__create_assert(Function_name, Params, Return_value, Return_type, CUnit_assert) :-
     create_return(Return_value, Return_type, Return_value_as_string),
-    get_var_names(Params, "", Var_names),
+    var_names_as_parameters(Params, "", Var_names),
     sprintf(CUnit_assert, "\tCU_ASSERT(%s(%s) == %s);\n", [Function_name, Var_names, Return_value_as_string]).
 
 % FIXME: I imagine this is possible to be written without the use of an if
@@ -94,8 +94,8 @@ cunit__write_test_include(C_filename) :-
 
 
 %% Check if a string contains a substring
-%% First parameter is the string to check if it contains the substring
-%% The substring to be checked if contained within the first parameter
+%% Original:The string to check if it contains the substring
+%% Substring: The string to be checked if contained within the first parameter
 string_contains(Original, Substring) :-
     sub_string(Original, _, _, _, Substring),
     !. % Stop on the first find. Interested exclusively if a substring exists
@@ -130,104 +130,45 @@ set_test_cases(New_cases) :-
 get_test_cases(New_cases) :-
     getval(tests, New_cases).
 
+%% Gets the path to the test folder
 get_test_folder_path(Folder_path) :-
     getval(test_folder_path, Folder_path).
 
-%% Removes the last character if it is a comma
-strip_right_comma(String_with_comma, String_without_comma) :-
-    (
-        sub_string(String_with_comma, _, 1, 0, ",") ->
-            sub_string(String_with_comma, 0, _, 1, String_without_comma)
-        ;
-            String_without_comma = String_with_comma
-    ).
-
-get_var_names([], Variable_name_accumulator, All_variable_names) :-
-    strip_right_comma(Variable_name_accumulator, All_variable_names).
-get_var_names([declaration(int, [H|_])|T], Variable_name_accumulator, All_variable_names) :-
+%% Create a singular, comma-separated string, of the variables names
+%% Params: The list of parameters
+%% Variable_name_accumulator: The accumulator for the variable names, as a continuous string
+%% All_variable_names: The variable that will be instantiated with the final string
+%% Eg: var_names_as_parameters(
+%%      [declaration(int, [LC_x{"x"}]),declaration(int, [LC_y{"y"}])],
+%%      "", All_variable_names
+%%     )
+%%
+%%  -> All_variable_names = "x,y"
+var_names_as_parameters([], Variable_name_accumulator, All_variable_names) :-
+    utils__strip_right_comma(Variable_name_accumulator, All_variable_names).
+var_names_as_parameters([declaration(int, [H|_])|T], Variable_name_accumulator, All_variable_names) :-
     c_var__get_name(H, Var_name),
     sprintf(Result, "%s%s,", [Variable_name_accumulator, Var_name]),
-    get_var_names(T, Result, All_variable_names).
-get_var_names([declaration(intpointer, [H|_])|T], Variable_name_accumulator, All_variable_names) :-
+    var_names_as_parameters(T, Result, All_variable_names).
+var_names_as_parameters([declaration(intpointer, [H|_])|T], Variable_name_accumulator, All_variable_names) :-
     c_array__get_name(H, Var_name),
     sprintf(Result, "%s%s,", [Variable_name_accumulator, Var_name]),
-    get_var_names(T, Result, All_variable_names).
-get_var_names([declaration(charpointer, [H|_])|T], Variable_name_accumulator, All_variable_names) :-
+    var_names_as_parameters(T, Result, All_variable_names).
+var_names_as_parameters([declaration(charpointer, [H|_])|T], Variable_name_accumulator, All_variable_names) :-
     c_array__get_name(H, Var_name),
     sprintf(Result, "%s%s,", [Variable_name_accumulator, Var_name]),
-    get_var_names(T, Result, All_variable_names).
-
-% Below reduce-predicate is modified from
-% https://stackoverflow.com/a/61809974
-%% Applies a predicate to each element in a list,
-%% and accumulates the return to a singular value.
-%% This is used primarily to concatenate a list of strings together.
-%% An implementation of reduce from the map-reduce pattern,
-% or fold-right in some functional languages.
-%% Parameters:
-%% Predicate: The predicate to apply to each element in the list
-%% List: The list to apply the predicate to
-%% Default: The default value to return if the list is empty
-%% Reduce_result: The result of the reduction
-reduce(_, [],  Default, Default).
-reduce(_, [Result], _, Result).
-reduce(Predicate, [First_element, Second_element|More_elements], _, Reduce_result):-
-    call(Predicate, First_element, Second_element, Predicate_result),
-    reduce(Predicate, [Predicate_result|More_elements], _, Reduce_result),
-    !.
+    var_names_as_parameters(T, Result, All_variable_names).
 
 create_declaration_section([], Accumulator, Accumulator).
-create_declaration_section([declaration(int, [H|_])|T], Accumulator, Out) :-
-    c_var__get_c_type(H, Type),
-    create_single_declaration(Type, H, Declaration),
-    sprintf(Result, "%s%s", [Accumulator, Declaration]),
-    !,
-    create_declaration_section(T, Result, Out).
-create_declaration_section([declaration(intpointer, [H|_])|T], Accumulator, Out) :-
+create_declaration_section([declaration(_, [Variable|_])|T], Declaration_accumulator, All_declarations) :-
+    c_var__create_declaration(Variable,Declaration),
+    sprintf(Result, "%s%s", [Declaration_accumulator, Declaration]),
+    create_declaration_section(T, Result, All_declarations).
+create_declaration_section([declaration(_, [Variable|_])|T], Declaration_accumulator, All_declarations) :-
     %FIXME: Below predicate will be broken since changes to internal structures of attributed variable
-    c_array__get_type(H, {Type, _, _}),
-    create_single_declaration(Type, H, Declaration),
-    sprintf(Result, "%s%s", [Accumulator, Declaration]),
-    !,
-    create_declaration_section(T, Result, Out).
-create_declaration_section([declaration(charpointer, [H|_])|T], Accumulator, Out) :-
-    %FIXME: Below predicate will be broken since changes to internal structures of attributed variable
-    c_array__get_type(H, {Type, _, _}),
-    create_single_declaration(Type, H, Declaration),
-    sprintf(Result, "%s%s", [Accumulator, Declaration]),
-    !,
-    create_declaration_section(T, Result, Out).
-
-create_single_declaration(int, Var, Out) :-
-    c_var__get_all(Var, Var_c_type, Ptc_in_var, Var_name),
-    term_string(Ptc_in_var, Value),
-    sprintf(Out, "\t%s %s = %s;\n", [Var_c_type, Var_name, Value]).
-create_single_declaration(intpointer, Var, Out) :-
-    c_array__get_all(Var, {_, {Ptc_var, _}, Var_name, Size}),
-    ptc_solver__get_array_index_elements(Ptc_var, Indexs),
-    utils__get_all_array_inputs(Indexs, Values),
-    ( foreach(Value, Values), foreach(X, Values_as_string) do
-        term_string(Value, Value_as_string),
-        concat_string([Value_as_string, ","], X)
-    ),
-    reduce(string_concat, Values_as_string, "", Result),
-    strip_right_comma(Result, Result_stripped),
-    term_string(Size, Size_as_string),
-    sprintf(Out, "\t%s %s[%s] = {%s};\n", ["int", Var_name, Size_as_string, Result_stripped]).
-
-create_single_declaration(charpointer, Var, Out) :-
-    c_array__get_all(Var, {_, {Ptc_var, _}, Var_name, Size}),
-    ptc_solver__get_array_index_elements(Ptc_var, Indexs),
-    utils__get_all_array_inputs(Indexs, Values),
-    ( foreach(Value, Values), foreach(X, Values_as_string) do
-        % term_string(Value, Value_as_string),
-        string_codes(Value_as_string, [Value]),
-        concat_string(["'", Value_as_string, "',"], X)
-    ),
-    reduce(string_concat, Values_as_string, "", Result),
-    strip_right_comma(Result, Result_stripped),
-    term_string(Size, Size_as_string),
-    sprintf(Out, "\t%s %s[%s] = {%s};\n", ["char", Var_name, Size_as_string, Result_stripped]).
+    c_array__create_declaration(Variable,Declaration),
+    sprintf(Result, "%s%s", [Declaration_accumulator, Declaration]),
+    create_declaration_section(T, Result, All_declarations).
 
 create_return(Return_value, int, Return_value_as_string) :-
     term_string(Return_value, Return_value_as_string).
