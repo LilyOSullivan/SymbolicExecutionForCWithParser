@@ -57,32 +57,34 @@ c_array__get_all(_Var{C_array},C_type,In,Name,Size) :-
         C_array = carray(C_type,_,In,_,Name,Size).
 
 %% Returns the type of the c_array
-c_array__get_c_type(Var,Type) :-
-    get_c_array(Var,{Type,_}).
+c_array__get_c_type(_Var{C_array},Type) :-
+    -?->
+        C_array = carray(Type,_).
 
 %% Returns the type of the c_array
-c_array__get_ptc_type(Var,Type) :-
-    get_c_array(Var,{_,Type,_}).
+c_array__get_ptc_type(_Var{C_array},Type) :-
+    -?->
+        C_array = carray(_,Type,_).
 
 %% Returns the name in the source code of the c_array
-c_array__get_name(Var,Out) :-
-    get_c_array(Var,{_,_,Out,_}),
-    !.
+c_array__get_name(_Var{C_array},Name) :-
+    -?->
+        C_array = carray(_,_,_,_,Name,_).
 
 %% Returns the in-value of the c_array
-c_array__get_in_var(Var,Out) :-
-    get_c_array(Var,{_,{Out,_},_}),
-    !.
+c_array__get_in_var(_Var{C_array},In) :-
+    -?->
+        C_array = carray(_,_,In,_).
 
 %% Returns the out-value of the c_array
-c_array__get_out_var(Var,Out) :-
-    get_c_array(Var,{_,{_,Out},_}),
-    !.
+c_array__get_out_var(_Var{C_array},Out) :-
+    -?->
+        C_array = carray(_,_,_,Out,_,_).
 
 %% Returns the size of the array
-c_array__get_size(Var,Size) :-
-    get_c_array(Var,{_,{_,_},_,Size}),
-    !.
+c_array__get_size(_Var{C_array},Size) :-
+    -?->
+        C_array = carray(_,_,_,_,_,Size).
 
 %% Checks if a variable is a c_array variable
 c_array__is_array(_{carray(_)}).

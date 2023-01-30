@@ -16,6 +16,15 @@ label([[integer,Integers_to_label]|More_to_label]) :-
     !,
     label(More_to_label).
 
+label([[intpointer,Values_to_label]|More_to_label]) :-
+    ( foreach(Value, Values_to_label), foreach(Array_inputs, Array_values) do
+        ptc_solver__get_array_index_elements(Value, Indexs),
+        utils__get_all_array_inputs(Indexs, Array_inputs)
+    ),
+    ptc_solver__label_integers(Array_values),
+    !,
+    label(More_to_label).
+
 %% Groups variables by type and labels them collectively instead of individually
 %% The parameter is a list of declaration predicates, as output by the parser
 %% Eg: [declaration(integer,[x]),declaration(double,[a])]
