@@ -54,6 +54,8 @@ cunit__write_main(Test_suite_name) :-
     printf(testcase_main, "int main()\n{\n\tif (CUE_SUCCESS != CU_initialize_registry())\n\t\treturn CU_get_error();\n\n\tCU_pSuite pSuite = CU_add_suite(\"Suite_1\", NULL, NULL);\n\tif (NULL == pSuite) {\n\t\tCU_cleanup_registry();\n\t\treturn CU_get_error();\n\t}\n\n%s\n\tCU_basic_set_mode(CU_BRM_VERBOSE);\n\tCU_basic_run_tests();\n\tCU_cleanup_registry();\n\treturn CU_get_error();\n}\n", [Add_tests_to_suite_string]),
     close(testcase_main).
 
+%% Creates the code to add all test cases to the test suite, for CUnit
+%% The only parameter is the string to be returned
 cunit__add_test_cases_to_suite(Add_all_test_cases_to_suite_string) :-
     get_test_cases(Tests),
     cunit__add_test_cases_to_suite(Tests, "", Add_all_test_cases_to_suite_string).
@@ -78,9 +80,7 @@ cunit__is_first_test(Filename) :-
     (
         exists(Filename), get_file_info(Filename, size, File_size), File_size > 0 ->
             open(Filename, read, testcase_read),
-
-            % TODO: Read only the first line, instead of all characters
-            read_string(testcase_read, _, First_chars),
+            read_string(testcase_read, 24, First_chars),
             close(testcase_read),
             not string_contains(First_chars, "CUnit/Basic.h")
         ;
@@ -146,29 +146,37 @@ get_test_folder_path(Folder_path) :-
 %%  -> All_variable_names = "x,y"
 var_names_as_parameters([], Variable_name_accumulator, All_variable_names) :-
     utils__strip_right_comma(Variable_name_accumulator, All_variable_names).
-var_names_as_parameters([declaration(int, [H|_])|T], Variable_name_accumulator, All_variable_names) :-
-    c_var__get_name(H, Var_name),
+var_names_as_parameters([declaration(_, [Variable|_])|More_variables], Variable_name_accumulator, All_variable_names) :-
+    c_var__is_variable(Variable),
+    c_var__get_name(Variable, Var_name),
     sprintf(Result, "%s%s,", [Variable_name_accumulator, Var_name]),
-    var_names_as_parameters(T, Result, All_variable_names).
-var_names_as_parameters([declaration(intpointer, [H|_])|T], Variable_name_accumulator, All_variable_names) :-
-    c_array__get_name(H, Var_name),
+    var_names_as_parameters(More_variables, Result, All_variable_names).
+var_names_as_parameters([declaration(_, [Variable|_])|More_variables], Variable_name_accumulator, All_variable_names) :-
+    c_array__is_array(Variable),
+    c_array__get_name(Variable, Var_name),
     sprintf(Result, "%s%s,", [Variable_name_accumulator, Var_name]),
-    var_names_as_parameters(T, Result, All_variable_names).
-var_names_as_parameters([declaration(charpointer, [H|_])|T], Variable_name_accumulator, All_variable_names) :-
-    c_array__get_name(H, Var_name),
-    sprintf(Result, "%s%s,", [Variable_name_accumulator, Var_name]),
-    var_names_as_parameters(T, Result, All_variable_names).
+    var_names_as_parameters(More_variables, Result, All_variable_names).
 
-create_declaration_section([], Accumulator, Accumulator).
-create_declaration_section([declaration(_, [Variable|_])|T], Declaration_accumulator, All_declarations) :-
+%% Creates a declaration, and assignment, section for variables used in the test cases
+%% Params: The list of parameters
+%% Declaration_accumulator: The accumulator for the declarations, as a continuous string
+%% All_declarations: The variable that will be instantiated with the final string
+%% Eg: create_declaration_section(
+%%      [declaration(int, [LC_x{"x"}]),declaration(int, [LC_y{"y"}])],
+%%      "", All_declarations
+%%     )
+%%
+%%  -> All_declarations = "int x = 5;\nint y = -2;\n"
+create_declaration_section([], Declaration_accumulator, Declaration_accumulator).
+create_declaration_section([declaration(_, [Variable|_])|More_variables], Declaration_accumulator, All_declarations) :-
     c_var__create_declaration(Variable,Declaration),
     sprintf(Result, "%s%s", [Declaration_accumulator, Declaration]),
-    create_declaration_section(T, Result, All_declarations).
-create_declaration_section([declaration(_, [Variable|_])|T], Declaration_accumulator, All_declarations) :-
+    create_declaration_section(More_variables, Result, All_declarations).
+create_declaration_section([declaration(_, [Variable|_])|More_variables], Declaration_accumulator, All_declarations) :-
     %FIXME: Below predicate will be broken since changes to internal structures of attributed variable
     c_array__create_declaration(Variable,Declaration),
     sprintf(Result, "%s%s", [Declaration_accumulator, Declaration]),
-    create_declaration_section(T, Result, All_declarations).
+    create_declaration_section(More_variables, Result, All_declarations).
 
 create_return(Return_value, int, Return_value_as_string) :-
     term_string(Return_value, Return_value_as_string).

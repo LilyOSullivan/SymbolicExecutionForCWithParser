@@ -166,8 +166,6 @@ evaluate_expression(Left/Right, Left_result/Right_result) :-
 evaluate_expression(-Expression, -Expression_result) :-
     evaluate_expression(Expression, Expression_result).
 
-% FIXME: This will likely fail if the left is not a variable
-% Eg: 2 = x or 2 = 2
 %% Assignment operator (=)
 %% Eg: x = 2
 evaluate_expression(assignment(Assign_to,Expression), Expression_result) :-
