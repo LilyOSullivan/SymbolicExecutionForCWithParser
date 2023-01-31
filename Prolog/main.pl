@@ -31,7 +31,9 @@ main(Filename_without_extension, Function_name) :-
 setup_symbolic_Execution :-
     ptc_solver__clean_up,
     ptc_solver__default_declarations,
-    ptc_solver__type(char, integer, range_bounds(0, 255)).
+    ptc_solver__type(char, integer, range_bounds(33, 126)).
+    % 33-126 are the printable ASCII characters
+    % https://www.ascii-code.com
 
 % IDEA: Name predicate: setup_test_driver
 % QUESTION: How would id's work across multiple functions?
