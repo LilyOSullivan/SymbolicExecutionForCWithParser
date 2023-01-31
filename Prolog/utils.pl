@@ -22,18 +22,30 @@ utils__strip_right_newline(String_with_newline, String_stripped) :-
 
 % Question: Is there a better way to do this?
 %           There likely exists a more-standard method for this task
-%% Replace all spaces with underscores
+%% Replace all spaces and colons with underscores
 %% This is used to convert the date predicate results to a non-space string in main::setup_for_function
-%% The first parameter is the string with spaces (Eg: "Hello World")
-%% The second parameter is the string with underscores (Eg: "Hello_World")
-utils__replace_spaces_with_underscores([], []).
-utils__replace_spaces_with_underscores(String_with_spaces,String_with_underscores) :-
+%% Certain characters are not allowed in the name of a directory, spaces and colon are examples of these characters
+%% The first parameter is the string with spaces (Eg: "Hello :World")
+%% The second parameter is the string with underscores (Eg: "Hello__World")
+utils__replace_invalid_directory_chars_with_underscores([], []).
+utils__replace_invalid_directory_chars_with_underscores(String_with_spaces,String_with_underscores) :-
     string_list(String_with_spaces,List_of_ascii_characters),
-    (foreach(Current_character, List_of_ascii_characters), foreach(New_character, List_of_ascii_characters_with_underscore) do
-        Current_character = 32 -> % 32 is the ascii for a space character ( )
-            New_character = 95 % 95 is the ascii for an underscore character (_)
+
+    ( foreach(Current_character, List_of_ascii_characters),
+      foreach(New_character, List_of_ascii_characters_with_underscore)
+      do
+        SPACE_CHAR      = 32, % 32 is the ascii for a space character ( )
+        COLON_CHAR      = 58, % 58 is the ascii for a colon character (:)
+        UNDERSCORE_CHAR = 95, % 95 is the ascii for an underscore character (_)
+
+        (Current_character = SPACE_CHAR ->
+            New_character = UNDERSCORE_CHAR
+        ;
+        Current_character = COLON_CHAR ->
+            New_character = UNDERSCORE_CHAR
         ;
             New_character = Current_character
+        )
     ),
     string_codes(String_with_underscores,List_of_ascii_characters_with_underscore).
 

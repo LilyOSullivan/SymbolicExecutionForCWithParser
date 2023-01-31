@@ -173,7 +173,6 @@ create_declaration_section([declaration(_, [Variable|_])|More_variables], Declar
     sprintf(Result, "%s%s", [Declaration_accumulator, Declaration]),
     create_declaration_section(More_variables, Result, All_declarations).
 create_declaration_section([declaration(_, [Variable|_])|More_variables], Declaration_accumulator, All_declarations) :-
-    %FIXME: Below predicate will be broken since changes to internal structures of attributed variable
     c_array__create_declaration(Variable,Declaration),
     sprintf(Result, "%s%s", [Declaration_accumulator, Declaration]),
     create_declaration_section(More_variables, Result, All_declarations).
