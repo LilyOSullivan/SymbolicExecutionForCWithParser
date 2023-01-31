@@ -8,6 +8,7 @@
 :- dynamic var_names/2.
 
 %FIXME: A charpointer array can generate '\' which breaks the C code.
+% ASCII code: 92
 
 %% The entrypoint to the program
 %% Filename_without_extension: The name of the file without the .pl extension
@@ -30,7 +31,9 @@ main(Filename_without_extension, Function_name) :-
 setup_symbolic_Execution :-
     ptc_solver__clean_up,
     ptc_solver__default_declarations,
-    ptc_solver__type(char, integer, range_bounds(0, 255)).
+    ptc_solver__type(char, integer, range_bounds(33, 126)).
+    % 33-126 are the printable ASCII characters
+    % https://www.ascii-code.com
 
 % IDEA: Name predicate: setup_test_driver
 % QUESTION: How would id's work across multiple functions?
@@ -45,9 +48,9 @@ setup_for_function(Filename, Function_name) :-
 
     % Foldername used for the generated test cases
     date(Current_date_as_string),
-    utils__strip_right_newline(Current_date_as_string, Current_date_stripped),
-    concat_string([Function_name, "_tests_",Current_date_stripped], Folder_name_with_spaces),
-    utils__replace_spaces_with_underscores(Folder_name_with_spaces, Folder_name),
+    utils__strip_right_newline(Current_date_as_string, Current_date_stripped_with_spaces),
+    utils__replace_invalid_directory_chars_with_underscores(Current_date_stripped_with_spaces, Current_date_cleaned),
+    concat_string([Function_name, "_tests_",Current_date_cleaned], Folder_name),
     concat_string(["./", Folder_name, "/"], Path_to_test_directory),
     setval(test_folder_path,Path_to_test_directory),
 

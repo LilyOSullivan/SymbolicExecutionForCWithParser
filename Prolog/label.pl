@@ -16,6 +16,30 @@ label([[integer,Integers_to_label]|More_to_label]) :-
     !,
     label(More_to_label).
 
+label([[intpointer,Values_to_label]|More_to_label]) :-
+    ( foreach(Value, Values_to_label), foreach(Array_inputs, Array_values) do
+        ptc_solver__get_array_index_elements(Value, Indexs),
+        utils__get_all_array_inputs(Indexs, Array_inputs)
+    ),
+    ptc_solver__label_integers(Array_values),
+    !,
+    label(More_to_label).
+
+label([[charpointer,Values_to_label]|More_to_label]) :-
+    ( foreach(Value, Values_to_label), foreach(Array_inputs, Array_values) do
+        ptc_solver__get_array_index_elements(Value, Indexs),
+        utils__get_all_array_inputs(Indexs, Array_inputs)
+    ),
+    ptc_solver__label_integers(Array_values),
+    !,
+
+    % Should these characters be regenerated? or escaped? Escaped sounds more accurate
+    %% TODO: Check if it is a character array, filter out backslashes and single quotes
+
+
+
+    label(More_to_label).
+
 %% Groups variables by type and labels them collectively instead of individually
 %% The parameter is a list of declaration predicates, as output by the parser
 %% Eg: [declaration(integer,[x]),declaration(double,[a])]
@@ -66,6 +90,7 @@ label(Expression, Type, Concrete_variable) :-
 label__group_by_ptc_type([],Accumulator,Accumulator).
 label__group_by_ptc_type([declaration(_type,[Variable])|More_variables],Accumulator,Grouped_by_type_result) :-
     c_var__is_variable(Variable),
+    writeln("LABEL: VARIABLE"), %TODO: Remove
 
     c_var__get_ptc_type(Variable,Type),
     c_var__get_in_var(Variable,In_var),
@@ -78,3 +103,38 @@ label__group_by_ptc_type([declaration(_type,[Variable])|More_variables],Accumula
             append(Accumulator,[[Type,[In_var]]],Accumulator2)
     ),
     label__group_by_ptc_type(More_variables,Accumulator2,Grouped_by_type_result).
+
+label__group_by_ptc_type([declaration(_type,[Variable])|More_variables],Accumulator,Grouped_by_type_result) :-
+    c_array__is_array(Variable),
+    writeln("LABEL: ARRAY"), %TODO: Remove
+
+    c_array__get_ptc_type(Variable,Type),
+    c_array__get_in_var(Variable,In_var),
+    (
+        member([Type,Vars],Accumulator) ->
+            append(Vars,[In_var],New_vars),
+            select([Type,Vars],Accumulator,New_accumulator),
+            append(New_accumulator,[[Type,New_vars]],Accumulator2)
+        ;
+            append(Accumulator,[[Type,[In_var]]],Accumulator2)
+    ),
+    label__group_by_ptc_type(More_variables,Accumulator2,Grouped_by_type_result).
+
+
+% WIP below
+%% Escape backslash and single quote characters
+%% First parameter is a list of ascii characters in integer form
+%% Second parameter is a list of ascii characters in integer form with escaped characters
+%% Eg: [104 105 39] -> [104 105 [92 39]]
+label__escape_problematic_characters(Ascii,Escaped_ascii) :-
+    ( foreach(Ascii_char, Ascii), foreach(Escaped_ascii_char, Escaped_ascii) do
+        (
+            Ascii_char == 92 ->
+                Escaped_ascii_char = [92,92]
+            ;
+            Ascii_char == 39 ->
+                Escaped_ascii_char = [92,39]
+            ;
+                Escaped_ascii_char = Ascii_char
+        )
+    ).

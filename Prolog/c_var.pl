@@ -97,7 +97,9 @@ c_var__set_out_var(_Var{C_var}, Value) :-
 
 %% Passes if the variable is a c_var
 %% Fails otherwise
-c_var__is_variable(_{cvar(_)}).
+c_var__is_variable(_{cvar(C_var)}) :-
+    -?->
+        C_var = cvar(_, _, _, _, _).
 
 c_var__create_declaration(Variable,Declaration) :-
     c_var__is_variable(Variable),
