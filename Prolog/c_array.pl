@@ -59,35 +59,37 @@ c_array__get_all(_Var{C_array},C_type,In,Name,Size) :-
 %% Returns the type of the c_array
 c_array__get_c_type(_Var{C_array},Type) :-
     -?->
-        C_array = carray(Type,_).
+        C_array = carray(Type,_,_,_,_,_).
 
 %% Returns the type of the c_array
 c_array__get_ptc_type(_Var{C_array},Type) :-
     -?->
-        C_array = carray(_,Type,_).
+        C_array = carray(_, Type, _, _, _, _).
 
 %% Returns the name in the source code of the c_array
 c_array__get_name(_Var{C_array},Name) :-
     -?->
-        C_array = carray(_,_,_,_,Name,_).
+        C_array = carray(_, _, _, _,Name,_).
 
 %% Returns the in-value of the c_array
 c_array__get_in_var(_Var{C_array},In) :-
     -?->
-        C_array = carray(_,_,In,_).
+        C_array = carray(_, _, In, _, _, _).
 
 %% Returns the out-value of the c_array
 c_array__get_out_var(_Var{C_array},Out) :-
     -?->
-        C_array = carray(_,_,_,Out,_,_).
+        C_array = carray(_, _, _, Out, _, _).
 
 %% Returns the size of the array
 c_array__get_size(_Var{C_array},Size) :-
     -?->
-        C_array = carray(_,_,_,_,_,Size).
+        C_array = carray(_, _, _, _, _, Size).
 
 %% Checks if a variable is a c_array variable
-c_array__is_array(_{carray(_)}).
+c_array__is_array(_Var{C_array}) :-
+    -?->
+        C_array = carray(_, _, _, _, _, _).
 
 c_array__create_declaration(Variable,Declaration) :-
     c_array__is_array(Variable),
