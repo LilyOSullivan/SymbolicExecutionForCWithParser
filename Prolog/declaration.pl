@@ -23,13 +23,12 @@ declaration(intpointer, [C_variable|Rest]) :-
     ptc_solver__type(indexType5, integer, range_bounds(0, 4)),
     ptc_solver__type(arrayType5, array, [indexType5], integer),
     ptc_solver__variable([In], arrayType5),
-    ptc_solver__variable([Out], arrayType5),
     copy_term(C_variable, Variable_copy),
     var_names(Variable_copy, Variable_name),
     %TODO: This might be a 'mistake' from the parser. Eg int *buf vs int* buf
     sub_string(Variable_name, 1, _, 0, Name_stripped), % Strip "*" from name
     Size = 5,
-    c_array__create(C_variable, {intpointer, {In, Out}, Name_stripped, Size}),
+    c_array__create(int,intpointer, In, Name_stripped, Size,C_variable),
     declaration(intpointer, Rest),
     !.
 
@@ -40,12 +39,11 @@ declaration(charpointer, [C_variable|Rest]) :-
     ptc_solver__type(indexType5, integer, range_bounds(0, 4)),
     ptc_solver__type(arrayType5, array, [indexType5], char),
     ptc_solver__variable([In], arrayType5),
-    ptc_solver__variable([Out], arrayType5),
     copy_term(C_variable, Variable_copy),
     var_names(Variable_copy, Variable_name),
     %TODO: This might be a 'mistake' from the parser. Eg int *buf vs int* buf
     sub_string(Variable_name, 1, _, 0, Name_stripped), % Strip "*" from name
     Size = 5,
-    c_array__create(C_variable, {charpointer, {In, Out}, Name_stripped, Size}),
+    c_array__create(char,charpointer, In, Name_stripped, Size,C_variable),
     declaration(intpointer, Rest),
     !.
