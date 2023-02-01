@@ -7,7 +7,9 @@ utils__get_all_array_inputs([(_, Value)|Rest], [Value|Rest2]) :-
 
 utils__evaluate_to_int(Expression, Integer_result) :-
     ptc_solver__variable([Integer_result], integer),
-    ptc_solver__sdl(Integer_result = Expression).
+    ptc_solver__sdl(Integer_result = Expression),
+    ptc_solver__label_integers([Integer_result]),
+    !.
 
 %% Strip \n from the end of a string
 %% The first parameter is the string with the newline (Eg: "Hello\n")
@@ -20,13 +22,23 @@ utils__strip_right_newline(String_with_newline, String_stripped) :-
             String_stripped = String_with_newline
     ).
 
-% Question: Is there a better way to do this?
+% TODO: This likely should do more than printing
+%% Detects if a C-code error is occuring: Not all code paths return a value
+utils__detect_not_all_code_paths_return(Return_value,Return_type) :-
+    (
+        Return_type \== void, var(Return_value) ->
+            writeln("ERROR: Not all code paths return a value!!")
+        ;
+            true % All okay, no error
+    ).
+
+% QUESTION: Is there a better way to do this?
 %           There likely exists a more-standard method for this task
 %% Replace all spaces and colons with underscores
-%% This is used to convert the date predicate results to a non-space string in main::setup_for_function
+%% This is used to convert the date predicate result to a string in main::setup_for_function
 %% Certain characters are not allowed in the name of a directory, spaces and colon are examples of these characters
-%% The first parameter is the string with spaces (Eg: "Hello :World")
-%% The second parameter is the string with underscores (Eg: "Hello__World")
+%% The first parameter is the string with spaces (Eg: "He:llo World")
+%% The second parameter is the string with underscores (Eg: "He_llo_World")
 utils__replace_invalid_directory_chars_with_underscores([], []).
 utils__replace_invalid_directory_chars_with_underscores(String_with_spaces,String_with_underscores) :-
     string_list(String_with_spaces,List_of_ascii_characters),
@@ -63,13 +75,13 @@ utils__strip_right_comma(String_with_comma, String_without_comma) :-
 %% Applies a predicate to each element in a list,
 %% and accumulates the return to a singular value.
 %% This is used primarily to concatenate a list of strings together.
-%% An implementation of reduce from the map-reduce pattern,
+%% This predicate is an implementation of reduce from the map-reduce pattern,
 % or fold-right in some functional languages.
 %% Parameters:
-%% Predicate: The predicate to apply to each element in the list
-%% List: The list to apply the predicate to
-%% Default: The default value to return if the list is empty
-%% Reduce_result: The result of the reduction
+%%  Predicate: The predicate to apply to each element in the list
+%%  List: The list to apply the predicate to
+%%  Default: The default value to return if the list is empty
+%%  Reduce_result: The result of the reduction
 utils__reduce(_, [],  Default, Default).
 utils__reduce(_, [Result], _, Result).
 utils__reduce(Predicate, [First_element, Second_element|More_elements], _, Reduce_result):-

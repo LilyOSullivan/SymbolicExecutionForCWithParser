@@ -8,6 +8,7 @@
 function_handler(Filename, Function_Name, Body, Params, Return_type) :-
     parameter_handler(Params),
     statement_handler(Body, return(Return_value, Return_type)),
+    utils__detect_not_all_code_paths_return(Return_value,Return_type),
     label_collectively(Params),
     cunit__write_test_case_all(Filename, Function_Name, Params, Return_value, Return_type).
 % function_handler(_, _, _, _, _).

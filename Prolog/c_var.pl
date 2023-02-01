@@ -53,7 +53,7 @@ unify_c_var_c_var(_Y, _AttrX, AttrY) :-
 
 %% Used internally by ECLiPSe for printing a c_var
 %% Additionally controls how the debugger displays the value
-print_c_var(_{cvar(_Type, _In, _Out, Name)}, Print_value) :-
+print_c_var(_{cvar(_CType,_PTCType, _In, _Out, Name)}, Print_value) :-
     -?->
         Print_value = cvar(Name).
 
@@ -97,13 +97,12 @@ c_var__set_out_var(_Var{C_var}, Value) :-
 
 %% Passes if the variable is a c_var
 %% Fails otherwise
-c_var__is_variable(_{cvar(C_var)}) :-
+c_var__is_variable(_{C_var}) :-
     -?->
         C_var = cvar(_, _, _, _, _).
 
 c_var__create_declaration(Variable,Declaration) :-
     c_var__is_variable(Variable),
-
     c_var__get_c_type(Variable,Type),
     c_var__create_declaration(Variable,Type,Declaration).
 
