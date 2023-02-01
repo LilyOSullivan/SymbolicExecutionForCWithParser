@@ -43,7 +43,7 @@ unify_c_array_c_array(_Y,_AttrX,AttrY) :-
 
 %% Used internally by ECLiPSe for printing a c_array
 %% Additionally controls how the debugger displays the value
-print_c_array(_{carray(_type,_In,_Out,Variable_name,_Size)},Display_value) :-
+print_c_array(_{carray(_Ptc_type,_C_type,_In,_Out,Variable_name,_Size)},Display_value) :-
     -?->
         Display_value = Variable_name.
 
