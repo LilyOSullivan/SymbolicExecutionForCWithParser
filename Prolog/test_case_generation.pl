@@ -25,15 +25,18 @@ cunit__write_test_case(Filename, Function_name, Params, Return_value, Return_typ
     get_test_folder_path(Path_to_test_directory),
     concat_string([Function_name, "_tests"], Test_suite_name),
     concat_string([Path_to_test_directory, Test_suite_name, ".c"], Test_suite_filepath),
-    (
-        cunit__is_first_test(Test_suite_filepath) ->
+    (cunit__is_first_test(Test_suite_filepath) ->
+        (
             mkdir(Path_to_test_directory),
             open(Test_suite_filepath, append, testcase),
             cunit__write_test_include(Filename)
-        ;
+        )
+    ;
+        (
             open(Test_suite_filepath, append, testcase),
             % Put a new line to visually space out the test cases
             printf(testcase, "\n", [])
+        )
     ),
     create_declaration_section(Params, "", Declaration_section),
     cunit__create_assert(Function_name, Params, Return_value, Return_type, CUnit_assert),
@@ -60,10 +63,14 @@ cunit__add_test_cases_to_suite(Add_all_test_cases_to_suite_string) :-
     get_test_cases(Tests),
     cunit__add_test_cases_to_suite(Tests, "", Add_all_test_cases_to_suite_string).
 cunit__add_test_cases_to_suite([], Add_to_suite_accumulator, Add_to_suite_accumulator).
+
+%% Adds test cases to the test suite. This is the predicate that performs the operation
+%% of cunit__add_test_cases_to_suite/1
 cunit__add_test_cases_to_suite([Test_case|More_test_cases], Add_to_suite_accumulator, Add_all_test_cases_to_suite_string) :-
     sprintf(Accumulator_with_current_test_case, "%s\tif (NULL == CU_add_test(pSuite, \"test case\", %s)) {\n\t\tCU_cleanup_registry();\n\t\treturn CU_get_error();\n\t}\n", [Add_to_suite_accumulator, Test_case]),
     cunit__add_test_cases_to_suite(More_test_cases, Accumulator_with_current_test_case, Add_all_test_cases_to_suite_string).
 
+%% Creates the CUnit assert statement that performs unit-testing
 cunit__create_assert(Function_name, Params, Return_value, Return_type, CUnit_assert) :-
     create_return(Return_value, Return_type, Return_value_as_string),
     var_names_as_parameters(Params, "", Var_names),

@@ -3,7 +3,13 @@
 :- use_module(c_var).
 :- use_module(c_array).
 
-% The cut is needed here. Otherwise Prolog attempts to match it with other label predicates
+%% Groups variables by type and labels them collectively instead of individually
+%% The parameter is a list of declaration predicates, as output by the parser
+%% Eg: [declaration(integer,[x]),declaration(double,[a])]
+label_collectively(Parameters) :-
+    label__group_by_ptc_type(Parameters,[],Grouped_parameters),
+    label(Grouped_parameters).
+
 label([void]).
 label([]).
 
@@ -44,12 +50,7 @@ label([[charpointer,Values_to_label]|More_to_label]) :-
 
     label(More_to_label).
 
-%% Groups variables by type and labels them collectively instead of individually
-%% The parameter is a list of declaration predicates, as output by the parser
-%% Eg: [declaration(integer,[x]),declaration(double,[a])]
-label_collectively(Parameters) :-
-    label__group_by_ptc_type(Parameters,[],Grouped_parameters),
-    label(Grouped_parameters).
+
 
 % %% Labels an integer array
 % label([declaration(intpointer, [Variable|_])|Rest]) :-

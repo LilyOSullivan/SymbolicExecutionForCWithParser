@@ -106,7 +106,7 @@ c_array__create_declaration(Variable,intpointer,Declaration) :-
         term_string(Value, Value_as_string),
         concat_string([Value_as_string, ","], Value_with_comma)
     ),
-    utils__reduce(string_concat, Values_as_string, "", Result),
+    utils__join(Values_as_string, Values_joined),
     utils__strip_right_comma(Result, Result_stripped),
     term_string(Size, Size_as_string),
     sprintf(Declaration, "\t%s %s[%s] = {%s};\n", ["int", Variable_name, Size_as_string, Result_stripped]).
@@ -121,7 +121,7 @@ c_array__create_declaration(Variable,charpointer,Declaration) :-
         string_codes(Value_as_string, [Value]),
         concat_string(["'", Value_as_string, "',"], Value_with_comma)
     ),
-    utils__reduce(string_concat, Values_as_string, "", Result),
-    utils__strip_right_comma(Result, Result_stripped),
+    utils__join(Values_as_string, Values_joined),
+    utils__strip_right_comma(Values_joined, Result_stripped),
     term_string(Size, Size_as_string),
     sprintf(Declaration, "\t%s %s[%s] = {%s};\n", ["char", Variable_name, Size_as_string, Result_stripped]).

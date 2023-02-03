@@ -7,6 +7,11 @@
 
 :- dynamic var_names/2.
 
+%% Global values:
+%%  test_id (Number, value:1): This is an Id used to identify test cases generated
+%%  tests (List, value:[]): This list holds the names of the generated test cases
+%%      Eg: ["test_1","test_2","test_3"...]
+
 %FIXME: A charpointer array can generate '\' which breaks the C code.
 % ASCII code: 92
 
@@ -47,10 +52,14 @@ setup_for_function(Filename, Function_name) :-
     compile(Names_filename),
 
     % Foldername used for the generated test cases
-    date(Current_date_as_string),
-    utils__strip_right_newline(Current_date_as_string, Current_date_stripped_with_spaces),
-    utils__replace_invalid_directory_chars_with_underscores(Current_date_stripped_with_spaces, Current_date_cleaned),
-    concat_string([Function_name, "_tests_",Current_date_cleaned], Folder_name),
+    get_flag(unix_time,Unix_time),
+
+    % Format: days/months/year__24Hours_Minutes_Seconds
+    % Eg: 03_02_23__14_34_18
+    local_time_string(Unix_time,"%d_%m_%y__%H_%M_%S",Current_date_as_string),
+    % utils__strip_right_newline(Current_date_as_string, Current_date_stripped_with_spaces),
+    % utils__replace_invalid_directory_chars_with_underscores(Current_date_stripped_with_spaces, Current_date_cleaned),
+    concat_string([Function_name, "_tests_",Current_date_as_string], Folder_name),
     concat_string(["./", Folder_name, "/"], Path_to_test_directory),
     setval(test_folder_path,Path_to_test_directory),
 

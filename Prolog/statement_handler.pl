@@ -16,7 +16,7 @@ function_handler(Filename, Function_Name, Body, Params, Return_type) :-
 %% Declare all parameters as variables
 parameter_handler([]).
 parameter_handler([Declaration|More_declarations]) :-
-    Declaration \= void,
+    Declaration \== void,
     Declaration, % This calls declaration predicates in declaration.pl
     parameter_handler(More_declarations).
 
@@ -91,36 +91,31 @@ handle(assignment(Variable, Expression), _) :-
 %%  Breakdown: Variable += Expression
 %%  Eg: x += 2;
 handle(add_assignment(Variable, Expression), _) :-
-    Expression_with_add = (Variable + Expression),
-    handle(assignment(Variable, Expression_with_add), _).
+    handle(assignment(Variable, Variable + Expression), _).
 
 %% Handle the -= operator
 %%  Breakdown: Variable -= Expression
 %%  Eg: x -= 2;
 handle(sub_assignment(Variable, Expression), _) :-
-    Expression_with_subtraction = (Variable - Expression),
-    handle(assignment(Variable, Expression_with_subtraction), _).
+    handle(assignment(Variable, Variable - Expression), _).
 
 %% Handle the *= operator
 %%  Breakdown: Variable *= Expression
 %%  Eg: x *= 2;
 handle(mul_assignment(Variable, Expression), _) :-
-    Expression_with_multiplication = (Variable * Expression),
-    handle(assignment(Variable, Expression_with_multiplication), _).
+    handle(assignment(Variable, Variable * Expression), _).
 
 %% Handle the /= operator
 %%  Breakdown: Variable /= Expression
 %%  Eg: x /= 2;
 handle(div_assignment(Variable, Expression), _) :-
-    Expression_with_divide = (Variable / Expression),
-    handle(assignment(Variable, Expression_with_divide), _).
+    handle(assignment(Variable, Variable / Expression), _).
 
 % Handle the %= operator
 %  Breakdown: Variable %= Expression
 %  Eg: x %= 2;
 handle(mod_assignment(Variable, Expression), _) :-
-    Expression_with_mod = mod(Variable,Expression),
-    handle(assignment(Variable, Expression_with_mod), _).
+    handle(assignment(Variable, mod(Variable,Expression)), _).
 
 %% Handles the ++ post-increment-operator as a single line statement
 %% Eg: x++;

@@ -5,7 +5,6 @@
 :- export c_var__get_in_var/2.
 :- export c_var__get_out_var/2.
 :- export c_var__set_out_var/2.
-:- export c_var__get_all/4.
 :- export c_var__get_c_type/2.
 :- export c_var__get_ptc_type/2.
 :- export c_var__is_variable/1.
@@ -61,19 +60,15 @@ print_c_var(_{cvar(_CType,_PTCType, _In, _Out, Name)}, Print_value) :-
 c_var__create(C_type, Ptc_type,Ptc_variable_in, Var_name, C_var_instantiated) :-
     add_attribute(C_var_instantiated, cvar(C_type, Ptc_type, Ptc_variable_in, Ptc_variable_in, Var_name)).
 
-c_var__get_all(_Var{C_var}, C_type, In, Name) :-
-    -?->
-        C_var = cvar(C_type,_, In, _, Name).
-
 %% Returns the c-type of the c_var
-c_var__get_c_type(_Var{C_var}, Type) :-
+c_var__get_c_type(_Var{C_var}, C_Type) :-
     -?->
-        C_var = cvar(Type, _,_, _, _).
+        C_var = cvar(C_Type, _,_, _, _).
 
 %% Returns ptc type of the c_var
-c_var__get_ptc_type(_Var{C_var}, Type) :-
+c_var__get_ptc_type(_Var{C_var}, Ptc_Type) :-
     -?->
-        C_var = cvar(_, Type,_, _, _).
+        C_var = cvar(_, Ptc_Type,_, _, _).
 
 %% Returns the name in the source code of the c_var
 c_var__get_name(_Var{C_var}, Name) :-
@@ -101,12 +96,12 @@ c_var__is_variable(_{C_var}) :-
     -?->
         C_var = cvar(_, _, _, _, _).
 
+%% Creates a declaration in C for the c_var
 c_var__create_declaration(Variable,Declaration) :-
     c_var__is_variable(Variable),
-    c_var__get_c_type(Variable,Type),
-    c_var__create_declaration(Variable,Type,Declaration).
-
+    c_var__get_c_type(Variable,C_Type),
+    c_var__create_declaration(Variable,C_Type,Declaration).
 c_var__create_declaration(Variable,int,Declaration) :-
-    c_var__get_all(Variable, _, Ptc_in_var, Var_name),
-    term_string(Ptc_in_var, Value),
-    sprintf(Declaration, "\t%s %s = %s;\n", [int, Var_name, Value]).
+    c_var__get_in_var(Variable, Ptc_in_var),
+    c_var__get_name(Variable, Var_name),
+    sprintf(Declaration, "\t%s %s = %d;\n", [int, Var_name, Ptc_in_var]).
