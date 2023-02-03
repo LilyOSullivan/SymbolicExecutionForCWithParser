@@ -100,9 +100,7 @@ c_array__create_declaration(Variable,intpointer,Declaration) :-
     c_array__get_all(Variable,_,Ptc_in_var,Variable_name,Size),
     ptc_solver__get_array_index_elements(Ptc_in_var, Indexs),
     utils__get_all_array_inputs(Indexs, Values),
-    ( foreach(Value, Values),
-      foreach(Value_with_comma, Values_as_string)
-      do
+    ( foreach(Value, Values), foreach(Value_with_comma, Values_as_string) do
         term_string(Value, Value_as_string),
         concat_string([Value_as_string, ","], Value_with_comma)
     ),
@@ -115,9 +113,7 @@ c_array__create_declaration(Variable,charpointer,Declaration) :-
     c_array__get_all(Variable,_,Ptc_in_var,Variable_name,Size),
     ptc_solver__get_array_index_elements(Ptc_in_var, Indexs),
     utils__get_all_array_inputs(Indexs, Values),
-    ( foreach(Value, Values),
-      foreach(Value_with_comma, Values_as_string)
-      do
+    ( foreach(Value, Values), foreach(Value_with_comma, Values_as_string) do
         string_codes(Value_as_string, [Value]),
         concat_string(["'", Value_as_string, "',"], Value_with_comma)
     ),

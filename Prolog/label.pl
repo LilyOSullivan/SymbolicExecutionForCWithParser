@@ -23,9 +23,7 @@ label([[integer,Integers_to_label]|More_to_label]) :-
     label(More_to_label).
 
 label([[intpointer,Values_to_label]|More_to_label]) :-
-    ( foreach(Value, Values_to_label),
-      foreach(Array_inputs, Array_values)
-      do
+    ( foreach(Value, Values_to_label), foreach(Array_inputs, Array_values) do
         ptc_solver__get_array_index_elements(Value, Indexs),
         utils__get_all_array_inputs(Indexs, Array_inputs)
     ),
@@ -34,17 +32,14 @@ label([[intpointer,Values_to_label]|More_to_label]) :-
     label(More_to_label).
 
 label([[charpointer,Values_to_label]|More_to_label]) :-
-    ( foreach(Value, Values_to_label),
-      foreach(Array_inputs, Array_values)
-      do
+    ( foreach(Value, Values_to_label), foreach(Array_inputs, Array_values) do
         ptc_solver__get_array_index_elements(Value, Indexs),
         utils__get_all_array_inputs(Indexs, Array_inputs)
     ),
     ptc_solver__label_integers(Array_values),
     !,
 
-    % Should these characters be regenerated? or escaped? Escaped sounds more accurate
-    %% TODO: Check if it is a character array, filter out backslashes and single quotes
+    % TODO:Handle generation of backslashes and single quotes, by escaping them
 
 
 
@@ -136,9 +131,7 @@ label__group_by_ptc_type([declaration(_type,[Variable])|More_variables],Accumula
 %% Second parameter is a list of ascii characters in integer form with escaped characters
 %% Eg: [104 105 39] -> [104 105 [92 39]]
 label__escape_problematic_characters(Ascii,Escaped_ascii) :-
-    ( foreach(Ascii_char, Ascii),
-      foreach(Escaped_ascii_char, Escaped_ascii)
-      do
+    ( foreach(Ascii_char, Ascii), foreach(Escaped_ascii_char, Escaped_ascii) do
         (
             Ascii_char == 92 ->
                 Escaped_ascii_char = [92,92]
