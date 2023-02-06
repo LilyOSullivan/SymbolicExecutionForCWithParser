@@ -16,6 +16,15 @@
 % ASCII code: 92
 
 
+regression_tests(Filename_without_extension) :-
+    string(Filename_without_extension),
+    concat_string([Filename_without_extension, ".pl"], Prolog_file),
+    compile(Prolog_file),
+    function_definition(Function_name, Parameters, Body, Return_type),
+    main(Filename_without_extension, Function_name, "./"),
+    fail.
+
+
 %% A shortcut predicate to main/3
 main(Filename_without_extension,Function_name) :-
     main(Filename_without_extension, Function_name, "./").
@@ -37,6 +46,7 @@ main(Filename_without_extension, Function_name,_Absolute_path_to_C_file) :-
     concat_string([Filename_without_extension, ".pl"], Prolog_file),
     compile(Prolog_file),
     function_definition(Function_name, Params, Body, Return_type), % Match from compiled prolog file
+    !,
     setup_for_function(Filename_without_extension, Function_name),
     function_handler(Filename_without_extension, Function_name, Body, Params, Return_type). % From Statement_handler.pl
 

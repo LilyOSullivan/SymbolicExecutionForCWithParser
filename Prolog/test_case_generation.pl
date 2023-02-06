@@ -30,7 +30,7 @@ cunit__write_test_case(Filename, Function_name, Params, Return_value, Return_typ
             mkdir(Path_to_test_directory),
             open(Test_suite_filepath, append, testcase),
             printf(testcase, "#include \"CUnit/Basic.h\"\n", []),
-            printf(testcase, "#include \"%s.c\"\n\n", [Filename])
+            printf(testcase, "#include \"../%s.c\"\n\n", [Filename])
         )
     ;
         (
@@ -55,7 +55,8 @@ cunit__write_main(Test_suite_name) :-
     concat_string([Test_suite_name, ".c"], Test_suite_filename),
     cunit__add_test_cases_to_suite(Add_tests_to_suite_string),
     printf(testcase_main, "#include \"%s\"\n\n", [Test_suite_filename]),
-    printf(testcase_main, "int main()\n{\n\tif (CUE_SUCCESS != CU_initialize_registry())\n\t\treturn CU_get_error();\n\n\tCU_pSuite pSuite = CU_add_suite(\"Suite_1\", NULL, NULL);\n\tif (NULL == pSuite) {\n\t\tCU_cleanup_registry();\n\t\treturn CU_get_error();\n\t}\n\n%s\n\tCU_basic_set_mode(CU_BRM_VERBOSE);\n\tCU_basic_run_tests();\n\tCU_cleanup_registry();\n\treturn CU_get_error();\n}\n", [Add_tests_to_suite_string]),
+    % printf(testcase_main, "int main()\n{\n\tif (CUE_SUCCESS != CU_initialize_registry())\n\t\treturn CU_get_error();\n\n\tCU_pSuite pSuite = CU_add_suite(\"Suite_1\", NULL, NULL);\n\tif (NULL == pSuite) {\n\t\tCU_cleanup_registry();\n\t\treturn CU_get_error();\n\t}\n\n%s\n\tCU_basic_set_mode(CU_BRM_VERBOSE);\n\tCU_basic_run_tests();\n\tCU_cleanup_registry();\n\treturn CU_get_error();\n}\n", [Add_tests_to_suite_string]),
+    printf(testcase_main, "int main()\n{\n\tif (CUE_SUCCESS != CU_initialize_registry())\n\t\treturn CU_get_error();\n\n\tCU_pSuite pSuite = CU_add_suite(\"Suite_1\", NULL, NULL);\n\tif (NULL == pSuite) {\n\t\tCU_cleanup_registry();\n\t\treturn CU_get_error();\n\t}\n\n%s\n\tCU_basic_set_mode(CU_BRM_VERBOSE);\n\tCU_basic_run_tests();\n\n\tif(CU_get_error() != CUE_SUCCESS) {\n\t\treturn CU_get_error();\n\t}\n\treturn CU_get_number_of_tests_failed();\n}\n", [Add_tests_to_suite_string]),
     close(testcase_main).
 
 %% Creates the code to add all test cases to the test suite, for CUnit

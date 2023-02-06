@@ -39,6 +39,12 @@ utils__join([String|More_strings], Result) :-
     utils__join(More_strings, Strings_join_so_far),
     concat_string([String, Strings_join_so_far], Result).
 
+%% Assigns a value to a variable, with a return of the assigned value
+%% Params:
+%%  Assign_to: The variable to assign to
+%%  Value: The value to assign
+%%  Assigned_value: The value assigned that has been assigned
+%% Eg: utils__assignment(Assign_to{"x"}, 5, Result) -> Result = 5
 utils__assignment(Assign_to,Value,Assigned_value) :-
     c_var__get_ptc_type(Assign_to, Ptc_type),
     ptc_solver__variable([Assigned_value], Ptc_type),
