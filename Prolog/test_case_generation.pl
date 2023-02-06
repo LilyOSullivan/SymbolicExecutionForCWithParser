@@ -30,7 +30,7 @@ cunit__write_test_case(Filename, Function_name, Params, Return_value, Return_typ
             mkdir(Path_to_test_directory),
             open(Test_suite_filepath, append, testcase),
             printf(testcase, "#include \"CUnit/Basic.h\"\n", []),
-            printf(testcase, "#include \"%s.c\"\n\n", [C_filename]).
+            printf(testcase, "#include \"%s.c\"\n\n", [Filename])
         )
     ;
         (
@@ -112,8 +112,8 @@ get_test_name(Test_name) :-
     term_string(Current_id, Current_id_as_string),
     concat_string(["test_", Current_id_as_string], Test_name),
     getval(tests, All_tests),
-    append(All_tests, [New_case], New_test_cases),
-    setval(tests,New_cases).
+    append(All_tests, [Test_name], New_test_cases),
+    setval(tests,New_test_cases).
 
 %% Create a singular, comma-separated string, of the variables names
 %% Params: The list of parameters

@@ -1,5 +1,7 @@
 :- module(c_array).
+
 :- [utils].
+:- lib(ptc_solver).
 
 :- export c_array__create/6.
 :- export c_array__get_all/5.
@@ -15,7 +17,7 @@
 %%  c_array{c_type,ptc_type,In,Out,variable_name,array_size}
 :- meta_attribute(c_array, [unify:unify_c_array/2, print:print_c_array/2]).
 
-%% Declare c_var as an attributed variable
+%% Declare c_array as an attributed variable
 c_array__create(C_type,Ptc_type, In, Var_name,Array_size, C_array_instantiated) :-
     add_attribute(C_array_instantiated, carray(C_type, Ptc_type, In, In, Var_name,Array_size)).
 

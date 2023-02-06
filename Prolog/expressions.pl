@@ -9,6 +9,7 @@
 :- lib(ptc_solver).
 :- use_module(c_var).
 :- use_module(c_array).
+:- [utils].
 
 %% The below operators are used to return values the ptc_solver can understand.
 :- op(1200, xfy, and_then).
@@ -170,7 +171,7 @@ evaluate_expression(-Expression, -Expression_result) :-
 %% Eg: x = 2
 evaluate_expression(assignment(Assign_to,Expression), Expression_result) :-
     evaluate_expression(Expression, Right_result),
-    utils__assignment(Assign_to,Right_result,Expression_Result).
+    utils__assignment(Assign_to,Right_result,Expression_result).
 
 %% Accessing an array element (Index)
 evaluate_expression(Array[Index], element(Var, [Result])) :-
