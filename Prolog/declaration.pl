@@ -8,11 +8,11 @@ declaration(_, []).
 
 %% Declare an integer variable
 declaration(int, [C_variable|Rest]) :-
-    copy_term(C_variable, Variable_copy),
-    % FIXME: Variable name is matching to the first as free variables
-    var_names(Variable_copy, Variable_name),
+    copy_term(C_variable, Ptc_name),
+    var_names(Ptc_name, C_name),
     ptc_solver__variable([In], integer),
-    c_var__create(int, integer, In, Variable_name, C_variable),
+    c_var__create(int, integer, In, C_name, C_variable),
+    % get_var_info(C_variable,name,X_Name),
     declaration(int, Rest),
     !.
 

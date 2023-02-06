@@ -15,19 +15,27 @@
 %FIXME: A charpointer array can generate '\' which breaks the C code.
 % ASCII code: 92
 
+
+%% A shortcut predicate to main/3
+main(Filename_without_extension,Function_name) :-
+    main(Filename_without_extension, Function_name, "./").
+
 %% The entrypoint to the program
 %% Filename_without_extension: The name of the file without the .pl extension
-%%                             This should be a string. Eg: "sign"
+%%                             This should be a string.
+%%                 Eg: "sign"
 %% Function_name: The entry function to be tested. This should be an atom.
-%                 Eg: get_sign
-main(Filename_without_extension, Function_name) :-
+%%                 Eg: get_sign
+%% Absolute_path_to_C_file: The absolute path to the C file to be symbolically executed.
+%%                          This should be a string.
+%%                 Eg: "C:\\Users\\user\\Alex\\Desktop\\sign.c"
+main(Filename_without_extension, Function_name,_Absolute_path_to_C_file) :-
     string(Filename_without_extension),
     atom(Function_name),
 
     setup_symbolic_Execution,
     concat_string([Filename_without_extension, ".pl"], Prolog_file),
     compile(Prolog_file),
-    % concat_string([File, ".c"], C_file),
     function_definition(Function_name, Params, Body, Return_type), % Match from compiled prolog file
     setup_for_function(Filename_without_extension, Function_name),
     function_handler(Filename_without_extension, Function_name, Body, Params, Return_type). % From Statement_handler.pl

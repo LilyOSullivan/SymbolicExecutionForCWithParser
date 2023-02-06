@@ -105,9 +105,9 @@ c_array__create_declaration(Variable,intpointer,Declaration) :-
         concat_string([Value_as_string, ","], Value_with_comma)
     ),
     utils__join(Values_as_string, Values_joined),
-    utils__strip_right_comma(Result, Result_stripped),
+    utils__strip_right_comma(Values_joined, Values_stripped),
     term_string(Size, Size_as_string),
-    sprintf(Declaration, "\t%s %s[%s] = {%s};\n", ["int", Variable_name, Size_as_string, Result_stripped]).
+    sprintf(Declaration, "\t%s %s[%s] = {%s};\n", ["int", Variable_name, Size_as_string, Values_stripped]).
 
 c_array__create_declaration(Variable,charpointer,Declaration) :-
     c_array__get_all(Variable,_,Ptc_in_var,Variable_name,Size),
@@ -118,6 +118,6 @@ c_array__create_declaration(Variable,charpointer,Declaration) :-
         concat_string(["'", Value_as_string, "',"], Value_with_comma)
     ),
     utils__join(Values_as_string, Values_joined),
-    utils__strip_right_comma(Values_joined, Result_stripped),
+    utils__strip_right_comma(Values_joined, Values_stripped),
     term_string(Size, Size_as_string),
-    sprintf(Declaration, "\t%s %s[%s] = {%s};\n", ["char", Variable_name, Size_as_string, Result_stripped]).
+    sprintf(Declaration, "\t%s %s[%s] = {%s};\n", ["char", Variable_name, Size_as_string, Values_stripped]).

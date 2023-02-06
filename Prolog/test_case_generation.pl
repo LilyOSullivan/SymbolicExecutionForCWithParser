@@ -22,14 +22,15 @@ cunit__write_test_case(_, Function_name, [void], _, _) :-
 
 %% Generate a singular test case
 cunit__write_test_case(Filename, Function_name, Params, Return_value, Return_type) :-
-    get_test_folder_path(Path_to_test_directory),
+    getval(test_folder_path, Path_to_test_directory),
     concat_string([Function_name, "_tests"], Test_suite_name),
     concat_string([Path_to_test_directory, Test_suite_name, ".c"], Test_suite_filepath),
     (cunit__is_first_test(Test_suite_filepath) ->
         (
             mkdir(Path_to_test_directory),
             open(Test_suite_filepath, append, testcase),
-            cunit__write_test_include(Filename)
+            printf(testcase, "#include \"CUnit/Basic.h\"\n", []),
+            printf(testcase, "#include \"%s.c\"\n\n", [C_filename]).
         )
     ;
         (
@@ -48,7 +49,7 @@ cunit__write_test_case(Filename, Function_name, Params, Return_value, Return_typ
 % IDEA: Split main function string among multiple strings
 %% Create the main function for the test suite
 cunit__write_main(Test_suite_name) :-
-    get_test_folder_path(Path_to_test_directory),
+    getval(test_folder_path, Path_to_test_directory),
     concat_string([Path_to_test_directory, Test_suite_name, "_main.c"], Filepath_to_main),
     open(Filepath_to_main, write, testcase_main),
     concat_string([Test_suite_name, ".c"], Test_suite_filename),
@@ -60,7 +61,7 @@ cunit__write_main(Test_suite_name) :-
 %% Creates the code to add all test cases to the test suite, for CUnit
 %% The only parameter is the string to be returned
 cunit__add_test_cases_to_suite(Add_all_test_cases_to_suite_string) :-
-    get_test_cases(Tests),
+    getval(tests, Tests),
     cunit__add_test_cases_to_suite(Tests, "", Add_all_test_cases_to_suite_string).
 cunit__add_test_cases_to_suite([], Add_to_suite_accumulator, Add_to_suite_accumulator).
 
@@ -94,12 +95,6 @@ cunit__is_first_test(Filename) :-
             true
     ).
 
-%% The test include files. Called if it is the first test case
-cunit__write_test_include(C_filename) :-
-    printf(testcase, "#include \"CUnit/Basic.h\"\n", []),
-    printf(testcase, "#include \"%s.c\"\n\n", [C_filename]).
-
-
 %% Check if a string contains a substring
 %% Original:The string to check if it contains the substring
 %% Substring: The string to be checked if contained within the first parameter
@@ -113,33 +108,12 @@ string_contains(Original, Substring) :-
 get_test_name(Test_name) :-
     getval(test_id,Current_id),
     New_id is Current_id + 1,
-    set_test_id(New_id),
+    setval(test_id, New_id),
     term_string(Current_id, Current_id_as_string),
     concat_string(["test_", Current_id_as_string], Test_name),
-    append_tests_cases(Test_name).
-
-%% Sets a new test id
-set_test_id(New_id) :-
-    setval(test_id, New_id).
-
-%% Adds to the current list of all test cases. This is used in the generation
-%% of the 'main' CUnit function
-append_tests_cases(New_case) :-
-    get_test_cases(All_tests),
+    getval(tests, All_tests),
     append(All_tests, [New_case], New_test_cases),
-    set_test_cases(New_test_cases).
-
-%% Updates the test cases in the internal database
-set_test_cases(New_cases) :-
     setval(tests,New_cases).
-
-%% Returns the test cases in the internal database
-get_test_cases(New_cases) :-
-    getval(tests, New_cases).
-
-%% Gets the path to the test folder
-get_test_folder_path(Folder_path) :-
-    getval(test_folder_path, Folder_path).
 
 %% Create a singular, comma-separated string, of the variables names
 %% Params: The list of parameters

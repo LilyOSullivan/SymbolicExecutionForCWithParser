@@ -6,7 +6,7 @@
 
 %% The entrypoint to function analysis
 function_handler(Filename, Function_Name, Body, Params, Return_type) :-
-    process_globals,
+    % process_globals,
     parameter_handler(Params),
     statement_handler(Body, return(Return_value, Return_type)),
     utils__detect_not_all_code_paths_return(Return_value,Return_type),
@@ -84,13 +84,10 @@ handle(return, return(void, _)) :-
 %% This is commonly used as two steps, Declaration and Assignment, of a variable.
 %% int x = 5;
 %% This becomes a declaration, handled above, and an assignment below
-handle(assignment(Variable, Expression), _) :-
+handle(assignment(Assign_to, Expression), _) :-
     evaluate_expression(Expression, Evaluated_expression),
     !,
-    c_var__get_ptc_type(Variable, Ptc_type),
-    ptc_solver__variable([Temp], Ptc_type),
-    ptc_solver__sdl(eq_cast(Temp, Evaluated_expression)),
-    c_var__set_out_var(Variable, Temp).
+    utils__assignment(Assign_to,Evaluated_expression,_).
 
 %% Handle the += operator
 %%  Breakdown: Variable += Expression
