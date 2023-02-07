@@ -91,36 +91,34 @@ label__group_by_ptc_type([],Accumulator,Accumulator).
 label__group_by_ptc_type([declaration(_type,[Variable])|More_variables],Accumulator,Grouped_by_type_result) :-
     c_var__is_variable(Variable),
     !,
-    writeln("LABEL: VARIABLE"), %TODO: Remove
+    writeln("LABEL: VARIABLE"),
 
     c_var__get_ptc_type(Variable,Type),
     c_var__get_in_var(Variable,In_var),
-    (
-        member([Type,Vars],Accumulator) ->
-            append(Vars,[In_var],New_vars),
-            select([Type,Vars],Accumulator,New_accumulator),
-            !,
-            append(New_accumulator,[[Type,New_vars]],Accumulator2)
-        ;
-            append(Accumulator,[[Type,[In_var]]],Accumulator2)
+    (member([Type,Vars],Accumulator) ->
+        append(Vars,[In_var],New_vars),
+        select([Type,Vars],Accumulator,New_accumulator),
+        !,
+        append(New_accumulator,[[Type,New_vars]],Accumulator2)
+    ;
+        append(Accumulator,[[Type,[In_var]]],Accumulator2)
     ),
     label__group_by_ptc_type(More_variables,Accumulator2,Grouped_by_type_result).
 
 label__group_by_ptc_type([declaration(_type,[Variable])|More_variables],Accumulator,Grouped_by_type_result) :-
     c_array__is_array(Variable),
     !,
-    writeln("LABEL: ARRAY"), %TODO: Remove
+    writeln("LABEL: ARRAY"),
 
     c_array__get_ptc_type(Variable,Type),
     c_array__get_in_var(Variable,In_var),
-    (
-        member([Type,Vars],Accumulator) ->
-            append(Vars,[In_var],New_vars),
-            select([Type,Vars],Accumulator,New_accumulator), % QUESTION: Is this needed?
-            !,
-            append(New_accumulator,[[Type,New_vars]],Accumulator2)
-        ;
-            append(Accumulator,[[Type,[In_var]]],Accumulator2)
+    (member([Type,Vars],Accumulator) ->
+        append(Vars,[In_var],New_vars),
+        select([Type,Vars],Accumulator,New_accumulator),
+        !,
+        append(New_accumulator,[[Type,New_vars]],Accumulator2)
+    ;
+        append(Accumulator,[[Type,[In_var]]],Accumulator2)
     ),
     label__group_by_ptc_type(More_variables,Accumulator2,Grouped_by_type_result).
 

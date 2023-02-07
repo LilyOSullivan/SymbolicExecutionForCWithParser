@@ -21,6 +21,8 @@ process_globals :-
 %% Declare all parameters as variables
 parameter_handler([]).
 parameter_handler([Declaration|More_declarations]) :-
+    % 'void' ignored, otherwise it is attempted to be matched as a predicate
+    % This is in the situation of a function with no parameters
     Declaration \== void,
     Declaration, % This calls declaration predicates in declaration.pl
     parameter_handler(More_declarations).
@@ -58,22 +60,22 @@ handle(declaration(Type, Vars), _) :-
     declaration(Type, Vars). % This calls declaration predicates in declaration.pl
 
 %% If statement handler
-handle(if_statement(_Line_Number, expression(Constraint), If_body, Else_body), Return_flags) :-
+handle(if_statement(_Line_Number, expression(Expression), If_body, Else_body), Return_flags) :-
     (
-        evaluate_expression(Constraint),
+        evaluate_expression(Expression),
         statement_handler(If_body, Return_flags)
     )
         ; % Deliberate Choice Point
     (
-        evaluate_expression(not(Constraint)),
+        evaluate_expression(not(Expression)),
         statement_handler(Else_body, Return_flags)
     ).
 
 %% Return statement that returns a value
 handle(return(Expression), return(Return_value, Return_type)) :-
-    evaluate_expression(Expression, Expression_Result),
+    evaluate_expression(Expression, Expression_result),
     !,
-    label(Expression_Result, Return_type, Return_value),
+    label(Expression_result, Return_type, Return_value),
     writeln(Return_value).
 
 %% Empty return statement
