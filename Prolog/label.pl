@@ -10,6 +10,27 @@ label_collectively(Parameters) :-
     label__group_by_ptc_type(Parameters,[],Grouped_parameters),
     label(Grouped_parameters).
 
+% TODO: Make this work for arrays
+% Below returns a list of the structure: [[Type,[Variables...]],[Type,[Variables...]]...]
+% Eg: [[integer,[x,y]],[double,[a,b]]]
+label__group_by_ptc_type([],Accumulator,Accumulator).
+label__group_by_ptc_type([declaration(_type,[Variable])|More_variables],Accumulator,Grouped_by_type_result) :-
+    c_var__is_variable(Variable),
+    !,
+    writeln("LABEL: VARIABLE"),
+
+    c_var__get_ptc_type(Variable,Type),
+    c_var__get_in_var(Variable,In_var),
+    (member([Type,Vars],Accumulator) ->
+        append(Vars,[In_var],New_vars),
+        select([Type,Vars],Accumulator,New_accumulator),
+        !,
+        append(New_accumulator,[[Type,New_vars]],Accumulator2)
+    ;
+        append(Accumulator,[[Type,[In_var]]],Accumulator2)
+    ),
+    label__group_by_ptc_type(More_variables,Accumulator2,Grouped_by_type_result).
+
 label([void]).
 label([]).
 
@@ -84,43 +105,6 @@ label(Expression, Type, Concrete_variable) :-
             utils__evaluate_to_int(Expression, Concrete_variable)
     ).
 
-% TODO: Make this work for arrays
-% Below returns a list of the structure: [[Type,[Variables...]],[Type,[Variables...]]...]
-% Eg: [[integer,[x,y]],[double,[a,b]]]
-label__group_by_ptc_type([],Accumulator,Accumulator).
-label__group_by_ptc_type([declaration(_type,[Variable])|More_variables],Accumulator,Grouped_by_type_result) :-
-    c_var__is_variable(Variable),
-    !,
-    writeln("LABEL: VARIABLE"),
-
-    c_var__get_ptc_type(Variable,Type),
-    c_var__get_in_var(Variable,In_var),
-    (member([Type,Vars],Accumulator) ->
-        append(Vars,[In_var],New_vars),
-        select([Type,Vars],Accumulator,New_accumulator),
-        !,
-        append(New_accumulator,[[Type,New_vars]],Accumulator2)
-    ;
-        append(Accumulator,[[Type,[In_var]]],Accumulator2)
-    ),
-    label__group_by_ptc_type(More_variables,Accumulator2,Grouped_by_type_result).
-
-label__group_by_ptc_type([declaration(_type,[Variable])|More_variables],Accumulator,Grouped_by_type_result) :-
-    c_array__is_array(Variable),
-    !,
-    writeln("LABEL: ARRAY"),
-
-    c_array__get_ptc_type(Variable,Type),
-    c_array__get_in_var(Variable,In_var),
-    (member([Type,Vars],Accumulator) ->
-        append(Vars,[In_var],New_vars),
-        select([Type,Vars],Accumulator,New_accumulator),
-        !,
-        append(New_accumulator,[[Type,New_vars]],Accumulator2)
-    ;
-        append(Accumulator,[[Type,[In_var]]],Accumulator2)
-    ),
-    label__group_by_ptc_type(More_variables,Accumulator2,Grouped_by_type_result).
 
 
 % WIP below
