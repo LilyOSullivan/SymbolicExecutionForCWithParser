@@ -15,28 +15,55 @@
 %FIXME: A charpointer array can generate '\' which breaks the C code.
 % ASCII code: 92
 
+% QUESTION: Does this predicate need a parameter? The parameter should always be the same
 %% Run regression tests
 %% Filename_without_extension: The name of the parsed prolog file without the .pl extension
 %%                             This should be a string.
-%%                 Eg: "regression"
+%%                 Eg: "regression_source"
 regression_tests(Filename_without_extension) :-
     string(Filename_without_extension),
-    concat_string([Filename_without_extension, ".pl"], Prolog_file),
+    Path = "../LexYacc/regression_tests",
+    Path_to_parser = "../LexYacc",
+
+    % Run the preprocessor before the parser
+    sprintf(Run_preprocessor_command,"cd %s && cl /EP /P %s.c",[Path,Filename_without_extension]),
+    sh(Run_preprocessor_command),
+    sprintf(Path_to_i_file,"%s/%s.i",[Path,Filename_without_extension]),
+    (exists(Path_to_i_file) ->
+        true
+    ;
+        writeln("Failed to preprocess with CL"),
+        halt
+    ),
+
+    % Run the parser
+    sprintf(Run_parser_command,"cd %s && .\\LilyParser.exe .//regression_tests  %s .//regression_tests",[Path_to_parser,Filename_without_extension]),
+    sh(Run_parser_command),
+    sprintf(Path_to_pl_file,"%s/%s.pl",[Path,Filename_without_extension]),
+    (exists(Path_to_pl_file) ->
+        true
+    ;
+        writeln("Failed to parse"),
+        halt
+    ),
+
+    concat_string([Path, "/", Filename_without_extension, ".pl"], Prolog_file),
     compile(Prolog_file),
-    function_definition(Function_name, Parameters, Body, Return_type),
-    main(Filename_without_extension, Function_name, "Z:/Documents/Github/SymbolicExecutionForCWithParser/LexYacc"),
+    function_definition(Function_name, _, _, _),
+
+    % Run symbolic execution
+    main(Filename_without_extension, Function_name, Path),
     % Compile test cases
     getval(test_folder_path,Path_to_test_directory),
     concat_string([Function_name,"_tests_main.c"], Main_filename),
-    concat_string([Path_to_test_directory,Main_filename], Path_to_main),
 
     % Compile the main test file
-    sprintf(Compile_string,"cd %s && x86_64-w64-mingw32-gcc -o %s.exe %s -lcunit", [Path_to_test_directory, Function_name, Path_to_main]),
+    sprintf(Compile_string,"cd %s && x86_64-w64-mingw32-gcc -o %s.exe %s -lcunit", [Path_to_test_directory, Function_name, Main_filename]),
     (sh(Compile_string) ->
         true
     ;
         printf("Failed to compile test cases: %s",[Function_name]),
-        halt(2) % Halt 2 is considered a more major error than 1
+        halt
     ),
 
     % Run test cases
@@ -45,7 +72,7 @@ regression_tests(Filename_without_extension) :-
         true
     ;
         printf("Test cases encountered failure: %s",[Function_name]),
-        halt(1) % Halt 1 is considered a more minor error than 2
+        halt
     ),
     fail.
 regression_tests(_).
@@ -76,7 +103,7 @@ main(Filename_without_extension, Function_name,Path_to_C_file) :-
     % 33-126 are the printable ASCII characters
     % https://www.ascii-code.com
 
-    concat_string([Filename_without_extension, ".pl"], Prolog_file),
+    concat_string([Path_to_C_file, "/", Filename_without_extension, ".pl"], Prolog_file),
     compile(Prolog_file),
     function_definition(Function_name, Params, Body, Return_type), % Match from compiled prolog file
     !,
@@ -88,28 +115,25 @@ main(Filename_without_extension, Function_name,Path_to_C_file) :-
 %           Possibly a merge-term of the function name per setval?
 %% Setup used for each function by the test-driver
 setup_for_function(Filename, Function_name,Path_to_C_file) :-
-    % FIXME: The below may not have permission to delete if the previous Prolog iteration
-    % failed, mostly useful for development,
-    % As the test cases will leave the streams open
-    concat_string([Filename, ".names"], Names_filename),
+    concat_string([Path_to_C_file, "/", Filename, ".names"], Names_filename),
     compile(Names_filename),
 
     % Foldername used for the generated test cases
-    get_flag(unix_time,Unix_time),
+    get_flag(unix_time, Unix_time),
 
     % Format: days/months/year__24Hours_Minutes_Seconds
     % Eg: 03_02_23__14_34_18
-    local_time_string(Unix_time,"%d_%m_%y__%H_%M_%S",Current_date_as_string),
-    concat_string([Function_name, "_tests_",Current_date_as_string], Folder_name),
-    concat_string([Path_to_C_file,"/", Folder_name, "/"], Path_to_test_directory),
-    setval(test_folder_path,Path_to_test_directory),
+    local_time_string(Unix_time,"%d_%m_%y__%H_%M_%S", Current_date_as_string),
+    concat_string([Function_name, "_tests_", Current_date_as_string], Folder_name),
+    concat_string([Path_to_C_file, "/", Folder_name, "/"], Path_to_test_directory),
+    setval(test_folder_path, Path_to_test_directory),
 
     % The initial Id used to identify test cases generated. Used in test_generation.pl
-    setval(test_id,1),
+    setval(test_id, 1),
 
     % A list holding the names of test cases in the form ["test_1","test_2"...] used in test_generation.pl
     % when generating the '_main' cunit .c file
-    setval(tests,[]).
+    setval(tests, []).
 
 %% Shortcut predicate to close streams, useful for debugging.
 %% This predicate is only used during development; It is not called in code

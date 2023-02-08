@@ -7,10 +7,23 @@
 //     return x;
 // }
 
-int y = 5;
-int check_global() {
-    return y;
+int equals_expression(int x) {
+    x=(x=2)+1;
+    return x;
 }
+
+int is_five(int x) {
+    if(x == 5) {
+        return 1;
+    }
+    return 0;
+}
+
+// int y = 5;
+// int check_global() {
+//     return y;
+// }
+
 // int get_sign(int x) {
 //     if (x==0) return 0;
 //     if (x>0) return 1;
@@ -53,7 +66,7 @@ int check_global() {
     // return x;
 // }
 
-// int get_sign(int x) {
+// int get_sign_return_expressions(int x) {
 //     if (x==0) return 0+x;
 //     if (x>0) return 1+x;
 //     return -1-x;
@@ -63,7 +76,7 @@ int check_global() {
 //     return 1+(2<5);
 // }
 
-// int abc(int x,int y) {
+// int destructive_assignment(int x,int y) {
 //     x = x + y;
 //     if (x > 0) {
 //         return 1;
@@ -72,9 +85,10 @@ int check_global() {
 //     if(x >= 1) {
 //         return x;
 //     }
+//     return 42;
 // }
 
-// int give_five() {
+// int number_return() {
 //     return 5;
 // }
 
