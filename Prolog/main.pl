@@ -104,18 +104,20 @@ main(Filename_without_extension, Function_name,Path_to_C_file) :-
     % https://www.ascii-code.com
 
     concat_string([Path_to_C_file, "/", Filename_without_extension, ".pl"], Prolog_file),
-    % [Prolog_file],
 
+    % Read the prolog file. This is used in place of the compile predicate
+    % The compile predicate strips variable names when compiling
     open(Prolog_file, read, Stream),
-    repeat,
+    repeat, % Leaves continuous choice points for the fail. Cut is used to exit the loop
     read(Stream, Term),
-    (  Term == end_of_file
-    -> !, close(Stream)
-    ;  assertz(Term), fail
+    (  Term == end_of_file ->
+        !,
+        close(Stream)
+    ;
+        assertz(Term),
+        fail
     ),
 
-    % compile(Prolog_file,[opt_level:0,debug:on,print_normalised:on]),
-    
     function_definition(Function_name, Params, Body, Return_type), % Match from compiled prolog file
     !,
     setup_for_function(Filename_without_extension, Function_name,Path_to_C_file),

@@ -8,8 +8,7 @@ declaration(_, []).
 
 %% Declare an integer variable
 declaration(int, [C_variable|Rest]) :-
-    get_var_info(C_variable,name,Ptc_name),
-    % copy_term(C_variable, Ptc_name),
+    get_var_info(C_variable, name, Ptc_name),
     var_names(Ptc_name, C_name),
     ptc_solver__variable([In], integer),
     c_var__create(int, integer, In, C_name, C_variable),
