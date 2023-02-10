@@ -8,7 +8,7 @@
 cunit__write_test_case_all(Filename, Function_name, Params, Return_value, Return_type) :-
     cunit__write_test_case(Filename, Function_name, Params, Return_value, Return_type),
     fail,
-    !.
+    !. % TODO: This cut appears to not to anything
 
 %IDEA: Test cases could be generated,
 %      though this assumes determinism
@@ -99,8 +99,7 @@ cunit__is_first_test(Filename) :-
 %% Original:The string to check if it contains the substring
 %% Substring: The string to be checked if contained within the first parameter
 string_contains(Original, Substring) :-
-    sub_string(Original, _, _, _, Substring),
-    !. % Stop on the first find. Interested exclusively if a substring exists
+    once sub_string(Original, _, _, _, Substring).
 
 %% Gets the current test name, as a string
 %% Returns "test_{id}"
