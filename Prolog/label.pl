@@ -10,7 +10,6 @@ label_collectively(Parameters) :-
     label__group_by_ptc_type(Parameters,[],Grouped_parameters),
     label(Grouped_parameters).
 
-% TODO: Make this work for arrays
 % Below returns a list of the structure: [[Type,[Variables...]],[Type,[Variables...]]...]
 % Eg: [[integer,[x,y]],[double,[a,b]]]
 label__group_by_ptc_type([],Accumulator,Accumulator).
@@ -62,36 +61,8 @@ label([[charpointer,Values_to_label]|More_to_label]) :-
 
     % TODO:Handle generation of backslashes and single quotes, by escaping them
 
-
-
     label(More_to_label).
 
-
-
-% %% Labels an integer array
-% label([declaration(intpointer, [Variable|_])|Rest]) :-
-%     c_array__get_in_var(Variable, In_var),
-% 	ptc_solver__get_array_index_elements(In_var, Indexs),
-% 	utils__get_all_array_inputs(Indexs, Array_inputs),
-%     ptc_solver__label_integers([Array_inputs]),
-%     !,
-%     label(Rest).
-
-% %% Labels a character array
-% label([declaration(charpointer, [H|_])|T]) :-
-%     c_array__get_in_var(H, Var),
-%     ptc_solver__get_array_index_elements(Var, Indexs),
-% 	utils__get_all_array_inputs(Indexs, Out),
-%     ptc_solver__label_integers([Out]),
-%     !,
-%     label(T).
-
-% %% Labels a singular integer
-% label([declaration(int, [Variable|_])|Rest]) :-
-%     c_var__get_in_var(Variable, In_var),
-%     ptc_solver__label_integers([In_var]),
-%     !,
-%     label(Rest).
 
 % IDEA: This predicate is a likely candidate to be removed
 %% Label an expression passed in based on the type desired
@@ -104,8 +75,6 @@ label(Expression, Type, Concrete_variable) :-
         Type == char ->
             utils__evaluate_to_int(Expression, Concrete_variable)
     ).
-
-
 
 % WIP below
 %% Escape backslash and single quote characters

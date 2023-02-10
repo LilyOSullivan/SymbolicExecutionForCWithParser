@@ -12,16 +12,9 @@
 %%  tests (List, value:[]): This list holds the names of the generated test cases
 %%      Eg: ["test_1","test_2","test_3"...]
 
-%FIXME: A charpointer array can generate '\' which breaks the C code.
-% ASCII code: 92
-
-% QUESTION: Does this predicate need a parameter? The parameter should always be the same
 %% Run regression tests
-%% Filename_without_extension: The name of the parsed prolog file without the .pl extension
-%%                             This should be a string.
-%%                 Eg: "regression_source"
 regression_tests(Filename_without_extension) :-
-    string(Filename_without_extension),
+    Filename_without_extension = "regression_source",
     Path = "../LexYacc/regression_tests",
     Path_to_parser = "../LexYacc",
 
@@ -114,7 +107,7 @@ main(Filename_without_extension, Function_name,Path_to_C_file) :-
         !,
         close(Stream)
     ;
-        assertz(Term),
+        asserta(Term),
         fail
     ),
 
@@ -130,8 +123,6 @@ main(Filename_without_extension, Function_name,Path_to_C_file) :-
 setup_for_function(Filename, Function_name,Path_to_C_file) :-
     concat_string([Path_to_C_file, "/", Filename, ".names"], Names_filename),
     compile(Names_filename),
-
-    % Foldername used for the generated test cases
     get_flag(unix_time, Unix_time),
 
     % Format: days/months/year__24Hours_Minutes_Seconds
@@ -139,6 +130,8 @@ setup_for_function(Filename, Function_name,Path_to_C_file) :-
     local_time_string(Unix_time,"%d_%m_%y__%H_%M_%S", Current_date_as_string),
     concat_string([Function_name, "_tests_", Current_date_as_string], Folder_name),
     concat_string([Path_to_C_file, "/", Folder_name, "/"], Path_to_test_directory),
+
+    % Foldername used for the generated test-cases
     setval(test_folder_path, Path_to_test_directory),
 
     % The initial Id used to identify test cases generated. Used in test_generation.pl

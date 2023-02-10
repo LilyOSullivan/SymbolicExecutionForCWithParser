@@ -1,5 +1,3 @@
-%IDEA: Keep a running counter for the number of tab-indentation's desired
-
 :- use_module(c_array).
 :- use_module(c_var).
 
@@ -7,12 +5,8 @@
 %% Generate test cases with failing backtrack
 cunit__write_test_case_all(Filename, Function_name, Params, Return_value, Return_type) :-
     cunit__write_test_case(Filename, Function_name, Params, Return_value, Return_type),
-    fail,
-    !. % TODO: This cut appears to not to anything
+    fail.
 
-%IDEA: Test cases could be generated,
-%      though this assumes determinism
-%      Eg assert give_five() == 5
 %% Generate test cases for a function with no parameters
 %% A function with no parameters does not generate test cases, for now.
 cunit__write_test_case(_, Function_name, [void], _, _) :-
@@ -114,7 +108,7 @@ get_test_name(Test_name) :-
     append(All_tests, [Test_name], New_test_cases),
     setval(tests,New_test_cases).
 
-%% Create a singular, comma-separated string, of the variables names
+%% Create a singular, comma-separated string, of the variables
 %% Params: The list of parameters
 %% Variable_name_accumulator: The accumulator for the variable names, as a continuous string
 %% All_variable_names: The variable that will be instantiated with the final string
@@ -164,71 +158,3 @@ create_return(Return_value, int, Return_value_as_string) :-
 create_return(Return_value, char, Return_value_as_string) :-
     string_codes(Value_as_string, [Return_value]),
     concat_string(["'", Value_as_string, "'"], Return_value_as_string).
-
-
-% <== Below are all Google Test related predicates ==>
-
-% gtest_write_test_case_all(Function_name, [void], _) :-
-%     write("No test cases to generate for "),
-%     writeln(Function_name),
-%     !.
-
-% gtest_write_test_case_all(Function_name, Params, Return_value) :-
-%     gtest_write_test_case(Function_name, Params, Return_value),
-%     fail,
-%     !.
-
-% gtest_write_test_case(Function_name, [void], _) :-
-%     write("No test cases to generate for "),
-%     writeln(Function_name),
-%     !.
-
-% gtest_write_test_case(Function_name, Params, Return_value) :-
-%     concat_string([Function_name, "_tests"], Test_suite_name),
-%     concat_string([Test_suite_name, ".cpp"], Test_suite_filename),
-%     open(Test_suite_filename, append, testcase),
-%     open(Test_suite_filename, read, testcase_read),
-%     (
-%         gtest_is_first_test ->
-%             gtest_write_test_include
-%         ;
-%             % Put a new line to space out the test cases
-%             printf(testcase, "\n", [])
-%     ),
-%     printf(testcase, "TEST(%s, ", [Test_suite_name]),
-%     get_test_id(Test_id),
-%     term_string(Test_id, Test_id_as_string),
-%     printf(testcase, Test_id_as_string, []),
-%     printf(testcase, ") {\n", []),
-%     New_test_id is Test_id + 1,
-%     set_test_id(New_test_id),
-%     gtest_write_assert_eq(Function_name, Params, Return_value),
-%     printf(testcase, "}\n", []),
-%     close(testcase),
-%     close(testcase_read).
-
-% gtest_write_assert_eq(Function_name, Params, Return_value) :-
-%     printf(testcase, "\tASSERT_EQ(", []),
-%     printf(testcase, Function_name, []),
-%     printf(testcase, "(", []),
-%     params_to_string(Params, "", Out),
-%     printf(testcase, Out, []),
-%     printf(testcase, "), ", []),
-%     term_string(Return_value, Return_value_as_string),
-%     printf(testcase, Return_value_as_string, []),
-%     printf(testcase, ");\n", []).
-
-% %% Check if the test includes are needed
-% %% This is primarily for backtracking not to write includes multiple times
-% gtest_is_first_test :-
-%     read_string(testcase_read, 25, First_chars),
-%     not string_contains(First_chars, "<gtest/gtest.h>").
-
-
-% %% Write out any includes necessary for the test suite
-% %% Necessary to ensure the gtest comes first
-% %% Due to a check for the necessity of writing an include checking for gtest
-% %% As a first line in the file
-% gtest_write_test_include :-
-%     printf(testcase, "#include <gtest/gtest.h>\n", []).
-%     % printf(testcase, "#include "%s.c"\n", [C_filename]).
