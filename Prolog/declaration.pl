@@ -8,18 +8,16 @@ declaration(_, []).
 
 %% Declare an integer variable
 declaration(int, [C_variable|Rest]) :-
-    copy_term(C_variable, Ptc_name),
+    get_var_info(C_variable,name,Ptc_name),
+    % copy_term(C_variable, Ptc_name),
     var_names(Ptc_name, C_name),
     ptc_solver__variable([In], integer),
     c_var__create(int, integer, In, C_name, C_variable),
-    % get_var_info(C_variable,name,X_Name),
     declaration(int, Rest),
     !.
 
 %% Declare an integer array
 declaration(intpointer, [C_variable|Rest]) :-
-    % term_string(IndexType, "indexType5"),
-    % term_string(ArrayType, "arrayType5"),
     ptc_solver__type(indexType5, integer, range_bounds(0, 4)),
     ptc_solver__type(arrayType5, array, [indexType5], integer),
     ptc_solver__variable([In], arrayType5),
@@ -33,8 +31,6 @@ declaration(intpointer, [C_variable|Rest]) :-
 
 %% Declare a character array
 declaration(charpointer, [C_variable|Rest]) :-
-    % term_string(IndexType, "indexType5"),
-    % term_string(ArrayType, "arrayType5"),
     ptc_solver__type(indexType5, integer, range_bounds(0, 4)),
     ptc_solver__type(arrayType5, array, [indexType5], char),
     ptc_solver__variable([In], arrayType5),

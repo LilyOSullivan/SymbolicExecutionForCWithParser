@@ -104,7 +104,15 @@ main(Filename_without_extension, Function_name,Path_to_C_file) :-
     % https://www.ascii-code.com
 
     concat_string([Path_to_C_file, "/", Filename_without_extension, ".pl"], Prolog_file),
-    compile(Prolog_file),
+    open(Prolog_file, read, Stream),
+    repeat,
+       read(Stream, Term),
+       (  Term == end_of_file->
+            !, close(Stream)
+       ;
+            assertz(Term)
+       ),
+    % compile(Prolog_file,[output:print,verbose:1,opt_level:0,debug:on]),
     function_definition(Function_name, Params, Body, Return_type), % Match from compiled prolog file
     !,
     setup_for_function(Filename_without_extension, Function_name,Path_to_C_file),

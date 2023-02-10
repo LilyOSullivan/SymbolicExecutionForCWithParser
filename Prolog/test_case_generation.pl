@@ -51,9 +51,9 @@ cunit__write_test_case(Filename, Function_name, Params, Return_value, Return_typ
 cunit__write_main(Test_suite_name) :-
     getval(test_folder_path, Path_to_test_directory),
     concat_string([Path_to_test_directory, Test_suite_name, "_main.c"], Filepath_to_main),
-    open(Filepath_to_main, write, testcase_main),
     concat_string([Test_suite_name, ".c"], Test_suite_filename),
     cunit__add_test_cases_to_suite(Add_tests_to_suite_string),
+    open(Filepath_to_main, write, testcase_main),
     printf(testcase_main, "#include \"%s\"\n\n", [Test_suite_filename]),
     printf(testcase_main, "int main()\n{\n\tif (CUE_SUCCESS != CU_initialize_registry())\n\t\treturn CU_get_error();\n\n\tCU_pSuite pSuite = CU_add_suite(\"Suite_1\", NULL, NULL);\n\tif (NULL == pSuite) {\n\t\tCU_cleanup_registry();\n\t\treturn CU_get_error();\n\t}\n\n%s\n\tCU_basic_set_mode(CU_BRM_VERBOSE);\n\tCU_basic_run_tests();\n\n\tif(CU_get_error() != CUE_SUCCESS) {\n\t\tCU_cleanup_registry();\n\t\treturn CU_get_error();\n\t}\n\tunsigned int failed = CU_get_number_of_tests_failed();\n\tCU_cleanup_registry();\n\treturn failed;\n}\n", [Add_tests_to_suite_string]),
     close(testcase_main).
