@@ -1,6 +1,3 @@
-% IDEA: There likely needed to be a handling of "true" and "false", as C
-%       Possibly true = 1, false = 0?
-
 :- module(expressions).
 
 :- export evaluate_expression/1.
@@ -104,62 +101,35 @@ evaluate_expression(Left/Right, Left_result/Right_result) :-
     evaluate_expression(Left, Left_result),
     evaluate_expression(Right, Right_result).
 
-%% Post-increment operator (++)
-%% Eg: x++
-% evaluate_expression(post_increment(Assign_to, Increment_operation), Assign_to) :-
-%     evaluate_expression(Assign_to, Assign_to_result),
-%     evaluate_expression(Increment_operation, Increment_operation_result),
-%     ptc_solver__sdl(Assign_to_result = Increment_operation_result).
+% % Increment with ++ on the right side (Post-increment)
+% % Eg: x++
+evaluate_expression(post_increment(Assign_to, Increment_operation), Out) :-
+    evaluate_expression(Assign_to, Out),
+    evaluate_expression(Increment_operation, Increment_operation_result),
+    c_var__get_ptc_type(Assign_to, Ptc_type),
+    ptc_solver__variable([Temp], Ptc_type),
+    ptc_solver__sdl(Temp = Increment_operation_result),
+    c_var__set_out_var(Assign_to, Temp).
 
-% %% Pre-increment operator (++)
-% %% Eg: ++x
-% evaluate_expression(pre_increment(Assign_to, Increment_operation), Assign_to) :-
-%     evaluate_expression(Assign_to, Assign_to_result),
-%     evaluate_expression(Increment_operation, Increment_operation_result),
-%     ptc_solver__sdl(Assign_to_result = Increment_operation_result).
-%     % Out = Assign_to.
-
-%% Increment with ++ on the right side (Post-increment)
-%% Eg: x++
-% evaluate_expression(post_increment(Assign_to, Increment_operation), Out) :-
-%     evaluate_expression(Assign_to, Out),
-%     evaluate_expression(Increment_operation, Increment_operation_result),
-%     c_var__get_ptc_type(Assign_to, Ptc_type),
-%     ptc_solver__variable([Temp], Ptc_type),
-%     ptc_solver__sdl(eq_cast(Temp, Increment_operation_result)),
-%     c_var__set_out_var(Assign_to, Temp).
-
-% %% Increment with ++ on the left side (Pre-increment)
-% %% Eg: ++x
-% evaluate_expression(pre_increment(Assign_to, Increment_operation), Out) :-
-%     % evaluate_expression(Assign_to, Assign_to_result),
-%     evaluate_expression(Increment_operation, Increment_operation_result),
-%     c_var__get_ptc_type(Assign_to, Ptc_type),
-%     ptc_solver__variable([Temp], Ptc_type),
-%     ptc_solver__sdl(eq_cast(Temp, Increment_operation_result)),
-%     Out = Temp,
-%     c_var__set_out_var(Assign_to, Increment_operation_result).
+%% Increment with ++ on the left side (Pre-increment)
+%% Eg: ++x
+evaluate_expression(pre_increment(Assign_to, Increment_operation), Out) :-
+    evaluate_expression(Increment_operation, Increment_operation_result),
+    c_var__get_ptc_type(Assign_to, Ptc_type),
+    ptc_solver__variable([Temp], Ptc_type),
+    ptc_solver__sdl(Temp = Increment_operation_result),
+    c_var__set_out_var(Assign_to, Temp),
+    Out = Temp.
 
 % %% Increment with -- on the right side (Post-decrement)
 % %% Eg: x--
-% evaluate_expression(post_decrement(Assign_to, Increment_operation), Out) :-
-%     evaluate_expression(Assign_to, Out),
-%     evaluate_expression(Increment_operation, Increment_operation_result),
-%     c_var__get_ptc_type(Assign_to, Ptc_type),
-%     ptc_solver__variable([Temp], Ptc_type),
-%     ptc_solver__sdl(eq_cast(Temp, Increment_operation_result)),
-%     c_var__set_out_var(Assign_to, Temp).
+evaluate_expression(post_decrement(Assign_to, Decrement_operation), Out) :-
+    evaluate_expression(post_increment(Assign_to, Decrement_operation),Out).
 
 % %% Increment with -- on the left side (Pre-decrement)
 % %% Eg: --x
-% evaluate_expression(pre_decrement(Assign_to, Increment_operation), Out) :-
-%     % evaluate_expression(Assign_to, Assign_to_result),
-%     evaluate_expression(Increment_operation, Increment_operation_result),
-%     c_var__get_ptc_type(Assign_to, Ptc_type),
-%     ptc_solver__variable([Temp], Ptc_type),
-%     ptc_solver__sdl(eq_cast(Temp, Increment_operation_result)),
-%     Out = Temp,
-%     c_var__set_out_var(Assign_to, Increment_operation_result).
+evaluate_expression(pre_decrement(Assign_to, Decrement_operation), Out) :-
+    evaluate_expression(pre_increment(Assign_to, Decrement_operation),Out).
 
 %% Negation operator (Unary minus)
 %% A value's sign being turned flipped with the minus operator
