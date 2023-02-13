@@ -45,8 +45,29 @@ utils__join([String|More_strings], Result) :-
 %%  Value: The value to assign
 %%  Assigned_value: The value assigned that has been assigned
 %% Eg: utils__assignment(Assign_to{"x"}, 5, Result) -> Result = 5
-utils__assignment(Assign_to,Value,Assigned_value) :-
+utils__assignment(Assign_to,Value, Assigned_value) :-
     c_var__get_ptc_type(Assign_to, Ptc_type),
     ptc_solver__variable([Assigned_value], Ptc_type),
     ptc_solver__sdl(Assigned_value = Value),
     c_var__set_out_var(Assign_to, Assigned_value).
+
+utils__find_variable(Variable,Result) :-
+    %% Check if it is instantiated
+    (var(Variable), c_var__is_variable(Variable) ->
+        (
+            %% If it is instantiated, then it is a variable in local function-scope
+            Result = Variable
+        )
+    ;
+        (
+            %% If it is not instantiated, it is in global scope
+            getval(global_vars, Global_vars_list),
+            get_var_info(Variable, name, Ptc_name),
+            var_names(Ptc_name, C_name),
+            member(Element, Global_vars_list),
+            c_var__get_name(Element, Name), Name == C_name,
+            !,
+            Result = Element
+        )
+    ).
+

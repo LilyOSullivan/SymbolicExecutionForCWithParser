@@ -6,6 +6,7 @@
         "concat",
         "cunit",
         "cvar",
+        "getval",
         "intpointer",
         "orop",
         "sprintf",

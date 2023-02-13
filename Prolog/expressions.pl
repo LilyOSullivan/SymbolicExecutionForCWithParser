@@ -1,12 +1,6 @@
-:- module(expressions).
-
-:- export evaluate_expression/1.
-:- export evaluate_expression/2.
-
 :- lib(ptc_solver).
 :- use_module(c_var).
 :- use_module(c_array).
-:- [utils].
 
 %% The below operators are used to return values the ptc_solver can understand.
 :- op(1200, xfy, and_then).
@@ -27,7 +21,8 @@ evaluate_expression(not(Expression)) :-
 %% Returns the 'out' ptc_variable of a c_var
 evaluate_expression(Expression, Ptc_variable) :-
     var(Expression),
-    c_var__get_out_var(Expression, Ptc_variable).
+    utils__find_variable(Expression, Variable),
+    c_var__get_out_var(Variable, Ptc_variable).
 
 evaluate_expression(Expression, Expression) :-
     number(Expression).

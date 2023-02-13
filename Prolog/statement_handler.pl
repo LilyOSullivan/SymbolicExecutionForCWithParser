@@ -2,7 +2,6 @@
 
 :- ['test_case_generation'].
 :- ['declaration'].
-:- use_module(expressions).
 
 %% The entrypoint to function analysis
 function_handler(Filename, Function_Name, Body, Params, Return_type) :-
@@ -14,16 +13,11 @@ function_handler(Filename, Function_Name, Body, Params, Return_type) :-
     cunit__write_test_case_all(Filename, Function_Name, Params, Return_value, Return_type).
 function_handler(_, _, _, _, _).
 
-process_globals :-
-    global_variables(Body,_),
-    statement_handler(Body, return(_,void)).
 
 %% Declare all parameters as variables
 parameter_handler([]).
+parameter_handler([void]) :- !.
 parameter_handler([Declaration|More_declarations]) :-
-    % 'void' ignored, otherwise it is attempted to be matched as a predicate
-    % This is in the situation of a function with no parameters
-    Declaration \== void,
     Declaration, % This calls declaration predicates in declaration.pl
     parameter_handler(More_declarations).
 
@@ -50,8 +44,8 @@ statement_handler([Statement|More_statements], return(Return_value,Return_type))
 %%  {
 %%      int x = 1;
 %%  }
-handle(List_Of_Statements, Return_flags) :-
-    statement_handler(List_Of_Statements, Return_flags).
+handle(List_of_statements, Return_flags) :-
+    statement_handler(List_of_statements, Return_flags).
 
 %% This occurs if a variable is declared in the function body
 %% Eg:

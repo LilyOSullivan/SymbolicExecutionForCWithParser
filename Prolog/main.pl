@@ -2,10 +2,12 @@
 
 :- ['utils'].
 :- use_module(c_var).
-:- use_module(expressions).
+:- ['expressions'].
 :- ['statement_handler'].
 
 :- dynamic var_names/2.
+:- dynamic function_definition/4.
+:- dynamic global_variables/2.
 
 %% Global values:
 %%  test_id (Number, value:1): This is an Id used to identify test cases generated
@@ -13,7 +15,7 @@
 %%      Eg: ["test_1","test_2","test_3"...]
 
 %% Run regression tests
-regression_tests(Filename_without_extension) :-
+regression_tests :-
     Filename_without_extension = "regression_source",
     Path = "../LexYacc/regression_tests",
     Path_to_parser = "../LexYacc",
@@ -68,7 +70,7 @@ regression_tests(Filename_without_extension) :-
         halt
     ),
     fail.
-regression_tests(_).
+regression_tests.
 
 
 %% A shortcut predicate to main/3 outputting to the Prolog directory
@@ -110,11 +112,26 @@ main(Filename_without_extension, Function_name,Path_to_C_file) :-
         asserta(Term),
         fail
     ),
-
     function_definition(Function_name, Params, Body, Return_type), % Match from compiled prolog file
     !,
     setup_for_function(Filename_without_extension, Function_name,Path_to_C_file),
+    process_globals,
     function_handler(Filename_without_extension, Function_name, Body, Params, Return_type). % From Statement_handler.pl
+
+% global_variables([
+%     declaration(int, [LC_y_0]),
+%     assignment(LC_y_0 , 5) ], void).
+
+process_globals :-
+    setval(global_vars,[]),
+    global_variables(List_of_statements, _),
+    statement_handler(List_of_statements,_), % From Statement_handler.pl
+    term_variables(List_of_statements, Variables),
+    getval(global_vars,Global_vars_list),
+    append(Global_vars_list,Variables,New_global_vars_list),
+    setval(global_vars,New_global_vars_list),
+    fail.
+process_globals.
 
 % IDEA: Name predicate: setup_test_driver
 % QUESTION: How would id's work across multiple functions?

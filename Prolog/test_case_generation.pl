@@ -9,10 +9,10 @@ cunit__write_test_case_all(Filename, Function_name, Params, Return_value, Return
 
 %% Generate test cases for a function with no parameters
 %% A function with no parameters does not generate test cases, for now.
-cunit__write_test_case(_, Function_name, [void], _, _) :-
-    write("No test cases to generate for "),
-    writeln(Function_name),
-    !.
+% cunit__write_test_case(_, Function_name, [void], _, _) :-
+%     write("No test cases to generate for "),
+%     writeln(Function_name),
+%     !.
 
 %% Generate a singular test case
 cunit__write_test_case(Filename, Function_name, Params, Return_value, Return_type) :-
@@ -66,6 +66,10 @@ cunit__add_test_cases_to_suite([Test_case|More_test_cases], Add_to_suite_accumul
     cunit__add_test_cases_to_suite(More_test_cases, Accumulator_with_current_test_case, Add_all_test_cases_to_suite_string).
 
 %% Creates the CUnit assert statement that performs unit-testing
+cunit__create_assert(Function_name, [void], Return_value, Return_type, CUnit_assert) :-
+    create_return(Return_value, Return_type, Return_value_as_string),
+    sprintf(CUnit_assert, "\tCU_ASSERT(%s() == %s);\n", [Function_name, Return_value_as_string]).
+
 cunit__create_assert(Function_name, Params, Return_value, Return_type, CUnit_assert) :-
     create_return(Return_value, Return_type, Return_value_as_string),
     var_names_as_parameters(Params, "", Var_names),
@@ -143,6 +147,7 @@ var_names_as_parameters([declaration(_, [Variable|_])|More_variables], Variable_
 %%     )
 %%
 %%  -> All_declarations = "int x = 5;\nint y = -2;\n"
+create_declaration_section([void], Declaration_accumulator, Declaration_accumulator) :- !.
 create_declaration_section([], Declaration_accumulator, Declaration_accumulator).
 create_declaration_section([declaration(_, [Variable|_])|More_variables], Declaration_accumulator, All_declarations) :-
     c_var__create_declaration(Variable,Declaration),

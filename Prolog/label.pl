@@ -6,6 +6,7 @@
 %% Groups variables by type and labels them collectively instead of individually
 %% The parameter is a list of declaration predicates, as output by the parser
 %% Eg: [declaration(integer,[x]),declaration(double,[a])]
+label_collectively([void]) :- !.
 label_collectively(Parameters) :-
     label__group_by_ptc_type(Parameters,[],Grouped_parameters),
     label(Grouped_parameters).
