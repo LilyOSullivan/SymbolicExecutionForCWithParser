@@ -19,9 +19,9 @@ regression_tests :-
     Path_to_parser = "../LexYacc",
 
     % Run the preprocessor before the parser
-    sprintf(Run_preprocessor_command,"cd %s && cl /EP /P %s.c",[Path,Filename_without_extension]),
+    sprintf(Run_preprocessor_command, "cd %s && cl /EP /P %s.c", [Path, Filename_without_extension]),
     sh(Run_preprocessor_command),
-    sprintf(Path_to_i_file,"%s/%s.i",[Path,Filename_without_extension]),
+    sprintf(Path_to_i_file, "%s/%s.i",[Path, Filename_without_extension]),
     (exists(Path_to_i_file) ->
         true
     ;
@@ -32,9 +32,9 @@ regression_tests :-
     ),
 
     % Run the parser
-    sprintf(Run_parser_command,"cd %s && .\\LilyParser.exe .//regression_tests  %s .//regression_tests",[Path_to_parser,Filename_without_extension]),
+    sprintf(Run_parser_command, "cd %s && .\\LilyParser.exe .//regression_tests  %s .//regression_tests", [Path_to_parser, Filename_without_extension]),
     sh(Run_parser_command),
-    sprintf(Path_to_pl_file,"%s/%s.pl",[Path,Filename_without_extension]),
+    sprintf(Path_to_pl_file, "%s/%s.pl", [Path, Filename_without_extension]),
     (exists(Path_to_pl_file) ->
         true
     ;
@@ -51,27 +51,27 @@ regression_tests :-
     % Run symbolic execution
     main(Filename_without_extension, Function_name, Path),
     % Compile test cases
-    getval(test_folder_path,Path_to_test_directory),
-    concat_string([Function_name,"_tests_main.c"], Main_filename),
+    getval(test_folder_path, Path_to_test_directory),
+    concat_string([Function_name, "_tests_main.c"], Main_filename),
 
     % Compile the main test file
-    sprintf(Compile_string,"cd %s && x86_64-w64-mingw32-gcc -o %s.exe %s -lcunit", [Path_to_test_directory, Function_name, Main_filename]),
+    sprintf(Compile_string, "cd %s && x86_64-w64-mingw32-gcc -o %s.exe %s -lcunit", [Path_to_test_directory, Function_name, Main_filename]),
     (sh(Compile_string) ->
         true
     ;
         (
-            printf("Failed to compile test cases: %s",[Function_name]),
+            printf("Failed to compile test cases: %s", [Function_name]),
             halt
         )
     ),
 
     % Run test cases
-    sprintf(Run_string,"cd %s && %s.exe", [Path_to_test_directory, Function_name]),
+    sprintf(Run_string, "cd %s && %s.exe", [Path_to_test_directory, Function_name]),
     (sh(Run_string) ->
         true
     ;
         (
-            printf("Test cases encountered failure: %s",[Function_name]),
+            printf("Test cases encountered failure: %s", [Function_name]),
             halt
         )
     ),
@@ -80,7 +80,7 @@ regression_tests.
 
 %% A shortcut predicate to main/3 outputting to the Prolog directory
 %% Useful for development. This is not called in code, only by a developer
-main(Filename_without_extension,Function_name) :-
+main(Filename_without_extension, Function_name) :-
     main(Filename_without_extension, Function_name, "./").
 
 %% The entrypoint to the program
@@ -92,7 +92,7 @@ main(Filename_without_extension,Function_name) :-
 %% Path_to_C_file: The path to the C file to be symbolically executed.
 %%                          This should be a string.
 %%                 Eg: "C:\\Users\\user\\Desktop"
-main(Filename_without_extension, Function_name,Path_to_C_file) :-
+main(Filename_without_extension, Function_name, Path_to_C_file) :-
     string(Filename_without_extension),
     atom(Function_name),
     string(Path_to_C_file),
@@ -104,9 +104,9 @@ main(Filename_without_extension, Function_name,Path_to_C_file) :-
     % https://www.ascii-code.com
 
     concat_string([Path_to_C_file, "/", Filename_without_extension, ".pl"], Prolog_file),
-    read_prolog_file(Prolog_file,Terms),
+    read_prolog_file(Prolog_file, Terms),
     find_function_information(Terms,Function_name, Params, Body, Return_type),
-    setup_for_function(Filename_without_extension, Function_name,Path_to_C_file),
+    setup_for_function(Filename_without_extension, Function_name, Path_to_C_file),
     process_global_variables(Terms),
     function_handler(Filename_without_extension, Function_name, Body, Params, Return_type). % From Statement_handler.pl
 
@@ -142,7 +142,7 @@ setup_for_function(Filename, Function_name,Path_to_C_file) :-
 %% Parameters:
 %%  Relative_path: The path to the prolog file to be read
 %%  Result: The contents of the prolog file
-read_prolog_file(Relative_path,Result) :-
+read_prolog_file(Relative_path, Result) :-
     open(Relative_path, read, Stream),
 
     % Asserting breaks the variable links.
@@ -157,7 +157,7 @@ read_prolog_file(Relative_path,Result) :-
 process_global_variables([]).
 process_global_variables([Term|More_terms]) :-
     (Term = global_variables(Statements, _) ->
-        statement_handler(Statements,_) % From Statement_handler.pl
+        statement_handler(Statements, _) % From Statement_handler.pl
     ;
         true
     ),
