@@ -78,7 +78,6 @@ regression_tests :-
     fail.
 regression_tests.
 
-
 %% A shortcut predicate to main/3 outputting to the Prolog directory
 %% Useful for development. This is not called in code, only by a developer
 main(Filename_without_extension,Function_name) :-
@@ -105,20 +104,11 @@ main(Filename_without_extension, Function_name,Path_to_C_file) :-
     % https://www.ascii-code.com
 
     concat_string([Path_to_C_file, "/", Filename_without_extension, ".pl"], Prolog_file),
-
-    % % Read the prolog file. This is used in place of the compile predicate
-    % % The compile predicate strips variable names when compiling
-    % open(Prolog_file, read, Stream),
-    % repeat, % Leaves continuous choice points for the fail. Cut is used to exit the loop
     read_prolog_file(Prolog_file,Terms),
     find_function_information(Terms,Function_name, Params, Body, Return_type),
     setup_for_function(Filename_without_extension, Function_name,Path_to_C_file),
     process_global_variables(Terms),
     function_handler(Filename_without_extension, Function_name, Body, Params, Return_type). % From Statement_handler.pl
-
-% global_variables([
-%     declaration(int, [LC_y_0]),
-%     assignment(LC_y_0 , 5) ], void).
 
 
 % IDEA: Name predicate: setup_test_driver
@@ -146,38 +136,44 @@ setup_for_function(Filename, Function_name,Path_to_C_file) :-
     % when generating the '_main' cunit .c file
     setval(tests, []).
 
+%% Reads the parser-result prolog file, and returns its' contents
+%% This is used in place of the compile predicate. The compile predicate
+%% strips variable names when compiling.
+%% Parameters:
+%%  Relative_path: The path to the prolog file to be read
+%%  Result: The contents of the prolog file
 read_prolog_file(Relative_path,Result) :-
-    read_terms_from_file(Relative_path, Terms),
-    Terms = parsed(Result).
+    open(Relative_path, read, Stream),
 
-process_global_variables(Terms) :-
-    initialise_globals(Terms).
+    % Asserting breaks the variable links.
+    % Return the content directly instead.
+    read_term(Stream, Parsed_terms, []),
+    close(Stream),
+    Parsed_terms = parsed(Result).
 
-initialise_globals([]).
-initialise_globals([H|T]) :-
-    (H = global_variables(Statements, _) ->
+%% Initialise global variables
+%% Parameters:
+%%  Terms: The contents of the parser-result prolog file
+process_global_variables([]).
+process_global_variables([Term|More_terms]) :-
+    (Term = global_variables(Statements, _) ->
         statement_handler(Statements,_) % From Statement_handler.pl
     ;
         true
     ),
-    initialise_globals(T).
+    process_global_variables(More_terms).
 
-find_function_information(Terms,Function_name, Params, Body, Return_type) :-
-    find_function(Terms, Function_name, Params, Body, Return_type),
-    !.
-
-find_function([],_,_,_,_).
-find_function([Term|More_terms], Function_name, Params, Body, Return_type) :-
+%% Finds the function definition for a desired function
+%% Parameters:
+%%  Terms: The contents of the parser-result prolog file
+%%  Function_name: The name of the function to be found
+%%  Params: The parameters of the function to be found
+%%  Body: The body of the function to be found
+%%  Return_type: The return type of the function to be found
+find_function_information([],_,_,_,_).
+find_function_information([Term|More_terms], Function_name, Params, Body, Return_type) :-
     (Term = function_definition(Function_name, Params, Body, Return_type) ->
         true
     ;
-        find_function(More_terms, Function_name, Params, Body, Return_type)
+        find_function_information(More_terms, Function_name, Params, Body, Return_type)
     ).
-
-read_terms_from_file(Filename, Result) :-
-    open(Filename, read, Stream),
-    read_terms_from_stream(Stream, Result),
-    close(Stream).
-
-read_terms_from_stream(Stream, Term) :-
-    read_term(Stream, Term, []).
