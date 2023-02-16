@@ -110,10 +110,10 @@ main(Filename_without_extension, Function_name,Path_to_C_file) :-
     % % The compile predicate strips variable names when compiling
     % open(Prolog_file, read, Stream),
     % repeat, % Leaves continuous choice points for the fail. Cut is used to exit the loop
-    read_prolog_file(Prolog_file),
-    find_function_information(Function_name, Params, Body, Return_type),
+    read_prolog_file(Prolog_file,Terms),
+    find_function_information(Terms,Function_name, Params, Body, Return_type),
     setup_for_function(Filename_without_extension, Function_name,Path_to_C_file),
-    process_global_variables,
+    process_global_variables(Terms),
     function_handler(Filename_without_extension, Function_name, Body, Params, Return_type). % From Statement_handler.pl
 
 % global_variables([
@@ -146,12 +146,11 @@ setup_for_function(Filename, Function_name,Path_to_C_file) :-
     % when generating the '_main' cunit .c file
     setval(tests, []).
 
-read_prolog_file(Relative_path) :-
-    read_terms_from_file(Relative_path, Result),
-    asserta(Result).
+read_prolog_file(Relative_path,Result) :-
+    read_terms_from_file(Relative_path, Terms),
+    Terms = parsed(Result).
 
-process_global_variables :-
-    parsed(Terms),
+process_global_variables(Terms) :-
     initialise_globals(Terms).
 
 initialise_globals([]).
@@ -163,8 +162,7 @@ initialise_globals([H|T]) :-
     ),
     initialise_globals(T).
 
-find_function_information(Function_name, Params, Body, Return_type) :-
-    parsed(Terms),
+find_function_information(Terms,Function_name, Params, Body, Return_type) :-
     find_function(Terms, Function_name, Params, Body, Return_type),
     !.
 
