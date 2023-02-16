@@ -12,7 +12,7 @@ process_global_variables :-
 initialise_globals([]).
 initialise_globals([H|T]) :-
     (H = global_variables(Statements, _) ->
-        statement_handler(Statements,_) % From Statement_handler.pl
+        statement_handler(Statements, _) % From Statement_handler.pl
     ;
         true
     ),

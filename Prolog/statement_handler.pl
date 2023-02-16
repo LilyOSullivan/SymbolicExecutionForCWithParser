@@ -8,7 +8,7 @@ function_handler(Filename, Function_Name, Body, Params, Return_type) :-
     % process_globals,
     parameter_handler(Params),
     statement_handler(Body, return(Return_value, Return_type)),
-    utils__detect_not_all_code_paths_return(Return_value,Return_type),
+    utils__detect_not_all_code_paths_return(Return_value, Return_type),
     label_collectively(Params),
     cunit__write_test_case_all(Filename, Function_Name, Params, Return_value, Return_type).
 function_handler(_, _, _, _, _).
@@ -29,11 +29,11 @@ parameter_handler([Declaration|More_declarations]) :-
 %%               and to stop iterating in statement handler
 %%  Return_type is the function return type, used to ensure the correct type is returned
 statement_handler([], _).
-statement_handler([Statement|More_statements], return(Return_value,Return_type)) :-
-    handle(Statement, return(Return_value,Return_type)),
+statement_handler([Statement|More_statements], return(Return_value, Return_type)) :-
+    handle(Statement, return(Return_value, Return_type)),
     (
         var(Return_value) ->
-            statement_handler(More_statements, return(Return_value,Return_type))
+            statement_handler(More_statements, return(Return_value, Return_type))
         ;
             true
     ).
@@ -113,7 +113,7 @@ handle(div_assignment(Variable, Expression), _) :-
 %  Breakdown: Variable %= Expression
 %  Eg: x %= 2;
 handle(mod_assignment(Variable, Expression), _) :-
-    handle(assignment(Variable, mod(Variable,Expression)), _).
+    handle(assignment(Variable, mod(Variable, Expression)), _).
 
 %% Handles the ++ post-increment-operator as a single line statement
 %% Eg: x++;

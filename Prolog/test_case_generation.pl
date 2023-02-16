@@ -150,11 +150,11 @@ var_names_as_parameters([declaration(_, [Variable|_])|More_variables], Variable_
 create_declaration_section([void], Declaration_accumulator, Declaration_accumulator) :- !.
 create_declaration_section([], Declaration_accumulator, Declaration_accumulator).
 create_declaration_section([declaration(_, [Variable|_])|More_variables], Declaration_accumulator, All_declarations) :-
-    c_var__create_declaration(Variable,Declaration),
+    c_var__create_declaration(Variable, Declaration),
     sprintf(Result, "%s%s", [Declaration_accumulator, Declaration]),
     create_declaration_section(More_variables, Result, All_declarations).
 create_declaration_section([declaration(_, [Variable|_])|More_variables], Declaration_accumulator, All_declarations) :-
-    c_array__create_declaration(Variable,Declaration),
+    c_array__create_declaration(Variable, Declaration),
     sprintf(Result, "%s%s", [Declaration_accumulator, Declaration]),
     create_declaration_section(More_variables, Result, All_declarations).
 

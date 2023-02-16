@@ -11,7 +11,7 @@ utils__evaluate_to_int(Expression, Integer_result) :-
     ptc_solver__label_integers([Integer_result]),
     !.
 
-utils__detect_not_all_code_paths_return(Return_value,Return_type) :-
+utils__detect_not_all_code_paths_return(Return_value, Return_type) :-
     (Return_type \== void, var(Return_value) ->
         (
             writeln("ERROR: Not all code paths return a value!!"),
@@ -50,26 +50,4 @@ utils__assignment(Assign_to,Value, Assigned_value) :-
     ptc_solver__variable([Assigned_value], Ptc_type),
     ptc_solver__sdl(Assigned_value = Value),
     c_var__set_out_var(Assign_to, Assigned_value).
-
-utils__find_variable(Variable,Result) :-
-    %% Check if it is instantiated
-    var(Variable),
-    (c_var__is_variable(Variable) ->
-        (
-            %% If it is instantiated, then it is a variable in local function-scope
-            Result = Variable
-        )
-    ;
-        (
-            %% If it is not instantiated, it is in global scope
-            getval(global_vars, Global_vars_list),
-            get_var_info(Variable, name, Ptc_name),
-            var_names(Ptc_name, C_name),
-            member(Element, Global_vars_list),
-            c_var__get_name(Element, Name),
-            Name == C_name,
-            !,
-            Result = Element
-        )
-    ).
 

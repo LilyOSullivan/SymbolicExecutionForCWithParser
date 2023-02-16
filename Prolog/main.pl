@@ -170,7 +170,7 @@ process_global_variables([Term|More_terms]) :-
 %%  Params: The parameters of the function to be found
 %%  Body: The body of the function to be found
 %%  Return_type: The return type of the function to be found
-find_function_information([],_,_,_,_).
+find_function_information([], _, _, _, _).
 find_function_information([Term|More_terms], Function_name, Params, Body, Return_type) :-
     (Term = function_definition(Function_name, Params, Body, Return_type) ->
         true

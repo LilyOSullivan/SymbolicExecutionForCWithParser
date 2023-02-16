@@ -97,11 +97,11 @@ c_var__is_variable(_{C_var}) :-
         C_var = cvar(_, _, _, _, _).
 
 %% Creates a declaration in C for the c_var
-c_var__create_declaration(Variable,Declaration) :-
+c_var__create_declaration(Variable, Declaration) :-
     c_var__is_variable(Variable),
-    c_var__get_c_type(Variable,C_Type),
-    c_var__create_declaration(Variable,C_Type,Declaration).
-c_var__create_declaration(Variable,int,Declaration) :-
+    c_var__get_c_type(Variable, C_Type),
+    c_var__create_declaration(Variable, C_Type,Declaration).
+c_var__create_declaration(Variable, int, Declaration) :-
     c_var__get_in_var(Variable, Ptc_in_var),
     c_var__get_name(Variable, Var_name),
     sprintf(Declaration, "\t%s %s = %d;\n", [int, Var_name, Ptc_in_var]).
