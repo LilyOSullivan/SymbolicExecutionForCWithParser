@@ -1,23 +1,23 @@
-int check_scope()
-{
-    int x = 5;
-    {
-      int x = 10;
-    }
-    return x;
-}
+// int check_scope()
+// {
+//     int x = 5;
+//     {
+//       int x = 10;
+//     }
+//     return x;
+// }
 
-int equals_expression(int x) {
-    x=(x=2)+1;
-    return x;
-}
+// int equals_expression(int x) {
+//     x=(x=2)+1;
+//     return x;
+// }
 
-int is_five(int x) {
-    if(x == 5) {
-        return 1;
-    }
-    return 0;
-}
+// int is_five(int x) {
+//     if(x == 5) {
+//         return 1;
+//     }
+//     return 0;
+// }
 
 int y = 5;
 int check_global() {
@@ -66,7 +66,7 @@ int check_global() {
     // return x;
 // }
 
-// int get_sign_return_expressions(int x) {
+// int get_sign(int x) {
 //     if (x==0) return 0+x;
 //     if (x>0) return 1+x;
 //     return -1-x;
@@ -76,19 +76,19 @@ int check_global() {
 //     return 1+(2<5);
 // }
 
-// int destructive_assignment(int x,int y) {
-//     x = x + y;
-//     if (x > 0) {
-//         return 1;
-//     }
-//     x = x + 1;
-//     if(x >= 1) {
-//         return x;
-//     }
-//     return 42;
-// }
+int abc(int x,int y) {
+    x = x + y;
+    if (x > 0) {
+        return 1;
+    }
+    x = x + 1;
+    if(x >= 1) {
+        return x;
+    }
+    return 42;
+}
 
-// int number_return() {
+// int give_five() {
 //     return 5;
 // }
 
@@ -99,11 +99,11 @@ int check_global() {
 // }
 
 
-// int check_password(int *buf) {
-//   if (buf[0] == 15 && buf[1] == 1 && buf[2] == 99 && buf[3] == -5 && buf[4] == 0)
-//     return 1;
-//   return 0;
-// }
+int check_password(int *buf) {
+  if (buf[0] == 15 && buf[1] == 1 && buf[2] == 99 && buf[3] == -5 && buf[4] == 0)
+    return 1;
+  return 0;
+}
 
 // void lots_of_types() {
 //     char c = 'a';
