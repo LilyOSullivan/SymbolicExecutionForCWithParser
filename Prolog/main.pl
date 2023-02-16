@@ -6,8 +6,6 @@
 :- ['statement_handler'].
 
 :- dynamic var_names/2.
-:- dynamic function_definition/4.
-:- dynamic global_variables/2.
 
 %% Global values:
 %%  test_id (Number, value:1): This is an Id used to identify test cases generated
@@ -27,8 +25,10 @@ regression_tests :-
     (exists(Path_to_i_file) ->
         true
     ;
-        writeln("Failed to preprocess with CL"),
-        halt
+        (
+            writeln("Failed to preprocess with CL"),
+            halt
+        )
     ),
 
     % Run the parser
@@ -38,8 +38,10 @@ regression_tests :-
     (exists(Path_to_pl_file) ->
         true
     ;
-        writeln("Failed to parse"),
-        halt
+        (
+            writeln("Failed to parse"),
+            halt
+        )
     ),
 
     concat_string([Path, "/", Filename_without_extension, ".pl"], Prolog_file),
@@ -57,8 +59,10 @@ regression_tests :-
     (sh(Compile_string) ->
         true
     ;
-        printf("Failed to compile test cases: %s",[Function_name]),
-        halt
+        (
+            printf("Failed to compile test cases: %s",[Function_name]),
+            halt
+        )
     ),
 
     % Run test cases
@@ -66,8 +70,10 @@ regression_tests :-
     (sh(Run_string) ->
         true
     ;
-        printf("Test cases encountered failure: %s",[Function_name]),
-        halt
+        (
+            printf("Test cases encountered failure: %s",[Function_name]),
+            halt
+        )
     ),
     fail.
 regression_tests.
@@ -100,38 +106,20 @@ main(Filename_without_extension, Function_name,Path_to_C_file) :-
 
     concat_string([Path_to_C_file, "/", Filename_without_extension, ".pl"], Prolog_file),
 
-    % Read the prolog file. This is used in place of the compile predicate
-    % The compile predicate strips variable names when compiling
-    open(Prolog_file, read, Stream),
-    repeat, % Leaves continuous choice points for the fail. Cut is used to exit the loop
-    read(Stream, Term),
-    (  Term == end_of_file ->
-        !,
-        close(Stream)
-    ;
-        asserta(Term),
-        fail
-    ),
-    function_definition(Function_name, Params, Body, Return_type), % Match from compiled prolog file
-    !,
+    % % Read the prolog file. This is used in place of the compile predicate
+    % % The compile predicate strips variable names when compiling
+    % open(Prolog_file, read, Stream),
+    % repeat, % Leaves continuous choice points for the fail. Cut is used to exit the loop
+    read_prolog_file(Prolog_file),
+    find_function_information(Function_name, Params, Body, Return_type),
     setup_for_function(Filename_without_extension, Function_name,Path_to_C_file),
-    process_globals,
+    process_global_variables,
     function_handler(Filename_without_extension, Function_name, Body, Params, Return_type). % From Statement_handler.pl
 
 % global_variables([
 %     declaration(int, [LC_y_0]),
 %     assignment(LC_y_0 , 5) ], void).
 
-process_globals :-
-    setval(global_vars,[]),
-    global_variables(List_of_statements, _),
-    statement_handler(List_of_statements,_), % From Statement_handler.pl
-    term_variables(List_of_statements, Variables),
-    getval(global_vars,Global_vars_list),
-    append(Global_vars_list,Variables,New_global_vars_list),
-    setval(global_vars,New_global_vars_list),
-    fail.
-process_globals.
 
 % IDEA: Name predicate: setup_test_driver
 % QUESTION: How would id's work across multiple functions?
@@ -158,10 +146,40 @@ setup_for_function(Filename, Function_name,Path_to_C_file) :-
     % when generating the '_main' cunit .c file
     setval(tests, []).
 
-%% Shortcut predicate to close streams, useful for debugging.
-%% This predicate is only used during development; It is not called in code
-clean :-
-    ptc_solver__clean_up,
-    close(testcase_read),
-    close(testcase_main),
-    close(testcase).
+read_prolog_file(Relative_path) :-
+    read_terms_from_file(Relative_path, Result),
+    asserta(Result).
+
+process_global_variables :-
+    parsed(Terms),
+    initialise_globals(Terms).
+
+initialise_globals([]).
+initialise_globals([H|T]) :-
+    (H = global_variables(Statements, _) ->
+        statement_handler(Statements,_) % From Statement_handler.pl
+    ;
+        true
+    ),
+    initialise_globals(T).
+
+find_function_information(Function_name, Params, Body, Return_type) :-
+    parsed(Terms),
+    find_function(Terms, Function_name, Params, Body, Return_type),
+    !.
+
+find_function([],_,_,_,_).
+find_function([Term|More_terms], Function_name, Params, Body, Return_type) :-
+    (Term = function_definition(Function_name, Params, Body, Return_type) ->
+        true
+    ;
+        find_function(More_terms, Function_name, Params, Body, Return_type)
+    ).
+
+read_terms_from_file(Filename, Result) :-
+    open(Filename, read, Stream),
+    read_terms_from_stream(Stream, Result),
+    close(Stream).
+
+read_terms_from_stream(Stream, Term) :-
+    read_term(Stream, Term, []).

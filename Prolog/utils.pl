@@ -53,7 +53,8 @@ utils__assignment(Assign_to,Value, Assigned_value) :-
 
 utils__find_variable(Variable,Result) :-
     %% Check if it is instantiated
-    (var(Variable), c_var__is_variable(Variable) ->
+    var(Variable),
+    (c_var__is_variable(Variable) ->
         (
             %% If it is instantiated, then it is a variable in local function-scope
             Result = Variable
@@ -65,7 +66,8 @@ utils__find_variable(Variable,Result) :-
             get_var_info(Variable, name, Ptc_name),
             var_names(Ptc_name, C_name),
             member(Element, Global_vars_list),
-            c_var__get_name(Element, Name), Name == C_name,
+            c_var__get_name(Element, Name),
+            Name == C_name,
             !,
             Result = Element
         )

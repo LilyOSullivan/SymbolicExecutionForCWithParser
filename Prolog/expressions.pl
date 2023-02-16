@@ -21,8 +21,8 @@ evaluate_expression(not(Expression)) :-
 %% Returns the 'out' ptc_variable of a c_var
 evaluate_expression(Expression, Ptc_variable) :-
     var(Expression),
-    utils__find_variable(Expression, Variable),
-    c_var__get_out_var(Variable, Ptc_variable).
+    % utils__find_variable(Expression, Variable),
+    c_var__get_out_var(Expression, Ptc_variable).
 
 evaluate_expression(Expression, Expression) :-
     number(Expression).
