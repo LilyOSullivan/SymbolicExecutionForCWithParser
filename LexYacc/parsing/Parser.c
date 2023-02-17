@@ -78,7 +78,11 @@ int main (int argc, char * argv[])
 
 	/////////////////////////////////////////////////////////////////
 	// print the discontiguous statements -- to PLFile
-	print_discontiguous(PLFile);
+	//print_discontiguous(PLFile);
+
+	print_start_of_parsed_predicate(PLFile);
+	
+	
 
 	/////////////////////////////////////////////////////////////////
 	// set up path (filepath) & name of the .NAMES file (NAMESFile - global)
@@ -93,10 +97,12 @@ int main (int argc, char * argv[])
 	// print the dummy declarations	 -- to PLFile
 	print_dummy_dec(PLFile);
 
+	print_end_of_parsed_predicate(PLFile);
 	//print_functionname_database(PLFile);
 
 	/////////////////////////////////////////////////////////////////
 	// remove the preprocessed C code (.i file) as it is no longer required
+	
 	remove(ifile);
 
 	/////////////////////////////////////////////////////////////////

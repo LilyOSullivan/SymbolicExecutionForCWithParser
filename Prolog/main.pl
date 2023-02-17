@@ -10,7 +10,7 @@
 %% Global values:
 %%  test_id (Number, value:1): This is an Id used to identify test cases generated
 %%  tests (List, value:[]): This list holds the names of the generated test cases
-%%      Eg: ["test_1","test_2","test_3"...]
+%%      Eg: ["test_1", "test_2", "test_3"...]
 
 %% Run regression tests
 regression_tests :-
@@ -156,7 +156,8 @@ read_prolog_file(Relative_path, Result) :-
 %%  Terms: The contents of the parser-result prolog file
 process_global_variables([]).
 process_global_variables([Term|More_terms]) :-
-    (Term = global_variables(Statements, _) ->
+    % Statements 999 is a dummy variable created by the parser
+    (Term = global_variables(Statements, _), Statements \== 999 ->
         statement_handler(Statements, _) % From Statement_handler.pl
     ;
         true
