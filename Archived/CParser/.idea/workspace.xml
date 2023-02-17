@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="4e7b553d-de4b-4882-8630-38fb4ed93afa" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/../.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/../.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/main.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/main.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Prolog/statement_handler.pl" beforeDir="false" afterPath="$PROJECT_DIR$/../Prolog/statement_handler.pl" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Prolog/utilities.pl" beforeDir="false" afterPath="$PROJECT_DIR$/../Prolog/utilities.pl" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Kotlin Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectId" id="29yjwIe0BMREu9eyKlIYIEm1j6y" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/lily/IdeaProjects/CParserListener/src/main/kotlin&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.toDoOptions&quot;
+  }
+}</component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/main/kotlin" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/main/kotlin" />
+      <recent name="$PROJECT_DIR$/.idea/libraries" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="MainKt" type="JetRunConfigurationType" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="MainKt" />
+      <module name="consoleApp" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Kotlin.MainKt" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="4e7b553d-de4b-4882-8630-38fb4ed93afa" name="Changes" comment="" />
+      <created>1654092459393</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1654092459393</updated>
+      <workItem from="1654092460699" duration="16310000" />
+      <workItem from="1654159247810" duration="3777000" />
+      <workItem from="1654183342762" duration="681000" />
+      <workItem from="1654506081418" duration="3415000" />
+      <workItem from="1654594603230" duration="1326000" />
+      <workItem from="1654764782239" duration="641000" />
+      <workItem from="1654780122038" duration="797000" />
+      <workItem from="1654786329889" duration="70000" />
+      <workItem from="1654786462020" duration="740000" />
+      <workItem from="1654787216755" duration="11000" />
+      <workItem from="1654877786674" duration="1045000" />
+      <workItem from="1655121839690" duration="4880000" />
+      <workItem from="1655131121567" duration="5360000" />
+      <workItem from="1655194624761" duration="6069000" />
+      <workItem from="1655475869160" duration="2610000" />
+      <workItem from="1655891311082" duration="1312000" />
+      <workItem from="1655892660312" duration="3872000" />
+      <workItem from="1659688921467" duration="4000" />
+      <workItem from="1659688949272" duration="4242000" />
+      <workItem from="1662980492598" duration="616000" />
+      <workItem from="1662981697717" duration="7151000" />
+      <workItem from="1663593172358" duration="260000" />
+      <workItem from="1663593458951" duration="1500000" />
+      <workItem from="1663595752428" duration="65000" />
+      <workItem from="1663596917561" duration="12602000" />
+      <workItem from="1664448398268" duration="679000" />
+      <workItem from="1664640488474" duration="2074000" />
+      <workItem from="1664992703126" duration="51000" />
+      <workItem from="1664992777716" duration="1929000" />
+      <workItem from="1664995431310" duration="576000" />
+      <workItem from="1664996069579" duration="623000" />
+      <workItem from="1665049781148" duration="1290000" />
+      <workItem from="1665066821677" duration="600000" />
+      <workItem from="1665068900638" duration="689000" />
+      <workItem from="1665392693883" duration="604000" />
+      <workItem from="1665662675577" duration="696000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/src/main/kotlin/ParserListener.kt</url>
+          <line>99</line>
+          <option name="timeStamp" value="9" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/src/main/kotlin/ParserListener.kt</url>
+          <line>81</line>
+          <option name="timeStamp" value="11" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/src/main/kotlin/ParserListener.kt</url>
+          <line>58</line>
+          <option name="timeStamp" value="13" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/src/main/kotlin/ParserListener.kt</url>
+          <line>75</line>
+          <option name="timeStamp" value="16" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/src/main/kotlin/PrologBuilder.kt</url>
+          <line>30</line>
+          <option name="timeStamp" value="17" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/src/main/kotlin/ParserListener.kt</url>
+          <line>37</line>
+          <option name="timeStamp" value="18" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/src/main/kotlin/ParserListener.kt</url>
+          <line>54</line>
+          <option name="timeStamp" value="24" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/src/main/kotlin/ParserListener.kt</url>
+          <line>50</line>
+          <option name="timeStamp" value="25" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/src/main/kotlin/ParserListener.kt</url>
+          <line>70</line>
+          <option name="timeStamp" value="26" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+    <pin-to-top-manager>
+      <pinned-members>
+        <PinnedItemInfo parentTag="ParserListener" memberName="prologBuilder" />
+        <PinnedItemInfo parentTag="CParser$LogicalAndExpressionContext" memberName="start" />
+        <PinnedItemInfo parentTag="CParser$AssignmentExpressionContext" memberName="children" />
+        <PinnedItemInfo parentTag="PrologBuilder" memberName="stringBuilder" />
+        <PinnedItemInfo parentTag="CParser$UnaryExpressionContext" memberName="children" />
+      </pinned-members>
+    </pin-to-top-manager>
+    <watches-manager>
+      <configuration name="JetRunConfigurationType">
+        <watch expression="this.prologBuilder.stringBuilder_field" language="kotlin" />
+      </configuration>
+    </watches-manager>
+  </component>
+</project>

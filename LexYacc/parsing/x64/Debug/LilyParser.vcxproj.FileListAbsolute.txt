@@ -1,2 +1,0 @@
-C:\Users\Chris2\GoogleDrive\Research\Std Lily\parsing\x64\Debug\LilyParser.exe
-C:\Users\Person\Desktop\parsing\x64\Debug\LilyParser.exe
