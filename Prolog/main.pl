@@ -45,8 +45,8 @@ regression_tests :-
     ),
 
     concat_string([Path, "/", Filename_without_extension, ".pl"], Prolog_file),
-    compile(Prolog_file),
-    function_definition(Function_name, _, _, _),
+    read_prolog_file(Prolog_file, Result),
+    find_function_information(Terms, Function_name, _, _, _),
 
     % Run symbolic execution
     main(Filename_without_extension, Function_name, Path),
@@ -105,7 +105,7 @@ main(Filename_without_extension, Function_name, Path_to_C_file) :-
 
     concat_string([Path_to_C_file, "/", Filename_without_extension, ".pl"], Prolog_file),
     read_prolog_file(Prolog_file, Terms),
-    find_function_information(Terms,Function_name, Params, Body, Return_type),
+    find_function_information(Terms, Function_name, Params, Body, Return_type),
     setup_for_function(Filename_without_extension, Function_name, Path_to_C_file),
     process_global_variables(Terms),
     function_handler(Filename_without_extension, Function_name, Body, Params, Return_type). % From Statement_handler.pl
@@ -171,10 +171,10 @@ process_global_variables([Term|More_terms]) :-
 %%  Params: The parameters of the function to be found
 %%  Body: The body of the function to be found
 %%  Return_type: The return type of the function to be found
-find_function_information([], _, _, _, _).
 find_function_information([Term|More_terms], Function_name, Params, Body, Return_type) :-
     (Term = function_definition(Function_name, Params, Body, Return_type) ->
         true
     ;
         find_function_information(More_terms, Function_name, Params, Body, Return_type)
     ).
+find_function_information([], _, _, _, _).
