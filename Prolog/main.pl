@@ -46,7 +46,7 @@ regression_tests :-
 
     concat_string([Path, "/", Filename_without_extension, ".pl"], Prolog_file),
     read_prolog_file(Prolog_file, Result),
-    find_function_information(Terms, Function_name, _, _, _),
+    find_function_name(Result, Function_name),
 
     % Run symbolic execution
     main(Filename_without_extension, Function_name, Path),
@@ -155,7 +155,7 @@ read_prolog_file(Relative_path, Result) :-
 %% Parameters:
 %%  Terms: The contents of the parser-result prolog file
 process_global_variables([]).
-process_global_variables([Term|More_terms]) :-
+process_global_variables([Term | More_terms]) :-
     % Statements 999 is a dummy variable created by the parser
     (Term = global_variables(Statements, _), Statements \== 999 ->
         statement_handler(Statements, _) % From Statement_handler.pl
@@ -171,10 +171,17 @@ process_global_variables([Term|More_terms]) :-
 %%  Params: The parameters of the function to be found
 %%  Body: The body of the function to be found
 %%  Return_type: The return type of the function to be found
-find_function_information([Term|More_terms], Function_name, Params, Body, Return_type) :-
-    (Term = function_definition(Function_name, Params, Body, Return_type) ->
-        true
-    ;
-        find_function_information(More_terms, Function_name, Params, Body, Return_type)
-    ).
+find_function_information([function_definition(Function_name, Params, Body, Return_type) | _], Function_name, Params, Body, Return_type) :-
+    !.
+find_function_information([_|More_terms], Function_name, Params, Body, Return_type) :-
+    find_function_information(More_terms, Function_name, Params, Body, Return_type).
 find_function_information([], _, _, _, _).
+
+%% Finds the name of a function from the parser-result prolog file
+%% Parameters:
+%%  Terms: The contents of the parser-result prolog file
+%%  Function_name: The name of the function to be found
+find_function_name([function_definition(Function_name, _, _, _) | _], Function_name).
+find_function_name([_ | More_terms], Function_name) :-
+    find_function_name(More_terms, Function_name).
+find_function_name([], _) :- false.
