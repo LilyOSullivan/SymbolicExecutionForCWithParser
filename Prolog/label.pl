@@ -8,32 +8,27 @@
 %% Eg: [declaration(integer,[x]), declaration(double,[a])]
 label_collectively([void]) :- !.
 label_collectively(Parameters) :-
-    label__group_by_ptc_type(Parameters, [], Grouped_parameters),
+    label__group_by_ptc_type(Parameters, Grouped_parameters),
     label(Grouped_parameters).
 
-% Below returns a list of the structure: [[Type,[Variables...]],[Type,[Variables...]]...]
-% Eg: [[integer,[x,y]],[double,[a,b]]]
-label__group_by_ptc_type([], Accumulator, Accumulator).
-label__group_by_ptc_type([declaration(_type, [Variable])|More_variables], Accumulator, Grouped_by_type_result) :-
-    c_var__is_variable(Variable),
-    !,
-    writeln("LABEL: VARIABLE"),
-
+%% Below returns a list of the structure: [[Type,[Variables...]],[Type,[Variables...]]...]
+%% Parameters:
+%%   - List of declaration predicates, as output by the parser
+%%   - Accumulator list of the structure: [[Type,[Variables...]],[Type,[Variables...]]...]
+%%   - Value assigned the result
+%% Eg: [declaration(integer,[x]), declaration(double,[a])] -> [[integer,[x]],[double,[a]]]
+label__group_by_ptc_type([], []).
+label__group_by_ptc_type([declaration(_Type, [Variable | _]) | Rest], Result) :-
+    label__group_by_ptc_type(Rest, GroupedRest),
     c_var__get_ptc_type(Variable, Type),
     c_var__get_in_var(Variable, In_var),
-    (member([Type,Vars], Accumulator) ->
-        (
-            append(Vars, [In_var], New_vars),
-            select([Type,Vars], Accumulator, New_accumulator),
-            !,
-            append(New_accumulator, [[Type, New_vars]], Accumulator2)
-        )
+    (
+        select([Type, ValueList], GroupedRest, NewGroupedRest),
+        append(ValueList, [In_var], NewValueList),
+        Result = [[Type, NewValueList] | NewGroupedRest]
     ;
-        (
-            append(Accumulator,[[Type, [In_var]]], Accumulator2)
-        )
-    ),
-    label__group_by_ptc_type(More_variables, Accumulator2, Grouped_by_type_result).
+        Result = [[Type, [In_var]] | GroupedRest]
+    ).
 
 label([void]).
 label([]).

@@ -2,7 +2,7 @@
 :- use_module(c_var).
 
 
-%% Generate test cases with failing backtrack
+%% Generate multiple test cases through failing backtrack
 cunit__write_test_case_all(Filename, Function_name, Params, Return_value, Return_type) :-
     cunit__write_test_case(Filename, Function_name, Params, Return_value, Return_type),
     fail.
@@ -152,11 +152,13 @@ create_declaration_section([], Declaration_accumulator, Declaration_accumulator)
 create_declaration_section([declaration(_, [Variable|_])|More_variables], Declaration_accumulator, All_declarations) :-
     c_var__create_declaration(Variable, Declaration),
     sprintf(Result, "%s%s", [Declaration_accumulator, Declaration]),
-    create_declaration_section(More_variables, Result, All_declarations).
-create_declaration_section([declaration(_, [Variable|_])|More_variables], Declaration_accumulator, All_declarations) :-
-    c_array__create_declaration(Variable, Declaration),
-    sprintf(Result, "%s%s", [Declaration_accumulator, Declaration]),
-    create_declaration_section(More_variables, Result, All_declarations).
+    create_declaration_section(More_variables, Result, All_declarations),
+    !.
+% create_declaration_section([declaration(_, [Variable|_])|More_variables], Declaration_accumulator, All_declarations) :-
+%     c_array__create_declaration(Variable, Declaration),
+%     sprintf(Result, "%s%s", [Declaration_accumulator, Declaration]),
+%     create_declaration_section(More_variables, Result, All_declarations),
+%     !.
 
 create_return(Return_value, int, Return_value_as_string) :-
     term_string(Return_value, Return_value_as_string).

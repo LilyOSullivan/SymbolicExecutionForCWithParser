@@ -89,7 +89,7 @@ main(Filename_without_extension, Function_name) :-
 %%                 Eg: "sign"
 %% Function_name: The entry function to be tested. This should be an atom.
 %%                 Eg: get_sign
-%% Path_to_C_file: The path to the C file to be symbolically executed.
+%% Path_to_C_file: The folder-path to the C file to be symbolically executed.
 %%                          This should be a string.
 %%                 Eg: "C:\\Users\\user\\Desktop"
 main(Filename_without_extension, Function_name, Path_to_C_file) :-
@@ -122,7 +122,7 @@ setup_for_function(Filename, Function_name,Path_to_C_file) :-
 
     % Format: days/months/year__24Hours_Minutes_Seconds
     % Eg: 03_02_23__14_34_18
-    local_time_string(Unix_time,"%d_%m_%y__%H_%M_%S", Current_date_as_string),
+    local_time_string(Unix_time,"%H_%M_%S__%d_%m_%y", Current_date_as_string),
     concat_string([Function_name, "_tests_", Current_date_as_string], Folder_name),
     concat_string([Path_to_C_file, "/", Folder_name, "/"], Path_to_test_directory),
 

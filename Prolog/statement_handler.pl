@@ -5,14 +5,13 @@
 %% The entrypoint to function analysis
 function_handler(Filename, Function_Name, Body, Params, Return_type) :-
     parameter_handler(Params),
-    !,
     statement_handler(Body, Return_value),
     utils__detect_not_all_code_paths_return(Return_value, Return_type),
     label_collectively(Params),
     utils__normalise_return(Return_value,Return_type,Normalised_return_value),
     cunit__write_test_case_all(Filename, Function_Name, Params, Normalised_return_value, Return_type).
-function_handler(_, _, _, _, _).
 
+function_handler(_, _, _, _, _).
 
 %% Declare all parameters as variables
 parameter_handler([]).
