@@ -11,23 +11,22 @@ label_collectively(Parameters) :-
     label__group_by_ptc_type(Parameters, Grouped_parameters),
     label(Grouped_parameters).
 
-%% Below returns a list of the structure: [[Type,[Variables...]],[Type,[Variables...]]...]
+%% Groups declarations into the following structure: [[Type,[Variable,...]],[Type,[Variable,...]]...]
 %% Parameters:
 %%   - List of declaration predicates, as output by the parser
-%%   - Accumulator list of the structure: [[Type,[Variables...]],[Type,[Variables...]]...]
 %%   - Value assigned the result
 %% Eg: [declaration(integer,[x]), declaration(double,[a])] -> [[integer,[x]],[double,[a]]]
 label__group_by_ptc_type([], []).
-label__group_by_ptc_type([declaration(_Type, [Variable | _]) | Rest], Result) :-
-    label__group_by_ptc_type(Rest, GroupedRest),
+label__group_by_ptc_type([declaration(_Type, [Variable | _]) | More_declarations], Grouped_variables) :-
+    label__group_by_ptc_type(More_declarations, Grouped_declarations),
     c_var__get_ptc_type(Variable, Type),
     c_var__get_in_var(Variable, In_var),
     (
-        select([Type, ValueList], GroupedRest, NewGroupedRest),
-        append(ValueList, [In_var], NewValueList),
-        Result = [[Type, NewValueList] | NewGroupedRest]
+        select([Type, List_of_variables], Grouped_declarations, New_Grouped_declarations),
+        append(List_of_variables, [In_var], New_list_of_variables),
+        Grouped_variables = [[Type, New_list_of_variables] | New_Grouped_declarations]
     ;
-        Result = [[Type, [In_var]] | GroupedRest]
+        Grouped_variables = [[Type, [In_var]] | GroupedRest]
     ).
 
 label([void]).
