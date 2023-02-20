@@ -68,19 +68,6 @@ label([[charpointer,Values_to_label]|More_to_label]) :-
 
     label(More_to_label).
 
-
-% IDEA: This predicate is a likely candidate to be removed
-%% Label an expression passed in based on the type desired
-%% This label variant is called upon a return statement
-label(Expression, Type, Concrete_variable) :-
-    (
-        Type == int ->
-            utils__evaluate_to_int(Expression, Concrete_variable)
-        ;
-        Type == char ->
-            utils__evaluate_to_int(Expression, Concrete_variable)
-    ).
-
 % WIP below
 %% Escape backslash and single quote characters
 %% First parameter is a list of ascii characters in integer form
