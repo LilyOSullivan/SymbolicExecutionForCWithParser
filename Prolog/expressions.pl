@@ -21,8 +21,8 @@ evaluate_expression(not(Expression)) :-
 %% Returns the 'out' ptc_variable of a c_var
 evaluate_expression(Expression, Ptc_variable) :-
     var(Expression),
-    utils__find_variable(Expression, Variable),
-    c_var__get_out_var(Variable, Ptc_variable).
+    % utils__find_variable(Expression, Variable),
+    c_var__get_out_var(Expression, Ptc_variable).
 
 evaluate_expression(Expression, Expression) :-
     number(Expression).
@@ -124,7 +124,7 @@ evaluate_expression(post_decrement(Assign_to, Decrement_operation), Out) :-
 % %% Increment with -- on the left side (Pre-decrement)
 % %% Eg: --x
 evaluate_expression(pre_decrement(Assign_to, Decrement_operation), Out) :-
-    evaluate_expression(pre_increment(Assign_to, Decrement_operation),Out).
+    evaluate_expression(pre_increment(Assign_to, Decrement_operation), Out).
 
 %% Negation operator (Unary minus)
 %% A value's sign being turned flipped with the minus operator
@@ -136,7 +136,7 @@ evaluate_expression(-Expression, -Expression_result) :-
 %% Eg: x = 2
 evaluate_expression(assignment(Assign_to,Expression), Expression_result) :-
     evaluate_expression(Expression, Right_result),
-    utils__assignment(Assign_to,Right_result,Expression_result).
+    utils__assignment(Assign_to,Right_result, Expression_result).
 
 %% Accessing an array element (Index)
 evaluate_expression(Array[Index], element(Var, [Result])) :-

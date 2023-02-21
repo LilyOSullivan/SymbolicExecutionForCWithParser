@@ -1255,7 +1255,7 @@ external_declaration
 		if($1[lenS1] == ',')
 			$1[lenS1] = ' ';	   
 		strcat($$, $1);
-		strcat($$, "], void).\n");	   
+		strcat($$, "], void),\n");	   
 		printfunction($$);	// OUTPUT_FUNCTIONS.H
 	}
 	;

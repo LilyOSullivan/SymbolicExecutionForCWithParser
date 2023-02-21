@@ -1271,7 +1271,7 @@ and this will need to be removed.
 	////////////////////////////////////////////////////////////////
 	// append return type of the function	
 	strcat(returnstr, S1); 	
-	strcat(returnstr, ").");
+	strcat(returnstr, "),");
 
 	////////////////////////////////////////////////////////////////
 	// successfully leaving the function	

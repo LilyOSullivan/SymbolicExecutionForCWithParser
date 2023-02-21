@@ -1,39 +1,51 @@
 :- ['label'].
-
 :- ['test_case_generation'].
 :- ['declaration'].
 
 %% The entrypoint to function analysis
-function_handler(Filename, Function_Name, Body, Params, Return_type) :-
-    % process_globals,
+function_handler(Filename, Function_name, Body, Params, Return_type) :-
     parameter_handler(Params),
-    statement_handler(Body, return(Return_value, Return_type)),
-    utils__detect_not_all_code_paths_return(Return_value,Return_type),
+    statement_handler(Body, Return_value),
+    utils__detect_not_all_code_paths_return(Return_value, Return_type),
     label_collectively(Params),
-    cunit__write_test_case_all(Filename, Function_Name, Params, Return_value, Return_type).
+    utils__normalise_return(Return_value, Return_type, Normalised_return_value),
+    cunit__write_test_case_all(Filename, Function_name, Params, Normalised_return_value, Return_type).
 function_handler(_, _, _, _, _).
 
+%% This variant of the function handler is used for function calls in code.
+%% It is used to evaluate the return value of a function call
+%% Parameters:
+%%  Function_name: The name of the function to call
+%%  Arguments: The arguments to pass to the function
+%%  Return_value: The returned value from the function
+function_handler(Function_name, Arguments, Return_value) :-
+    getval(parsed_terms, Terms), %QUESTION: Name-links are lost here, this might be okay.
+    find_function_information(Terms, Function_name, Params, Body, Return_type),
+    % Assign arguments to parameters
+    utils__assign_arguments_to_parameters(Arguments,Params),
+    % Get the function definition from the database
+    % Call statement handler
+    statement_handler(Body, Return_value_to_normalise).
+    % normalise return value
+    utils__normalise_return(Return_value_to_normalise, Return_type, Return_value).
 
 %% Declare all parameters as variables
 parameter_handler([]).
 parameter_handler([void]) :- !.
-parameter_handler([Declaration|More_declarations]) :-
+parameter_handler([Declaration | More_declarations]) :-
     Declaration, % This calls declaration predicates in declaration.pl
     parameter_handler(More_declarations).
 
-% QUESTION: What if a function returns nothing (void return)?
 %% The primary loop dictating the execution of statements
-%% It passes a final parameter of return_flags, among in two parts
-%% The information is in the form:  return(Return_value, Return_type)
-%%  Return_value is the value returned at a return function, used in test generation
-%%               and to stop iterating in statement handler
-%%  Return_type is the function return type, used to ensure the correct type is returned
+%% It passes a final parameter of return_value
+%%  Return_value is the value returned at a 'return' keyword, it is
+%%               used to stop iterating in statement handler
 statement_handler([], _).
-statement_handler([Statement|More_statements], return(Return_value,Return_type)) :-
-    handle(Statement, return(Return_value,Return_type)),
+statement_handler([Statement | More_statements], Return_value) :-
+    handle(Statement, Return_value),
     (
         var(Return_value) ->
-            statement_handler(More_statements, return(Return_value,Return_type))
+            statement_handler(More_statements, Return_value)
         ;
             true
     ).
@@ -44,8 +56,8 @@ statement_handler([Statement|More_statements], return(Return_value,Return_type))
 %%  {
 %%      int x = 1;
 %%  }
-handle(List_of_statements, Return_flags) :-
-    statement_handler(List_of_statements, Return_flags).
+handle(List_of_statements, Return_value) :-
+    statement_handler(List_of_statements, Return_value).
 
 %% This occurs if a variable is declared in the function body
 %% Eg:
@@ -54,26 +66,33 @@ handle(declaration(Type, Vars), _) :-
     declaration(Type, Vars). % This calls declaration predicates in declaration.pl
 
 %% If statement handler
-handle(if_statement(_Line_Number, expression(Expression), If_body, Else_body), Return_flags) :-
+handle(if_statement(_Line_Number, expression(Expression), If_body, Else_body), Return_value) :-
     (
         evaluate_expression(Expression),
-        statement_handler(If_body, Return_flags)
+        statement_handler(If_body, Return_value)
     )
         ; % Deliberate Choice Point
     (
         evaluate_expression(not(Expression)),
-        statement_handler(Else_body, Return_flags)
+        statement_handler(Else_body, Return_value)
     ).
 
-%% Return statement that returns a value
-handle(return(Expression), return(Return_value, Return_type)) :-
-    evaluate_expression(Expression, Expression_result),
+%% Return statement with value to return
+handle(return(Expression), Return_value) :-
+    evaluate_expression(Expression, Return_value),
     !,
-    label(Expression_result, Return_type, Return_value),
     writeln(Return_value).
 
+handle(init_record(Variable,Statement), _) :-
+    handle(Statement, Return_value_of_function_call),
+    utils__assignment(Variable, Return_value_of_function_call, _),
+    writeln(Variable).
+
+handle(function_call(Function_name, Arguments), Return_value) :-
+    function_handler(Function_name, Arguments, Return_value).
+
 %% Empty return statement
-handle(return, return(void, _)) :-
+handle(return, void) :-
     writeln("Void Return").
 
 %% Handles assignment to a variable
@@ -113,7 +132,7 @@ handle(div_assignment(Variable, Expression), _) :-
 %  Breakdown: Variable %= Expression
 %  Eg: x %= 2;
 handle(mod_assignment(Variable, Expression), _) :-
-    handle(assignment(Variable, mod(Variable,Expression)), _).
+    handle(assignment(Variable, mod(Variable, Expression)), _).
 
 %% Handles the ++ post-increment-operator as a single line statement
 %% Eg: x++;

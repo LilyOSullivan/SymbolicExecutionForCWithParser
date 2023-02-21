@@ -1,0 +1,1 @@
+function(int,[int(X)],[if_stmt(X=0,[return(0)]),if_stmt(X<0,[return(-1)],[return(1)]),])

@@ -5,31 +5,30 @@
 
 %% Groups variables by type and labels them collectively instead of individually
 %% The parameter is a list of declaration predicates, as output by the parser
-%% Eg: [declaration(integer,[x]),declaration(double,[a])]
+%% Eg: [declaration(integer,[x]), declaration(double,[a])]
 label_collectively([void]) :- !.
 label_collectively(Parameters) :-
-    label__group_by_ptc_type(Parameters,[],Grouped_parameters),
+    label__group_by_ptc_type(Parameters, Grouped_parameters),
     label(Grouped_parameters).
 
-% Below returns a list of the structure: [[Type,[Variables...]],[Type,[Variables...]]...]
-% Eg: [[integer,[x,y]],[double,[a,b]]]
-label__group_by_ptc_type([],Accumulator,Accumulator).
-label__group_by_ptc_type([declaration(_type,[Variable])|More_variables],Accumulator,Grouped_by_type_result) :-
-    c_var__is_variable(Variable),
-    !,
-    writeln("LABEL: VARIABLE"),
-
-    c_var__get_ptc_type(Variable,Type),
-    c_var__get_in_var(Variable,In_var),
-    (member([Type,Vars],Accumulator) ->
-        append(Vars,[In_var],New_vars),
-        select([Type,Vars],Accumulator,New_accumulator),
+%% Groups declarations into the following structure: [[Type,[Variable,...]],[Type,[Variable,...]]...]
+%% Parameters:
+%%   - List of declaration predicates, as output by the parser
+%%   - Value assigned the result
+%% Eg: [declaration(integer,[x]), declaration(double,[a])] -> [[integer,[x]],[double,[a]]]
+label__group_by_ptc_type([], []).
+label__group_by_ptc_type([declaration(_Type, [Variable | _]) | More_declarations], Grouped_variables) :-
+    label__group_by_ptc_type(More_declarations, Grouped_declarations),
+    c_var__get_ptc_type(Variable, Type),
+    c_var__get_in_var(Variable, In_var),
+    (
+        select([Type, List_of_variables], Grouped_declarations, New_Grouped_declarations),
         !,
-        append(New_accumulator,[[Type,New_vars]],Accumulator2)
+        append(List_of_variables, [In_var], New_list_of_variables),
+        Grouped_variables = [[Type, New_list_of_variables] | New_Grouped_declarations]
     ;
-        append(Accumulator,[[Type,[In_var]]],Accumulator2)
-    ),
-    label__group_by_ptc_type(More_variables,Accumulator2,Grouped_by_type_result).
+        Grouped_variables = [[Type, [In_var]] | Grouped_declarations]
+    ).
 
 label([void]).
 label([]).
@@ -39,7 +38,7 @@ label([]).
 %% Eg: [[integer,[x,y]],[double,[a,b]]]
 %% This structure is created by the predicate label__group_by_ptc_type
 label([[integer,Integers_to_label]|More_to_label]) :-
-    ptc_solver__label_integers(Integers_to_label),
+    ptc_solver__label_integers(Integers_to_label,'indomain_random'),
     !,
     label(More_to_label).
 
@@ -64,32 +63,19 @@ label([[charpointer,Values_to_label]|More_to_label]) :-
 
     label(More_to_label).
 
-
-% IDEA: This predicate is a likely candidate to be removed
-%% Label an expression passed in based on the type desired
-%% This label variant is called upon a return statement
-label(Expression, Type, Concrete_variable) :-
-    (
-        Type == int ->
-            utils__evaluate_to_int(Expression, Concrete_variable)
-        ;
-        Type == char ->
-            utils__evaluate_to_int(Expression, Concrete_variable)
-    ).
-
 % WIP below
 %% Escape backslash and single quote characters
 %% First parameter is a list of ascii characters in integer form
 %% Second parameter is a list of ascii characters in integer form with escaped characters
 %% Eg: [104 105 39] -> [104 105 [92 39]]
-label__escape_problematic_characters(Ascii,Escaped_ascii) :-
+label__escape_problematic_characters(Ascii, Escaped_ascii) :-
     ( foreach(Ascii_char, Ascii), foreach(Escaped_ascii_char, Escaped_ascii) do
         (
             Ascii_char == 92 ->
-                Escaped_ascii_char = [92,92]
+                Escaped_ascii_char = [92, 92]
             ;
             Ascii_char == 39 ->
-                Escaped_ascii_char = [92,39]
+                Escaped_ascii_char = [92, 39]
             ;
                 Escaped_ascii_char = Ascii_char
         )

@@ -90,6 +90,8 @@ int print_discontiguous(char * infile);			// prints the discontigous/1 terms to 
 int parse_file(char *infile);					// parses the .I file (Preprocessed .C file)
 void yyerror (const char *s);					// in built error reporting for yyparse()
 int print_dummy_dec(char * infile);				// prints the dummy declarations to PL file
+int print_start_of_parsed_predicate(char* infile); // prints "parsed([
+int print_end_of_parsed_predicate(char* infile); // prints "])."
 
 ////////////////////////////////////////////////////////////////
 // *** FUNCTION DEFINITIONS
@@ -106,6 +108,28 @@ int parser_error(char errorcode[])
 	getch();
 	exit(1);	// abort execution
    	return 1;	// denotes erronous termination
+}
+
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+
+int print_start_of_parsed_predicate(char* infile) {
+	FILE* fp;
+	if ((fp = fopen(infile, "w")) == NULL)
+		return parser_error(ERROR2);
+
+	fputs("parsed([\n", fp);
+	fclose(fp);
+	return 0;
+}
+
+int print_end_of_parsed_predicate(char* infile) {
+	FILE* fp;
+	if ((fp = fopen(infile, "a")) == NULL)
+		return parser_error(ERROR2);
+	fputs("\n]).", fp);
+	fclose(fp);
+	return 0;
 }
 
 ////////////////////////////////////////////////////////////////
@@ -228,7 +252,7 @@ int print_dummy_dec(char *infile)
 
 	////////////////////////////////////////////////////////////////
 	// print out the dummy declaration for global declarations
-	fprintf(fp, "\nglobal_variables(999, 999).\n");
+	fprintf(fp, "\nglobal_variables(999, 999)\n");
 	////////////////////////////////////////////////////////////////
 	// close the file
 	fclose(fp);

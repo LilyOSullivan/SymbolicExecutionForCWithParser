@@ -85,3 +85,5 @@ Prolog/library.so
 Prolog/cunit/
 
 Prolog/gtest/
+
+LexYacc/parsing/x64/
