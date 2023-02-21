@@ -105,17 +105,15 @@ main(Filename_without_extension, Function_name, Path_to_C_file) :-
 
     concat_string([Path_to_C_file, "/", Filename_without_extension, ".pl"], Prolog_file),
     read_prolog_file(Prolog_file, Terms),
+    setval(parser_terms, Terms),
     find_function_information(Terms, Function_name, Params, Body, Return_type),
-    setup_for_function(Filename_without_extension, Function_name, Path_to_C_file),
+    setup_test_driver(Filename_without_extension, Function_name, Path_to_C_file),
     process_global_variables(Terms),
     function_handler(Filename_without_extension, Function_name, Body, Params, Return_type). % From Statement_handler.pl
 
-
-% IDEA: Name predicate: setup_test_driver
-% QUESTION: How would id's work across multiple functions?
 %           Possibly a merge-term of the function name per setval?
 %% Setup used for each function by the test-driver
-setup_for_function(Filename, Function_name,Path_to_C_file) :-
+setup_test_driver(Filename, Function_name,Path_to_C_file) :-
     concat_string([Path_to_C_file, "/", Filename, ".names"], Names_filename),
     compile(Names_filename),
     get_flag(unix_time, Unix_time),
@@ -173,7 +171,7 @@ process_global_variables([Term | More_terms]) :-
 %%  Return_type: The return type of the function to be found
 find_function_information([function_definition(Function_name, Params, Body, Return_type) | _], Function_name, Params, Body, Return_type) :-
     !.
-find_function_information([_|More_terms], Function_name, Params, Body, Return_type) :-
+find_function_information([_ | More_terms], Function_name, Params, Body, Return_type) :-
     find_function_information(More_terms, Function_name, Params, Body, Return_type).
 find_function_information([], _, _, _, _).
 

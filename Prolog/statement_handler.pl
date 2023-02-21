@@ -3,20 +3,37 @@
 :- ['declaration'].
 
 %% The entrypoint to function analysis
-function_handler(Filename, Function_Name, Body, Params, Return_type) :-
+function_handler(Filename, Function_name, Body, Params, Return_type) :-
     parameter_handler(Params),
     statement_handler(Body, Return_value),
     utils__detect_not_all_code_paths_return(Return_value, Return_type),
     label_collectively(Params),
-    utils__normalise_return(Return_value,Return_type,Normalised_return_value),
-    cunit__write_test_case_all(Filename, Function_Name, Params, Normalised_return_value, Return_type).
-
+    utils__normalise_return(Return_value, Return_type, Normalised_return_value),
+    cunit__write_test_case_all(Filename, Function_name, Params, Normalised_return_value, Return_type).
 function_handler(_, _, _, _, _).
+
+%% This variant of the function handler is used for function calls in code.
+%% It is used to evaluate the return value of a function call
+%% Parameters:
+%%  Function_name: The name of the function to call
+%%  Arguments: The arguments to pass to the function
+%%  Return_value: The returned value from the function
+function_handler(Function_name, Arguments, Return_value) :-
+    find_function_information(Terms, Function_name, Params, Body, Return_type),
+    % Assign arguments to parameters
+    utils__assign_arguments_to_parameters(Arguments,Params),
+
+    % Get the function definition from the database
+    getval(parser_terms, Terms),
+    % Call statement handler
+    statement_handler(Body, Return_value_to_normalise),
+    % normalise return
+    utils__normalise_return(Return_value_to_normalise, Return_type, Return_value).
 
 %% Declare all parameters as variables
 parameter_handler([]).
 parameter_handler([void]) :- !.
-parameter_handler([Declaration|More_declarations]) :-
+parameter_handler([Declaration | More_declarations]) :-
     Declaration, % This calls declaration predicates in declaration.pl
     parameter_handler(More_declarations).
 
@@ -25,7 +42,7 @@ parameter_handler([Declaration|More_declarations]) :-
 %%  Return_value is the value returned at a 'return' keyword, it is
 %%               used to stop iterating in statement handler
 statement_handler([], _).
-statement_handler([Statement|More_statements], Return_value) :-
+statement_handler([Statement | More_statements], Return_value) :-
     handle(Statement, Return_value),
     (
         var(Return_value) ->
@@ -66,6 +83,14 @@ handle(return(Expression), Return_value) :-
     evaluate_expression(Expression, Return_value),
     !,
     writeln(Return_value).
+
+handle(init_record(Variable,Statement), _) :-
+    handle(Statement, Return_value_of_function_call),
+    utils__assignment(Variable, Return_value_of_function_call, _),
+    writeln(Variable).
+
+handle(function_call(Function_name, Arguments), Return_value) :-
+    function_handler(Function_name, Arguments, Return_value).
 
 %% Empty return statement
 handle(return, void) :-

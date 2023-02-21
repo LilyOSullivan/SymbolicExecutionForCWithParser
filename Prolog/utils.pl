@@ -5,12 +5,6 @@ utils__get_all_array_inputs([], []).
 utils__get_all_array_inputs([(_, Value)|Rest], [Value|Rest2]) :-
 	utils__get_all_array_inputs(Rest, Rest2).
 
-utils__evaluate_to_int(Expression, Integer_result) :-
-    ptc_solver__variable([Integer_result], integer),
-    ptc_solver__sdl(Integer_result = Expression),
-    ptc_solver__label_integers([Integer_result]),
-    !.
-
 utils__detect_not_all_code_paths_return(Return_value, Return_type) :-
     (Return_type \== void, free(Return_value) ->
         (
@@ -24,6 +18,9 @@ utils__detect_not_all_code_paths_return(Return_value, Return_type) :-
     ).
 
 %% Removes the last character if it is a comma
+%% Parameters:
+%%  String_with_comma: The string to remove the comma from
+%%  String_without_comma: The string without the comma
 utils__strip_right_comma(String_with_comma, String_without_comma) :-
     (
         sub_string(String_with_comma, _, 1, 0, ",") ->
@@ -45,11 +42,22 @@ utils__join([String|More_strings], Result) :-
 %%  Value: The value to assign
 %%  Assigned_value: The value assigned that has been assigned
 %% Eg: utils__assignment(Assign_to{"x"}, 5, Result) -> Result = 5
-utils__assignment(Assign_to,Value, Assigned_value) :-
+utils__assignment(Assign_to, Value, Assigned_value) :-
     c_var__get_ptc_type(Assign_to, Ptc_type),
     ptc_solver__variable([Assigned_value], Ptc_type),
     ptc_solver__sdl(Assigned_value = Value),
     c_var__set_out_var(Assign_to, Assigned_value).
+
+%% Assigns arguments to parameters in a function call
+%% Parameters:
+%%  Arguments: The arguments to assign
+%%  Parameters: The parameters to be assigned to
+utils__assign_arguments_to_parameters([], []).
+utils__assign_arguments_to_parameters([Argument | More_arguments], [declaration(Type,Parameters) | More_parameters]) :-
+    declaration(Type, Parameters), % Calls declaration.pl
+    Parameters = [Parameter | _],
+    utils__assignment(Parameter, Argument, _),
+    utils__assign_arguments_to_parameters(More_arguments, More_parameters).
 
 %% Normalises the return value of a function.
 %% Params

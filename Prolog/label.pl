@@ -23,10 +23,11 @@ label__group_by_ptc_type([declaration(_Type, [Variable | _]) | More_declarations
     c_var__get_in_var(Variable, In_var),
     (
         select([Type, List_of_variables], Grouped_declarations, New_Grouped_declarations),
+        !,
         append(List_of_variables, [In_var], New_list_of_variables),
         Grouped_variables = [[Type, New_list_of_variables] | New_Grouped_declarations]
     ;
-        Grouped_variables = [[Type, [In_var]] | GroupedRest]
+        Grouped_variables = [[Type, [In_var]] | Grouped_declarations]
     ).
 
 label([void]).
