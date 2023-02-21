@@ -93,7 +93,9 @@ c_var__set_out_var(_Var{C_var}, Value) :-
 %% Fails otherwise
 c_var__is_variable(_{C_var}) :-
     -?->
-        C_var = cvar(_, _, _, _, _).
+        C_var = cvar(_, _, _, _, Name),
+        nonvar(Name).
+
 %% Creates a declaration in C for the c_var
 c_var__create_declaration(Variable, Declaration) :-
     c_var__is_variable(Variable),
