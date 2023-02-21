@@ -25,9 +25,9 @@ function_handler(Function_name, Arguments, Return_value) :-
     utils__assign_arguments_to_parameters(Arguments,Params),
     % Get the function definition from the database
     % Call statement handler
-    statement_handler(Body, Return_value_to_normalise).
+    statement_handler(Body, Return_value).
     % normalise return value
-    utils__normalise_return(Return_value_to_normalise, Return_type, Return_value).
+    % utils__normalise_return(Return_value_to_normalise, Return_type, Return_value).
 
 %% Declare all parameters as variables
 parameter_handler([]).

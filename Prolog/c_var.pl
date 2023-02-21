@@ -10,7 +10,6 @@
 :- export c_var__is_variable/1.
 :- export c_var__create_declaration/2.
 
-
 %% The module for the c_var attributed variable
 %% It maintains meta-data about a singular non-collection variable
 %% declared in the C source
@@ -95,7 +94,6 @@ c_var__set_out_var(_Var{C_var}, Value) :-
 c_var__is_variable(_{C_var}) :-
     -?->
         C_var = cvar(_, _, _, _, _).
-
 %% Creates a declaration in C for the c_var
 c_var__create_declaration(Variable, Declaration) :-
     c_var__is_variable(Variable),
