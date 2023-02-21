@@ -105,7 +105,7 @@ main(Filename_without_extension, Function_name, Path_to_C_file) :-
 
     concat_string([Path_to_C_file, "/", Filename_without_extension, ".pl"], Prolog_file),
     read_prolog_file(Prolog_file, Terms),
-    setval(parser_terms, Terms),
+    setval(parsed_terms, Terms),
     find_function_information(Terms, Function_name, Params, Body, Return_type),
     setup_test_driver(Filename_without_extension, Function_name, Path_to_C_file),
     process_global_variables(Terms),

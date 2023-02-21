@@ -1,2 +1,5 @@
-var_names('LC_y_0', "y").
+var_names('LC_a', "a").
 var_names('LC_y', "y").
+var_names('LC_x', "x").
+var_names('LC_z', "z").
+var_names('LC_five_37', "five").

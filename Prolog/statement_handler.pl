@@ -19,15 +19,14 @@ function_handler(_, _, _, _, _).
 %%  Arguments: The arguments to pass to the function
 %%  Return_value: The returned value from the function
 function_handler(Function_name, Arguments, Return_value) :-
+    getval(parsed_terms, Terms), %QUESTION: Name-links are lost here, this might be okay.
     find_function_information(Terms, Function_name, Params, Body, Return_type),
     % Assign arguments to parameters
     utils__assign_arguments_to_parameters(Arguments,Params),
-
     % Get the function definition from the database
-    getval(parser_terms, Terms),
     % Call statement handler
-    statement_handler(Body, Return_value_to_normalise),
-    % normalise return
+    statement_handler(Body, Return_value_to_normalise).
+    % normalise return value
     utils__normalise_return(Return_value_to_normalise, Return_type, Return_value).
 
 %% Declare all parameters as variables

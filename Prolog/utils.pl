@@ -45,7 +45,16 @@ utils__join([String|More_strings], Result) :-
 utils__assignment(Assign_to, Value, Assigned_value) :-
     c_var__get_ptc_type(Assign_to, Ptc_type),
     ptc_solver__variable([Assigned_value], Ptc_type),
-    ptc_solver__sdl(Assigned_value = Value),
+    (c_var__is_variable(Value) ->
+        (
+            c_var__get_out_var(Value,Value_to_assign)
+        )
+    ;
+        (
+            Value_to_assign = Value
+        )
+    ),
+    ptc_solver__sdl(Assigned_value = Value_to_assign),
     c_var__set_out_var(Assign_to, Assigned_value).
 
 %% Assigns arguments to parameters in a function call

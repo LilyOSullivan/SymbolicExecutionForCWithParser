@@ -38,7 +38,7 @@ label([]).
 %% Eg: [[integer,[x,y]],[double,[a,b]]]
 %% This structure is created by the predicate label__group_by_ptc_type
 label([[integer,Integers_to_label]|More_to_label]) :-
-    ptc_solver__label_integers(Integers_to_label),
+    ptc_solver__label_integers(Integers_to_label,'indomain_random'),
     !,
     label(More_to_label).
 
