@@ -9,15 +9,13 @@
 
 %% Evaluate an expression. Failing if it is invalid, passing if it is valid.
 evaluate_expression(Expression) :-
-    evaluate_expression(Expression, Expression_result),
-    ptc_solver__sdl(Expression_result),
-    !.
+    once evaluate_expression(Expression, Expression_result),
+    ptc_solver__sdl(Expression_result).
 
 %% Evaluate a not expression (!). Failing if it is invalid, passing if it is valid.
 evaluate_expression(not(Expression)) :-
-    evaluate_expression(Expression, Expression_result),
-    ptc_solver__sdl(not Expression_result),
-    !.
+    once evaluate_expression(Expression, Expression_result),
+    ptc_solver__sdl(not Expression_result).
 
 %% Returns the 'out' ptc_variable of a c_var
 evaluate_expression(Expression, Ptc_variable) :-
@@ -135,12 +133,13 @@ evaluate_expression(-Expression, -Expression_result) :-
 
 %% Assignment operator (=)
 %% Eg: x = 2
-evaluate_expression(assignment(Assign_to,Expression), Expression_result) :-
+evaluate_expression(assignment(Assign_to, Expression), Expression_result) :-
     evaluate_expression(Expression, Right_result),
     utils__assignment(Assign_to,Right_result, Expression_result).
 
 evaluate_expression(function_call(Function_name, Arguments), Expression_result) :-
-    function_handler(Function_name, Arguments, Expression_result). % Statement_handler.pl
+    maplist(evaluate_expression, Arguments, Arguments_result),
+    function_handler(Function_name, Arguments_result, Expression_result). % Statement_handler.pl
 
 %% Accessing an array element (Indexing)
 %% Eg: Arr[2]

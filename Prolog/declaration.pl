@@ -32,7 +32,7 @@ declaration(intpointer, [C_variable | Rest]) :-
     var_names(Variable_copy, Variable_name),
     sub_string(Variable_name, 1, _, 0, Name_stripped), % Strip "*" from name
     Size = 5,
-    c_array__create(int,intpointer, In, Name_stripped, Size, C_variable),
+    c_array__create(int, intpointer, In, Name_stripped, Size, C_variable),
     declaration(intpointer, Rest),
     !.
 
@@ -45,6 +45,6 @@ declaration(charpointer, [C_variable | Rest]) :-
     var_names(Variable_copy, Variable_name),
     sub_string(Variable_name, 1, _, 0, Name_stripped), % Strip "*" from name
     Size = 5,
-    c_array__create(char,charpointer, In, Name_stripped, Size, C_variable),
+    c_array__create(char, charpointer, In, Name_stripped, Size, C_variable),
     declaration(intpointer, Rest),
     !.

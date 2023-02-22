@@ -54,7 +54,7 @@ cunit__add_test_cases_to_suite([], Add_to_suite_accumulator, Add_to_suite_accumu
 
 %% Adds test cases to the test suite. This is the predicate that performs the operation
 %% of cunit__add_test_cases_to_suite/1
-cunit__add_test_cases_to_suite([Test_case|More_test_cases], Add_to_suite_accumulator, Add_all_test_cases_to_suite_string) :-
+cunit__add_test_cases_to_suite([Test_case | More_test_cases], Add_to_suite_accumulator, Add_all_test_cases_to_suite_string) :-
     sprintf(Accumulator_with_current_test_case, "%s\tif (NULL == CU_add_test(pSuite, \"test case\", %s)) {\n\t\tCU_cleanup_registry();\n\t\treturn CU_get_error();\n\t}\n", [Add_to_suite_accumulator, Test_case]),
     cunit__add_test_cases_to_suite(More_test_cases, Accumulator_with_current_test_case, Add_all_test_cases_to_suite_string).
 
