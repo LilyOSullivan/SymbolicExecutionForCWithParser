@@ -80,10 +80,12 @@ handle(return(Expression), Return_value) :-
     writeln(Return_value).
 
 handle(init_record(Variable, function_call(Function_name, Arguments)), _) :-
-    function_handler(Function_name, Arguments, Return_value),
+    maplist(evaluate_expression, Arguments, Arguments_result),
+    function_handler(Function_name, Arguments_result, Return_value),
     utils__assignment(Variable, Return_value, _).
 
 handle(function_call(Function_name, Arguments), _) :-
+    maplist(evaluate_expression, Arguments, Arguments_result),
     function_handler(Function_name, Arguments, _).
 
 %% Empty return statement
