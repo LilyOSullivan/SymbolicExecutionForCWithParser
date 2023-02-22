@@ -1,6 +1,7 @@
 :- lib(ptc_solver).
-:- use_module(c_var).
+
 :- use_module(c_array).
+:- use_module(c_var).
 
 %% The below operators are used to return values the ptc_solver can understand.
 :- op(1200, xfy, and_then).

@@ -56,18 +56,18 @@ print_c_var(_{cvar(_CType,_PTCType, _In, _Out, Name)}, Print_value) :-
         Print_value = cvar(Name).
 
 %% Constructor for a c_var
-c_var__create(C_type, Ptc_type,Ptc_variable_in, Var_name, C_var_instantiated) :-
+c_var__create(C_type, Ptc_type, Ptc_variable_in, Var_name, C_var_instantiated) :-
     add_attribute(C_var_instantiated, cvar(C_type, Ptc_type, Ptc_variable_in, Ptc_variable_in, Var_name)).
 
 %% Returns the c-type of the c_var
 c_var__get_c_type(_Var{C_var}, C_Type) :-
     -?->
-        C_var = cvar(C_Type, _,_, _, _).
+        C_var = cvar(C_Type, _, _, _, _).
 
 %% Returns ptc type of the c_var
 c_var__get_ptc_type(_Var{C_var}, Ptc_Type) :-
     -?->
-        C_var = cvar(_, Ptc_Type,_, _, _).
+        C_var = cvar(_, Ptc_Type, _, _, _).
 
 %% Returns the name in the source code of the c_var
 c_var__get_name(_Var{C_var}, Name) :-

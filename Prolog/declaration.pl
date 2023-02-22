@@ -1,7 +1,7 @@
 :- lib(ptc_solver).
 
-:- use_module(c_var).
 :- use_module(c_array).
+:- use_module(c_var).
 
 %% Handles a stop condition for the recursive declaration/2 predicate
 declaration(_, []).

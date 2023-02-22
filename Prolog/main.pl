@@ -1,9 +1,10 @@
 :- lib(ptc_solver).
 
-:- ['utils'].
 :- use_module(c_var).
+
 :- ['expressions'].
 :- ['statement_handler'].
+:- ['utils'].
 
 :- dynamic var_names/2.
 

@@ -1,6 +1,6 @@
+:- ['declaration'].
 :- ['label'].
 :- ['test_case_generation'].
-:- ['declaration'].
 
 %% The entrypoint to function analysis
 function_handler(Filename, Function_name, Body, Params, Return_type) :-
