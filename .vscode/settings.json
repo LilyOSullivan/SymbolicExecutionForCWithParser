@@ -7,8 +7,12 @@
         "cunit",
         "cvar",
         "getval",
+        "Indexs",
+        "indomain",
         "intpointer",
+        "nonvar",
         "orop",
+        "setarg",
         "sprintf",
         "symb",
         "writeln"

@@ -111,8 +111,14 @@ main(Filename_without_extension, Function_name, Path_to_C_file) :-
     process_global_variables(Terms),
     function_handler(Filename_without_extension, Function_name, Body, Params, Return_type). % From Statement_handler.pl
 
-%           Possibly a merge-term of the function name per setval?
-%% Setup used for each function by the test-driver
+%% Setup for the test-driver
+%% Parameters:
+%%  Filename: The name of the file without the .pl extension
+%%            This should be a string.
+%%            Eg: "sign"
+%%  Function_name: The entry function to be tested. This should be an atom.
+%%                 Eg: get_sign
+%%  Path_to_C_file: The folder-path to the C file to be symbolically executed.
 setup_test_driver(Filename, Function_name,Path_to_C_file) :-
     concat_string([Path_to_C_file, "/", Filename, ".names"], Names_filename),
     compile(Names_filename),

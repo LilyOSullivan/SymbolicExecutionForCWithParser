@@ -139,6 +139,7 @@ evaluate_expression(assignment(Assign_to,Expression), Expression_result) :-
     utils__assignment(Assign_to,Right_result, Expression_result).
 
 %% Accessing an array element (Index)
+%% Eg: Arr[2]
 evaluate_expression(Array[Index], element(Var, [Result])) :-
     c_array__get_out_var(Array, Var),
     % The index could be an expression (Eg: Arr[2+2])
