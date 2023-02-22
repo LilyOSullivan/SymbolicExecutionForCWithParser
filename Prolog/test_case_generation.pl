@@ -7,13 +7,6 @@ cunit__write_test_case_all(Filename, Function_name, Params, Return_value, Return
     cunit__write_test_case(Filename, Function_name, Params, Return_value, Return_type),
     fail.
 
-%% Generate test cases for a function with no parameters
-%% A function with no parameters does not generate test cases, for now.
-% cunit__write_test_case(_, Function_name, [void], _, _) :-
-%     write("No test cases to generate for "),
-%     writeln(Function_name),
-%     !.
-
 %% Generate a singular test case
 cunit__write_test_case(Filename, Function_name, Params, Return_value, Return_type) :-
     getval(test_folder_path, Path_to_test_directory),
@@ -75,7 +68,6 @@ cunit__create_assert(Function_name, Params, Return_value, Return_type, CUnit_ass
     var_names_as_parameters(Params, "", Var_names),
     sprintf(CUnit_assert, "\tCU_ASSERT(%s(%s) == %s);\n", [Function_name, Var_names, Return_value_as_string]).
 
-% FIXME: I imagine this is possible to be written without the use of an if
 %% Checks if this is the first test case being generated.
 %% This is to prevent the inclusion of the CUnit header files multiple times
 %% in the same file due to backtracking

@@ -22,8 +22,7 @@ label__group_by_ptc_type([declaration(_Type, [Variable | _]) | More_declarations
     c_var__get_ptc_type(Variable, Type),
     c_var__get_in_var(Variable, In_var),
     (
-        select([Type, List_of_variables], Grouped_declarations, New_Grouped_declarations),
-        !,
+        once select([Type, List_of_variables], Grouped_declarations, New_Grouped_declarations),
         append(List_of_variables, [In_var], New_list_of_variables),
         Grouped_variables = [[Type, New_list_of_variables] | New_Grouped_declarations]
     ;
@@ -38,8 +37,7 @@ label([]).
 %% Eg: [[integer,[x,y]],[double,[a,b]]]
 %% This structure is created by the predicate label__group_by_ptc_type
 label([[integer,Integers_to_label] | More_to_label]) :-
-    ptc_solver__label_integers(Integers_to_label),
-    !,
+    once ptc_solver__label_integers(Integers_to_label),
     label(More_to_label).
 
 label([[intpointer,Values_to_label] | More_to_label]) :-
@@ -47,8 +45,7 @@ label([[intpointer,Values_to_label] | More_to_label]) :-
         ptc_solver__get_array_index_elements(Value, Indexs),
         utils__get_all_array_inputs(Indexs, Array_inputs)
     ),
-    ptc_solver__label_integers(Array_values),
-    !,
+    once ptc_solver__label_integers(Array_values),
     label(More_to_label).
 
 label([[charpointer,Values_to_label] | More_to_label]) :-
@@ -56,8 +53,8 @@ label([[charpointer,Values_to_label] | More_to_label]) :-
         ptc_solver__get_array_index_elements(Value, Indexs),
         utils__get_all_array_inputs(Indexs, Array_inputs)
     ),
-    ptc_solver__label_integers(Array_values),
-    !,
+    once ptc_solver__label_integers(Array_values),
+
 
     % TODO:Handle generation of backslashes and single quotes, by escaping them
 

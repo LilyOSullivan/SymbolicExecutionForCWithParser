@@ -140,7 +140,7 @@ evaluate_expression(assignment(Assign_to,Expression), Expression_result) :-
     utils__assignment(Assign_to,Right_result, Expression_result).
 
 evaluate_expression(function_call(Function_name, Arguments), Expression_result) :-
-    handle(function_call(Function_name, Arguments), Expression_result). % Statement_handler.pl
+    function_handler(Function_name, Arguments, Expression_result). % Statement_handler.pl
 
 %% Accessing an array element (Indexing)
 %% Eg: Arr[2]

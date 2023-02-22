@@ -79,13 +79,12 @@ handle(return(Expression), Return_value) :-
     !,
     writeln(Return_value).
 
-handle(init_record(Variable,Statement), _) :-
-    handle(Statement, Return_value_of_function_call),
-    utils__assignment(Variable, Return_value_of_function_call, _),
-    writeln(Variable).
+handle(init_record(Variable,function_call(Function_name,Arguments)), _) :-
+    function_handler(Function_name, Arguments, Return_value),
+    utils__assignment(Variable, Return_value, _).
 
-handle(function_call(Function_name, Arguments), Return_value) :-
-    function_handler(Function_name, Arguments, Return_value).
+handle(function_call(Function_name, Arguments), _) :-
+    function_handler(Function_name, Arguments, _).
 
 %% Empty return statement
 handle(return, void) :-

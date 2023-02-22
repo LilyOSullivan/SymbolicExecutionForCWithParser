@@ -63,7 +63,7 @@ utils__assignment(Assign_to, Value, Assigned_value) :-
 %%  Parameters: The parameters to be assigned to
 utils__assign_arguments_to_parameters([], []).
 utils__assign_arguments_to_parameters([], [void]).
-utils__assign_arguments_to_parameters([Argument | More_arguments], [declaration(Type,Parameters) | More_parameters]) :-
+utils__assign_arguments_to_parameters([Argument | More_arguments], [declaration(Type, Parameters) | More_parameters]) :-
     declaration(Type, Parameters), % Calls declaration.pl
     Parameters = [Parameter | _],
     utils__assignment(Parameter, Argument, _),
@@ -75,14 +75,13 @@ utils__assign_arguments_to_parameters([Argument | More_arguments], [declaration(
 %%  Return_type: The return type of the function
 %%  Normalised_return_value: The 'Return_value' normalised
 %% Eg: utils__normalise_return(1+5-0, int, Result) -> Result = 6
-utils__normalise_return(Return_value,Return_type, Normalised_return_value) :-
+utils__normalise_return(Return_value, Return_type, Normalised_return_value) :-
     (Return_type \== void ->
         (
             utils__c_to_ptc_type(Return_type, Ptc_type),
             ptc_solver__variable([Normalised_return_value], Ptc_type),
             ptc_solver__sdl(Normalised_return_value = Return_value),
-            ptc_solver__label_integers([Normalised_return_value]),
-            !
+            once ptc_solver__label_integers([Normalised_return_value])
         )
     ;
         (
