@@ -37,12 +37,12 @@ label([]).
 %% The parameter must be in the form [[Type,[Var1,Var2,...]]]
 %% Eg: [[integer,[x,y]],[double,[a,b]]]
 %% This structure is created by the predicate label__group_by_ptc_type
-label([[integer,Integers_to_label]|More_to_label]) :-
+label([[integer,Integers_to_label] | More_to_label]) :-
     ptc_solver__label_integers(Integers_to_label),
     !,
     label(More_to_label).
 
-label([[intpointer,Values_to_label]|More_to_label]) :-
+label([[intpointer,Values_to_label] | More_to_label]) :-
     ( foreach(Value, Values_to_label), foreach(Array_inputs, Array_values) do
         ptc_solver__get_array_index_elements(Value, Indexs),
         utils__get_all_array_inputs(Indexs, Array_inputs)
@@ -51,7 +51,7 @@ label([[intpointer,Values_to_label]|More_to_label]) :-
     !,
     label(More_to_label).
 
-label([[charpointer,Values_to_label]|More_to_label]) :-
+label([[charpointer,Values_to_label] | More_to_label]) :-
     ( foreach(Value, Values_to_label), foreach(Array_inputs, Array_values) do
         ptc_solver__get_array_index_elements(Value, Indexs),
         utils__get_all_array_inputs(Indexs, Array_inputs)

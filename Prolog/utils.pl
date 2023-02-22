@@ -2,7 +2,7 @@
 
 % From Eileen's Code
 utils__get_all_array_inputs([], []).
-utils__get_all_array_inputs([(_, Value)|Rest], [Value|Rest2]) :-
+utils__get_all_array_inputs([(_, Value) | Rest], [Value | Rest2]) :-
 	utils__get_all_array_inputs(Rest, Rest2).
 
 utils__detect_not_all_code_paths_return(Return_value, Return_type) :-
@@ -32,7 +32,7 @@ utils__strip_right_comma(String_with_comma, String_without_comma) :-
 % Join a list of strings together
 % Eg: join(["a","b","c"],Result) -> Result = "abc"
 utils__join([], "").
-utils__join([String|More_strings], Result) :-
+utils__join([String | More_strings], Result) :-
     utils__join(More_strings, Strings_join_so_far),
     concat_string([String, Strings_join_so_far], Result).
 
@@ -74,7 +74,7 @@ utils__assign_arguments_to_parameters([Argument | More_arguments], [declaration(
 %%  Return_type: The return type of the function
 %%  Normalised_return_value: The 'Return_value' normalised
 %% Eg: utils__normalise_return(1+5-0, int, Result) -> Result = 6
-utils__normalise_return(Return_value,Return_type,Normalised_return_value) :-
+utils__normalise_return(Return_value,Return_type, Normalised_return_value) :-
     (Return_type \== void ->
         (
             utils__c_to_ptc_type(Return_type, Ptc_type),
@@ -90,4 +90,4 @@ utils__normalise_return(Return_value,Return_type,Normalised_return_value) :-
     ).
 
 %% Convert a c-type to a ptc-type
-utils__c_to_ptc_type(int,integer).
+utils__c_to_ptc_type(int, integer).

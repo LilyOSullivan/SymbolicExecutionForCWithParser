@@ -7,7 +7,7 @@
 declaration(_, []).
 
 %% Declare an integer variable
-declaration(int, [C_variable|Rest]) :-
+declaration(int, [C_variable | Rest]) :-
     get_var_info(C_variable, name, Ptc_name),
     var_names(Ptc_name, C_name),
     ptc_solver__variable([In], integer),
@@ -37,7 +37,7 @@ declaration(intpointer, [C_variable | Rest]) :-
     !.
 
 %% Declare a character array
-declaration(charpointer, [C_variable|Rest]) :-
+declaration(charpointer, [C_variable | Rest]) :-
     ptc_solver__type(indexType5, integer, range_bounds(0, 4)),
     ptc_solver__type(arrayType5, array, [indexType5], char),
     ptc_solver__variable([In], arrayType5),

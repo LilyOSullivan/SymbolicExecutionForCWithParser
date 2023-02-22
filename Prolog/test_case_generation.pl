@@ -124,13 +124,13 @@ get_test_name(Test_name) :-
 %%  -> All_variable_names = "x,y"
 var_names_as_parameters([], Variable_name_accumulator, All_variable_names) :-
     utils__strip_right_comma(Variable_name_accumulator, All_variable_names).
-var_names_as_parameters([declaration(_, [Variable|_])|More_variables], Variable_name_accumulator, All_variable_names) :-
+var_names_as_parameters([declaration(_, [Variable | _])|More_variables], Variable_name_accumulator, All_variable_names) :-
     c_var__is_variable(Variable),
     !,
     c_var__get_name(Variable, Var_name),
     sprintf(Result, "%s%s,", [Variable_name_accumulator, Var_name]),
     var_names_as_parameters(More_variables, Result, All_variable_names).
-var_names_as_parameters([declaration(_, [Variable|_])|More_variables], Variable_name_accumulator, All_variable_names) :-
+var_names_as_parameters([declaration(_, [Variable | _])|More_variables], Variable_name_accumulator, All_variable_names) :-
     c_array__is_array(Variable),
     !,
     c_array__get_name(Variable, Var_name),
@@ -149,7 +149,7 @@ var_names_as_parameters([declaration(_, [Variable|_])|More_variables], Variable_
 %%  -> All_declarations = "int x = 5;\nint y = -2;\n"
 create_declaration_section([void], Declaration_accumulator, Declaration_accumulator) :- !.
 create_declaration_section([], Declaration_accumulator, Declaration_accumulator).
-create_declaration_section([declaration(_, [Variable|_])|More_variables], Declaration_accumulator, All_declarations) :-
+create_declaration_section([declaration(_, [Variable | _])|More_variables], Declaration_accumulator, All_declarations) :-
     c_var__create_declaration(Variable, Declaration),
     sprintf(Result, "%s%s", [Declaration_accumulator, Declaration]),
     create_declaration_section(More_variables, Result, All_declarations),
