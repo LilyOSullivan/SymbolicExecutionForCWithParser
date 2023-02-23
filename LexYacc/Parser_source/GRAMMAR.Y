@@ -185,8 +185,17 @@ postfix_expression
 		char *func_name;
 		func_name = (char *) malloc(STRING_LIMIT);
 		strcpy(func_name, copystring($1, 3, strlen($1)));
-		strcpy($$, "\nfunction_call(");
+		strcpy($$, "\nfunction_call("); 
+
+
+		if (isupper(func_name[0]))
+			strcat($$, "UC_");
+		else
+			strcat($$, "LC_");
+
 		strcat($$, func_name);
+		
+
 		strcat($$, ", [");  strcat($$, "]"); strcat($$, ")");
 	}
 	| postfix_expression '(' argument_expression_list ')'  
@@ -198,8 +207,9 @@ postfix_expression
 		////////////////////////////////////////////////////////////////	
 		char *func_name;
 		func_name = (char *) malloc(STRING_LIMIT);
-		strcpy(func_name, copystring($1, 3, strlen($1)-3));
+		strcpy(func_name, copystring($1, 3, strlen($1)));
 		strcpy($$, "\nfunction_call(");
+
 		strcat($$, func_name);
 		strcat($$, ", ["); strcat($$, $3); strcat($$, "]"); strcat($$, ")");	
 	}

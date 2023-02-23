@@ -18,9 +18,8 @@ function_handler(_, _, _, _, _).
 %%  Function_name: The name of the function to call
 %%  Arguments: The arguments to pass to the function
 %%  Return_value: The returned value from the function
-function_handler(Function_name, Arguments, Return_value) :-
-    getval(parsed_terms, Terms), % QUESTION: Name-links are lost here, this might be okay.
-    find_function_information(Terms, Function_name, Params, Body, Return_type),
+function_handler(Function_info, Arguments, Return_value) :-
+    function_info__get_all(Function_info, _, Params, Body, Return_type),
     utils__assign_arguments_to_parameters(Arguments, Params),
     statement_handler(Body, Return_value),
     utils__detect_not_all_code_paths_return(Return_value, Return_type).
@@ -86,7 +85,7 @@ handle(init_record(Variable, function_call(Function_name, Arguments)), _) :-
 
 handle(function_call(Function_name, Arguments), _) :-
     maplist(evaluate_expression, Arguments, Arguments_result),
-    function_handler(Function_name, Arguments, _).
+    function_handler(Function_name, Arguments_result, _).
 
 %% Empty return statement
 handle(return, void) :-

@@ -1243,18 +1243,32 @@ and this will need to be removed.
 	{
 		howmany = (strlen(S2) - len_end_prototypestr) - (len_start_prototypestr+1);
 		// calculating how many characters we need to copy onto $$
-		strcat(returnstr, copystring(S2, (len_start_prototypestr+1), howmany));
+		char* temp = copystring(S2, (len_start_prototypestr + 1), howmany);
+		if (isupper(temp[0]))
+			strcat(returnstr, "UC_");
+		else
+			strcat(returnstr, "LC_");
+		strcat(returnstr, temp);
 	}
 	else if(strstr(S2, "function_prototype(") != NULL )
 	{
 		howmany = (strlen(S2) - len_end_prototypestr) - len_start_prototypestr;
 		// calculating how many characters we need to copy onto $$	
 		char* temp = copystring(S2, len_start_prototypestr, howmany);
+		if (isupper(temp[0]))
+			strcat(returnstr, "UC_");
+		else
+			strcat(returnstr, "LC_");
 		//lilyparser_get_function_name(temp);
 		strcat(returnstr, temp);
 	}
 	else		
 	{
+		if (isupper(S2[0]))
+			strcat(returnstr, "UC_");
+		else
+			strcat(returnstr, "LC_");
+
 		S2[0] = convert_tolower(S2[0]);
 		// the function name is parsed as upper case so change to lowercase	
 		howmany = strlen(S2) - 3;
@@ -1344,7 +1358,17 @@ definitions and prototypes.
 		if (isupper(S1[0]))
 			S1[0] = convert_tolower(S1[0]);
 		strcpy(returnstr, "function_definition("); 
-		strncat(returnstr, S1, strlen(S1) - 2) ; 
+
+		// Lily additions, not sure if below is necessary 
+		char* function_name = (char*)malloc(STRING_LIMIT);
+		strncat(function_name, S1, strlen(S1) - 2);
+		strcat(function_name, "\0");
+		if (isupper(function_name[0]))
+			strcat(returnstr, "UC_");
+		else
+			strcat(returnstr, "LC_");
+
+		strcat(returnstr, function_name); 
 		strcat(returnstr, ", [void], "); 
 		strcat(returnstr, S2);			
 		strcat(returnstr, ", void).");

@@ -1,10 +1,15 @@
 :- lib(ptc_solver).
 
 :- use_module(c_var).
+:- use_module(function_info).
 
 :- ['expressions'].
 :- ['statement_handler'].
 :- ['utils'].
+
+%% sub_atom/5 is used in creating function_info variables.
+%% It strips the LC_/UC_ from the function name, while retaining it as an atom.
+:- import sub_atom/5 from iso_light.
 
 :- dynamic var_names/2.
 
@@ -106,7 +111,7 @@ main(Filename_without_extension, Function_name, Path_to_C_file) :-
 
     concat_string([Path_to_C_file, "/", Filename_without_extension, ".pl"], Prolog_file),
     read_prolog_file(Prolog_file, Terms),
-    setval(parsed_terms, Terms),
+    process_functions(Terms),
     find_function_information(Terms, Function_name, Params, Body, Return_type),
     setup_test_driver(Filename_without_extension, Function_name, Path_to_C_file),
     process_global_variables(Terms),
@@ -176,11 +181,18 @@ process_global_variables([Term | More_terms]) :-
 %%  Params: The parameters of the function to be found
 %%  Body: The body of the function to be found
 %%  Return_type: The return type of the function to be found
-find_function_information([function_definition(Function_name, Params, Body, Return_type) | _], Function_name, Params, Body, Return_type) :-
+find_function_information([function_definition(Function_info, _, _ , _) | More_terms], Function_name, Parameters, Body, Return_type) :-
+    function_info__get_name(Function_info, Current_function_name),
+    (Current_function_name == Function_name ->
+        function_info__get_all(Function_info, _, Parameters, Body, Return_type),
+        !
+    ;
+        find_function_information(More_terms, Function_name, Parameters, Body, Return_type)
+    ).
+find_function_information([_ | More_terms], Function_name, Parameters, Body, Return_type) :-
+    find_function_information(More_terms, Function_name, Parameters, Body, Return_type),
     !.
-find_function_information([_ | More_terms], Function_name, Params, Body, Return_type) :-
-    find_function_information(More_terms, Function_name, Params, Body, Return_type).
-find_function_information([], _, _, _, _).
+find_function_information([], _, _, _, _) :- !, false.
 
 %% Finds the name of a function from the parser-result prolog file
 %% Parameters:
@@ -190,3 +202,14 @@ find_function_name([function_definition(Function_name, _, _, _) | _], Function_n
 find_function_name([_ | More_terms], Function_name) :-
     find_function_name(More_terms, Function_name).
 find_function_name([], _) :- false.
+
+
+process_functions([]).
+process_functions([function_definition(Function_name, Params, Body, Return_type) | More_terms]) :-
+    get_var_info(Function_name, name, Function_name_as_atom),
+    sub_atom(Function_name_as_atom, 3, _, 0, Stripped_function_name),
+    function_info__create(Stripped_function_name, Params, Body, Return_type, Function_name),
+    process_functions(More_terms),
+    !.
+process_functions([_ | More_terms]) :-
+    process_functions(More_terms).
