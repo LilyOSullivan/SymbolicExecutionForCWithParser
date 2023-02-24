@@ -91,3 +91,8 @@ utils__normalise_return(Return_value, Return_type, Normalised_return_value) :-
 
 %% Convert a c-type to a ptc-type
 utils__c_to_ptc_type(int, integer).
+
+util__unify_copy_term_mapping([]).
+util__unify_copy_term_mapping([[V1|V2]|Mapping]) :-
+    V1 = V2,
+    util__unify_copy_term_mapping(Mapping).

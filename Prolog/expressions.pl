@@ -137,9 +137,10 @@ evaluate_expression(assignment(Assign_to, Expression), Expression_result) :-
     evaluate_expression(Expression, Right_result),
     utils__assignment(Assign_to,Right_result, Expression_result).
 
-evaluate_expression(function_call(Function_name, Arguments), Expression_result) :-
+evaluate_expression(function_call(Function_info, Arguments), Expression_result) :-
     maplist(evaluate_expression, Arguments, Arguments_result),
-    function_handler(Function_name, Arguments_result, Expression_result). % Statement_handler.pl
+    function_handler(Function_info, Arguments_result, Expression_result). % Statement_handler.pl
+
 
 %% Accessing an array element (Indexing)
 %% Eg: Arr[2]

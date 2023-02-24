@@ -122,6 +122,7 @@ var_names_as_parameters([declaration(_, [Variable | _])|More_variables], Variabl
     c_var__get_name(Variable, Var_name),
     sprintf(Result, "%s%s,", [Variable_name_accumulator, Var_name]),
     var_names_as_parameters(More_variables, Result, All_variable_names).
+
 var_names_as_parameters([declaration(_, [Variable | _])|More_variables], Variable_name_accumulator, All_variable_names) :-
     c_array__is_array(Variable),
     !,

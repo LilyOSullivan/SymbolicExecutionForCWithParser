@@ -19,7 +19,10 @@ function_handler(_, _, _, _, _).
 %%  Arguments: The arguments to pass to the function
 %%  Return_value: The returned value from the function
 function_handler(Function_info, Arguments, Return_value) :-
-    function_info__get_all(Function_info, _, Params, Body, Return_type),
+    function_info__get_full_term(Function_info, Function_definition),
+    copy_term(Function_definition, Function_definition_copy, Attributed_variables_mapping),
+    util__unify_copy_term_mapping(Attributed_variables_mapping),
+    Function_definition_copy = function_definition(_, Params, Body, Return_type),
     utils__assign_arguments_to_parameters(Arguments, Params),
     statement_handler(Body, Return_value),
     utils__detect_not_all_code_paths_return(Return_value, Return_type).

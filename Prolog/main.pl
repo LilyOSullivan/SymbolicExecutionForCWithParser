@@ -86,8 +86,8 @@ regression_tests.
 
 %% A shortcut predicate to main/3 outputting to the Prolog directory
 %% Useful for development. This is not called in code, only by a developer
-main(Filename_without_extension, Function_name) :-
-    main(Filename_without_extension, Function_name, "./").
+main(Function_name) :-
+    main("sign", Function_name, "./").
 
 %% The entrypoint to the program
 %% Filename_without_extension: The name of the file without the .pl extension
@@ -112,7 +112,7 @@ main(Filename_without_extension, Function_name, Path_to_C_file) :-
     concat_string([Path_to_C_file, "/", Filename_without_extension, ".pl"], Prolog_file),
     read_prolog_file(Prolog_file, Terms),
     process_functions(Terms),
-    find_function_information(Terms, Function_name, Params, Body, Return_type),
+    once find_function_information(Terms, Function_name, Params, Body, Return_type),
     setup_test_driver(Filename_without_extension, Function_name, Path_to_C_file),
     process_global_variables(Terms),
     function_handler(Filename_without_extension, Function_name, Body, Params, Return_type). % From Statement_handler.pl
@@ -190,8 +190,7 @@ find_function_information([function_definition(Function_info, _, _ , _) | More_t
         find_function_information(More_terms, Function_name, Parameters, Body, Return_type)
     ).
 find_function_information([_ | More_terms], Function_name, Parameters, Body, Return_type) :-
-    find_function_information(More_terms, Function_name, Parameters, Body, Return_type),
-    !.
+    find_function_information(More_terms, Function_name, Parameters, Body, Return_type).
 find_function_information([], _, _, _, _) :- !, false.
 
 %% Finds the name of a function from the parser-result prolog file
@@ -205,10 +204,12 @@ find_function_name([], _) :- false.
 
 
 process_functions([]).
-process_functions([function_definition(Function_name, Params, Body, Return_type) | More_terms]) :-
-    get_var_info(Function_name, name, Function_name_as_atom),
+process_functions([function_definition(Function_info, Params, Body, Return_type) | More_terms]) :-
+    get_var_info(Function_info, name, Function_name_as_atom),
+    % Strip 'LC_' or 'UC_' from the function name
     sub_atom(Function_name_as_atom, 3, _, 0, Stripped_function_name),
-    function_info__create(Stripped_function_name, Params, Body, Return_type, Function_name),
+    Function_def = function_definition(Stripped_function_name, Params, Body, Return_type),
+    function_info__create(Function_def, Function_info),
     process_functions(More_terms),
     !.
 process_functions([_ | More_terms]) :-

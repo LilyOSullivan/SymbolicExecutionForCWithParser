@@ -1,24 +1,22 @@
 :- module(function_info).
 
-:- export function_info__create/5.
+:- export function_info__create/2.
 :- export function_info__get_name/2.
 :- export function_info__get_parameters/2.
 :- export function_info__get_body/2.
 :- export function_info__get_return_type/2.
 :- export function_info__get_all/5.
+:- export function_info__reset/1.
+:- export function_info__get_full_term/2.
 
-%% The module for the c_var attributed variable
-%% It maintains meta-data about a singular non-collection variable
-%% declared in the C source
+%% The module for the function_info attributed variable
+%% It maintains the parsed-term for a function definition from the parser
 %%
-%% It holds the following information:
-%%      Type: The variable type: Eg Int, Float, Char...
-%%      In: A Ptc_solver variable of the attributed variables initial data.
-%%      Out: A Ptc_solver variable that is modified upon assignment or value change.
-%%      c_source_variable_name: The variable name in the C-source-code
+%% It holds a singular term:
+%%      Function_definition in the form  function_definition(Function_name, Params, Body, Return_type)
 %%
-%% c_var structure:
-%%  c_var{function_name, parameters, body, return_type}
+%% function_info structure:
+%%  function_info{function_definition(Function_name, Params, Body, Return_type)}
 
 
 %% Declare function_info as an attributed variable
@@ -46,37 +44,42 @@ unify_function_info_function_info(_Y, AttrX, AttrY) :-
 unify_function_info_function_info(_Y, _AttrX, AttrY) :-
     nonvar(AttrY).
 
-%% Used internally by ECLiPSe for printing a c_var
+%% Used internally by ECLiPSe for printing a function_info
 %% Additionally controls how the debugger displays the value
-print_function_info(_{function(Function_name, _Params, _Body, _Return_type)}, Print_value) :-
+print_function_info(_{function(Function_info)}, Print_value) :-
     -?->
+        Function_info = function_definition(Function_name,_,_,_),
         Print_value = function(Function_name).
 
-%% Constructor for a c_var
-function_info__create(Function_name, Params, Body, Return_type, Function_info_instantiated) :-
-    add_attribute(Function_info_instantiated, function(Function_name, Params, Body, Return_type)).
+%% Constructor for a function_info
+function_info__create(Function_definition, Function_info_instantiated) :-
+    add_attribute(Function_info_instantiated, function(Function_definition)).
 
 %% Returns the name of the function
 function_info__get_name(_Var{Function_info}, Function_name) :-
     -?->
-        Function_info = function(Function_name, _, _, _).
+        Function_info = function(function_definition(Function_name,_,_,_)).
 
 %% Returns the parameters of the function
 function_info__get_parameters(_Var{Function_info}, Parameters) :-
     -?->
-        Function_info = function(_, Parameters, _, _).
+        Function_info = function(function_definition(_, Parameters, _, _)).
 
 %% Returns the body of the function
 function_info__get_body(_Var{Function_info}, Body) :-
     -?->
-        Function_info = function(_, _, Body, _).
+        Function_info = function(function_definition(_, _, Body, _)).
 
 %% Returns the return-type of the function
-function_info__get_body(_Var{Function_info}, Return_type) :-
+function_info__get_return_type(_Var{Function_info}, Return_type) :-
     -?->
-        Function_info = function(_, _, _, Return_type).
+        Function_info = function(function_definition(_, _, _, Return_type)).
 
 %% Returns all information about the function
 function_info__get_all(_Var{Function_info}, Function_name, Params, Body, Return_type) :-
     -?->
-        Function_info = function(Function_name, Params, Body, Return_type).
+        Function_info = function(function_definition(Function_name, Params, Body, Return_type)).
+
+function_info__get_full_term(_Var{Function_info}, Function_definition) :-
+    -?->
+        Function_info = function(Function_definition).
