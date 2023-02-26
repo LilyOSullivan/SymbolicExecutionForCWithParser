@@ -5,9 +5,7 @@
 :- export function_info__get_parameters/2.
 :- export function_info__get_body/2.
 :- export function_info__get_return_type/2.
-:- export function_info__get_all/5.
-:- export function_info__reset/1.
-:- export function_info__get_full_term/2.
+:- export function_info__get_term/2.
 
 %% The module for the function_info attributed variable
 %% It maintains the parsed-term for a function definition from the parser
@@ -75,11 +73,6 @@ function_info__get_return_type(_Var{Function_info}, Return_type) :-
     -?->
         Function_info = function(function_definition(_, _, _, Return_type)).
 
-%% Returns all information about the function
-function_info__get_all(_Var{Function_info}, Function_name, Params, Body, Return_type) :-
-    -?->
-        Function_info = function(function_definition(Function_name, Params, Body, Return_type)).
-
-function_info__get_full_term(_Var{Function_info}, Function_definition) :-
+function_info__get_term(_Var{Function_info}, Function_definition) :-
     -?->
         Function_info = function(Function_definition).

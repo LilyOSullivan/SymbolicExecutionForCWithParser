@@ -22,10 +22,15 @@ label__group_by_ptc_type([declaration(_Type, [Variable | _]) | More_declarations
     c_var__get_ptc_type(Variable, Type),
     c_var__get_in_var(Variable, In_var),
     (
+        % Check if a group of variables of the same type already exists,
+        % get the group if it exists
         once select([Type, List_of_variables], Grouped_declarations, New_Grouped_declarations),
+        % add to the existing group
         append(List_of_variables, [In_var], New_list_of_variables),
+        % Assign back the group
         Grouped_variables = [[Type, New_list_of_variables] | New_Grouped_declarations]
     ;
+        % If no group of variables of the same type exists, create a new group
         Grouped_variables = [[Type, [In_var]] | Grouped_declarations]
     ).
 
@@ -68,10 +73,10 @@ label([[charpointer,Values_to_label] | More_to_label]) :-
 label__escape_problematic_characters(Ascii, Escaped_ascii) :-
     ( foreach(Ascii_char, Ascii), foreach(Escaped_ascii_char, Escaped_ascii) do
         (
-            Ascii_char == 92 ->
+            Ascii_char == 92 -> % 92 = backslash ascii character
                 Escaped_ascii_char = [92, 92]
             ;
-            Ascii_char == 39 ->
+            Ascii_char == 39 -> % 39 = single quote ascii character
                 Escaped_ascii_char = [92, 39]
             ;
                 Escaped_ascii_char = Ascii_char

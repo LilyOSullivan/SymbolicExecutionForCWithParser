@@ -88,12 +88,13 @@ handle(function_call(Function_name, Arguments), _) :-
     function_handler(Function_name, Arguments_result, _).
 
 %% Empty return statement
+%% Eg: return;
 handle(return, void) :-
     writeln("Void Return").
 
 %% Handles assignment to a variable
-%% This is commonly used as two steps, Declaration and Assignment, of a variable.
-%% int x = 5;
+%% This is commonly used as two steps, Declaration and Assignment of a variable.
+%% int x = 5; // Declaration (int x;) and Assignment (x = 5;)
 %% This becomes a declaration, handled above, and an assignment below
 handle(assignment(Assign_to, Expression), _) :-
     evaluate_expression(Expression, Evaluated_expression),

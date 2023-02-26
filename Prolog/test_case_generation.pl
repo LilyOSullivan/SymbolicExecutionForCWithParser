@@ -33,7 +33,6 @@ cunit__write_test_case(Filename, Function_name, Params, Return_value, Return_typ
     cunit__write_main(Test_suite_name),
     close(testcase).
 
-% IDEA: Split main function string among multiple strings
 %% Create the main function for the test suite
 cunit__write_main(Test_suite_name) :-
     getval(test_folder_path, Path_to_test_directory),
