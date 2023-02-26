@@ -7,7 +7,7 @@ function_handler(Filename, Function_name, Body, Params, Return_type) :-
     parameter_handler(Params),
     statement_handler(Body, Return_value),
     utils__detect_not_all_code_paths_return(Return_value, Return_type),
-    label_collectively(Params),
+    once label_collectively(Params),
     utils__normalise_return(Return_value, Return_type, Normalised_return_value),
     cunit__write_test_case_all(Filename, Function_name, Params, Normalised_return_value, Return_type).
 function_handler(_, _, _, _, _).
@@ -19,11 +19,8 @@ function_handler(_, _, _, _, _).
 %%  Arguments: The arguments to pass to the function
 %%  Return_value: The returned value from the function
 function_handler(Function_info, Arguments, Return_value) :-
-    function_info__get_full_term(Function_info, Function_definition),
-    copy_term(Function_definition, Function_definition_copy, Attributed_variables_mapping),
-    util__unify_copy_term_mapping(Attributed_variables_mapping),
-    Function_definition_copy = function_definition(_, Params, Body, Return_type),
-    utils__assign_arguments_to_parameters(Arguments, Params),
+    utils__get_clean_function_info(Function_info, _, Params, Body, Return_type),
+    once utils__assign_arguments_to_parameters(Arguments, Params),
     statement_handler(Body, Return_value),
     utils__detect_not_all_code_paths_return(Return_value, Return_type).
 
@@ -42,7 +39,7 @@ statement_handler([], _).
 statement_handler([Statement | More_statements], Return_value) :-
     handle(Statement, Return_value),
     (
-        var(Return_value) ->
+        free(Return_value) ->
             statement_handler(More_statements, Return_value)
         ;
             true

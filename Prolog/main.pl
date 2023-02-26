@@ -112,9 +112,10 @@ main(Filename_without_extension, Function_name, Path_to_C_file) :-
     concat_string([Path_to_C_file, "/", Filename_without_extension, ".pl"], Prolog_file),
     read_prolog_file(Prolog_file, Terms),
     process_functions(Terms),
-    once find_function_information(Terms, Function_name, Params, Body, Return_type),
-    setup_test_driver(Filename_without_extension, Function_name, Path_to_C_file),
     process_global_variables(Terms),
+    once find_function_information(Terms, Function_name, Function_info),
+    utils__get_clean_function_info(Function_info, _, Params, Body, Return_type),
+    setup_test_driver(Filename_without_extension, Function_name, Path_to_C_file),
     function_handler(Filename_without_extension, Function_name, Body, Params, Return_type). % From Statement_handler.pl
 
 %% Setup for the test-driver
@@ -181,17 +182,17 @@ process_global_variables([Term | More_terms]) :-
 %%  Params: The parameters of the function to be found
 %%  Body: The body of the function to be found
 %%  Return_type: The return type of the function to be found
-find_function_information([function_definition(Function_info, _, _ , _) | More_terms], Function_name, Parameters, Body, Return_type) :-
+find_function_information([function_definition(Function_info, _, _ , _) | More_terms], Function_name, Return_function_info) :-
     function_info__get_name(Function_info, Current_function_name),
     (Current_function_name == Function_name ->
-        function_info__get_all(Function_info, _, Parameters, Body, Return_type),
+        Return_function_info = Function_info,
         !
     ;
-        find_function_information(More_terms, Function_name, Parameters, Body, Return_type)
+        find_function_information(More_terms, Function_name, Return_function_info)
     ).
-find_function_information([_ | More_terms], Function_name, Parameters, Body, Return_type) :-
-    find_function_information(More_terms, Function_name, Parameters, Body, Return_type).
-find_function_information([], _, _, _, _) :- !, false.
+find_function_information([_ | More_terms], Function_name, Return_function_info) :-
+    find_function_information(More_terms, Function_name, Return_function_info).
+find_function_information([], _, _) :- !, false.
 
 %% Finds the name of a function from the parser-result prolog file
 %% Parameters:

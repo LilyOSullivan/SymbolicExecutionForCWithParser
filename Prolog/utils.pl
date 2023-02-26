@@ -81,7 +81,8 @@ utils__normalise_return(Return_value, Return_type, Normalised_return_value) :-
             utils__c_to_ptc_type(Return_type, Ptc_type),
             ptc_solver__variable([Normalised_return_value], Ptc_type),
             ptc_solver__sdl(Normalised_return_value = Return_value),
-            once ptc_solver__label_integers([Normalised_return_value])
+            once ptc_solver__label_integers([Normalised_return_value]),
+            !
         )
     ;
         (
@@ -92,7 +93,13 @@ utils__normalise_return(Return_value, Return_type, Normalised_return_value) :-
 %% Convert a c-type to a ptc-type
 utils__c_to_ptc_type(int, integer).
 
+utils__get_clean_function_info(Function_info, Function_name, Parameters, Body, Return_type) :-
+    function_info__get_full_term(Function_info, Function_definition),
+    copy_term(Function_definition, Function_definition_copy, Attributed_variables_mapping),
+    util__unify_copy_term_mapping(Attributed_variables_mapping),
+    Function_definition_copy = function_definition(Function_name, Parameters, Body, Return_type).
+
 util__unify_copy_term_mapping([]).
-util__unify_copy_term_mapping([[V1|V2]|Mapping]) :-
-    V1 = V2,
-    util__unify_copy_term_mapping(Mapping).
+util__unify_copy_term_mapping([[Attributed_variable|Free_variable]|More_variable_mappings]) :-
+    Attributed_variable = Free_variable,
+    util__unify_copy_term_mapping(More_variable_mappings).
