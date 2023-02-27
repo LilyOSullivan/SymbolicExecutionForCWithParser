@@ -9,7 +9,9 @@ declaration(_, []).
 %% Declare an integer variable
 declaration(int, [C_variable | Rest]) :-
     get_var_info(C_variable, name, Ptc_name),
-    var_names(Ptc_name, C_name),
+    % Strip 'LC_' or 'UC_' from the function name
+    sub_atom(Ptc_name, 3, _, 0, Stripped_ptc_name),
+    atom_string(Stripped_ptc_name, C_name),
     ptc_solver__variable([In], integer),
     c_var__create(int, integer, In, C_name, C_variable),
     declaration(int, Rest),
@@ -17,7 +19,9 @@ declaration(int, [C_variable | Rest]) :-
 
 declaration(char, [C_variable | Rest]) :-
     get_var_info(C_variable, name, Ptc_name),
-    var_names(Ptc_name, C_name),
+    % Strip 'LC_' or 'UC_' from the function name
+    sub_atom(Ptc_name, 3, _, 0, Stripped_ptc_name),
+    atom_string(Stripped_ptc_name, C_name),
     ptc_solver__variable([In], char),
     c_var__create(char, char, In, C_name, C_variable),
     declaration(char, Rest),
