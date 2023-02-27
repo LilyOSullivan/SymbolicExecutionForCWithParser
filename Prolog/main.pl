@@ -11,8 +11,6 @@
 %% It strips the LC_/UC_ from the function name, while retaining it as an atom.
 :- import sub_atom/5 from iso_light.
 
-:- dynamic var_names/2.
-
 %% Global values:
 %%  test_id (Number, value:1): This is an Id used to identify test cases generated
 %%  tests (List, value:[]): This list holds the names of the generated test cases
@@ -102,37 +100,30 @@ main(Filename_without_extension, Function_name, Path_to_C_file) :-
     string(Filename_without_extension),
     atom(Function_name),
     string(Path_to_C_file),
-
-    ptc_solver__clean_up,
-    ptc_solver__default_declarations,
-    ptc_solver__type(char, integer, range_bounds(33, 126)),
-    % 33-126 are the printable ASCII characters
-    % https://www.ascii-code.com
-
     concat_string([Path_to_C_file, "/", Filename_without_extension, ".pl"], Prolog_file),
     read_prolog_file(Prolog_file, Terms),
     declare_functions(Terms),
     process_global_variables(Terms),
     once find_function_information(Terms, Function_name, Function_info),
     utils__get_clean_function_info(Function_info, _, Params, Body, Return_type),
-    setup_test_driver(Filename_without_extension, Function_name, Path_to_C_file),
+    setup_test_driver(Function_name, Path_to_C_file),
     function_handler(Filename_without_extension, Function_name, Body, Params, Return_type). % From Statement_handler.pl
 
 %% Setup for the test-driver
 %% Parameters:
-%%  Filename: The name of the file without the .pl extension
-%%            This should be a string.
-%%            Eg: "sign"
 %%  Function_name: The entry function to be tested. This should be an atom.
 %%                 Eg: get_sign
 %%  Path_to_C_file: The folder-path to the C file to be symbolically executed.
-setup_test_driver(Filename, Function_name,Path_to_C_file) :-
-    concat_string([Path_to_C_file, "/", Filename, ".names"], Names_filename),
-    compile(Names_filename),
-    get_flag(unix_time, Unix_time),
+setup_test_driver(Function_name,Path_to_C_file) :-
+    ptc_solver__clean_up,
+    ptc_solver__default_declarations,
+    ptc_solver__type(char, integer, range_bounds(33, 126)),
+    % 33-126 are the printable ASCII characters
+    % https://www.ascii-code.com
 
-    % Format: days/months/year__24Hours_Minutes_Seconds
-    % Eg: 03_02_23__14_34_18
+    get_flag(unix_time, Unix_time),
+    % Format: 24Hours_Minutes_Seconds__days_months_year
+    % Eg: 14_34_18__03_02_23
     local_time_string(Unix_time,"%H_%M_%S__%d_%m_%y", Current_date_as_string),
     concat_string([Function_name, "_tests_", Current_date_as_string], Folder_name),
     concat_string([Path_to_C_file, "/", Folder_name, "/"], Path_to_test_directory),
@@ -155,7 +146,6 @@ setup_test_driver(Filename, Function_name,Path_to_C_file) :-
 %%  Result: The contents of the prolog file
 read_prolog_file(Relative_path, Result) :-
     open(Relative_path, read, Stream),
-
     % Asserting breaks the variable links.
     % Return the content directly instead.
     read_term(Stream, Parsed_terms, []),
