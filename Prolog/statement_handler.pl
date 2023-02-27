@@ -63,12 +63,12 @@ handle(declaration(Type, Vars), _) :-
 %% If statement handler
 handle(if_statement(_Line_Number, expression(Expression), If_body, Else_body), Return_value) :-
     (
-        evaluate_expression(Expression),
+        once evaluate_expression(Expression),
         statement_handler(If_body, Return_value)
     )
         ; % Deliberate Choice Point
     (
-        evaluate_expression(not(Expression)),
+        once evaluate_expression(not(Expression)),
         statement_handler(Else_body, Return_value)
     ).
 

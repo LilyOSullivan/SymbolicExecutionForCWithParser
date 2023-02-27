@@ -111,7 +111,7 @@ main(Filename_without_extension, Function_name, Path_to_C_file) :-
 
     concat_string([Path_to_C_file, "/", Filename_without_extension, ".pl"], Prolog_file),
     read_prolog_file(Prolog_file, Terms),
-    process_functions(Terms),
+    declare_functions(Terms),
     process_global_variables(Terms),
     once find_function_information(Terms, Function_name, Function_info),
     utils__get_clean_function_info(Function_info, _, Params, Body, Return_type),
@@ -204,14 +204,14 @@ find_function_name([_ | More_terms], Function_name) :-
 find_function_name([], _) :- false.
 
 
-process_functions([]).
-process_functions([function_definition(Function_info, Params, Body, Return_type) | More_terms]) :-
+declare_functions([]).
+declare_functions([function_definition(Function_info, Params, Body, Return_type) | More_terms]) :-
     get_var_info(Function_info, name, Function_name_as_atom),
     % Strip 'LC_' or 'UC_' from the function name
     sub_atom(Function_name_as_atom, 3, _, 0, Stripped_function_name),
     Function_def = function_definition(Stripped_function_name, Params, Body, Return_type),
     function_info__create(Function_def, Function_info),
-    process_functions(More_terms),
+    declare_functions(More_terms),
     !.
-process_functions([_ | More_terms]) :-
-    process_functions(More_terms).
+declare_functions([_ | More_terms]) :-
+    declare_functions(More_terms).
