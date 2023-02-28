@@ -190,12 +190,12 @@ information is added. The variable is returned unchanged.
 
 	/////////////////////////////////////////////////////////////////
 	// If 'varname' is NOT parameter variable, append scoping information
-	if (param == NO)
-	{
+	//if (param == NO)
+	//{
 		strcat(name, "_");
 		itoa(linenumber, number_str, 10);
 		strcat(name, number_str);
-	}
+	//}
 	////////////////////////////////////////////////////////////////
 	// successfully leaving the function	
 	return name;

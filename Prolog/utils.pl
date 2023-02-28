@@ -17,6 +17,27 @@ utils__detect_not_all_code_paths_return(Return_value, Return_type) :-
         )
     ).
 
+%% Removes the line number suffix from a string, output by the parser (Eg: "_183").
+%% Parameters:
+%%  String_with_suffix: The string to remove the suffix from
+%%  String_without_suffix: The string without the suffix
+%% Eg: utils__strip_suffix("x__183", Result) -> Result = "x_"
+utils__strip_suffix(String_with_suffix, Result_without_suffix) :-
+    utils__reverse_string(String_with_suffix, Reversed_string),
+    split_string(Reversed_string, "_", "", [_ | Rest]),
+    utils__join(Rest, "_", Result_reversed),
+    utils__reverse_string(Result_reversed,Result_without_suffix).
+
+%% Reverses a string
+%% Parameters:
+%%  String_to_reverse: The string to reverse
+%%  String_reversed: The reversed string
+%% Eg: utils__reverse_string("abc", Result) -> Result = "cba"
+utils__reverse_string(String_to_reverse,String_reversed):-
+    string_codes(String_to_reverse, Codes),
+    reverse(Codes, Reversed_codes),
+    string_codes(String_reversed, Reversed_codes).
+
 %% Removes the last character if it is a comma
 %% Parameters:
 %%  String_with_comma: The string to remove the comma from
@@ -29,12 +50,25 @@ utils__strip_right_comma(String_with_comma, String_without_comma) :-
             String_without_comma = String_with_comma
     ).
 
-% Join a list of strings together
-% Eg: join(["a","b","c"],Result) -> Result = "abc"
-utils__join([], "").
-utils__join([String | More_strings], Result) :-
-    utils__join(More_strings, Strings_join_so_far),
-    concat_string([String, Strings_join_so_far], Result).
+%% Join a list of strings together
+%% Parameters:
+%%  Strings: The list of strings to join
+%%  Result: The joined string
+%% Eg: join(["a","b","c"], Result) -> Result = "abc"
+utils__join(Strings, Result) :-
+    utils__join(Strings, "", Result).
+
+% Join a list of strings together with a string separator
+%% Parameters:
+%%  Strings: The list of strings to join
+%%  Separator: The string to join the strings with
+%%  Result: The joined string
+%% Eg: join(["a","b","c"], "|", Result) -> Result = "a|b|c|"
+utils__join([], _, "").
+% utils__join([String], _, String).
+utils__join([String | More_strings], Separator, Result) :-
+    once utils__join(More_strings, Separator, More_strings_result),
+    concat_string([String, Separator, More_strings_result], Result).
 
 %% Assigns a value to a variable, with a return of the assigned value
 %% Params:
