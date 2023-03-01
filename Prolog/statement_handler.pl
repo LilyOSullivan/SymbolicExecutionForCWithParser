@@ -21,7 +21,7 @@ function_handler(_, _, _, _, _).
 function_handler(Function_info, Arguments, Return_value) :-
     utils__get_clean_function_info(Function_info, _, Params, Body, Return_type),
     once utils__assign_arguments_to_parameters(Arguments, Params),
-    statement_handler(Body, Return_value),
+    statement_handler(Body, return(Return_value, Return_type)),
     utils__detect_not_all_code_paths_return(Return_value, Return_type).
 
 %% Declare all parameters as variables
