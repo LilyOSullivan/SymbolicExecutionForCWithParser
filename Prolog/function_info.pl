@@ -11,7 +11,7 @@
 %% It maintains the parsed-term for a function definition from the parser
 %%
 %% It holds a singular term:
-%%      Function_definition in the form  function_definition(Function_name, Params, Body, Return_type)
+%%      Function_definition in the form function_definition(Function_name, Params, Body, Return_type)
 %%
 %% function_info structure:
 %%  function_info{function_definition(Function_name, Params, Body, Return_type)}

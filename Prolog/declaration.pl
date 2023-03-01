@@ -50,9 +50,9 @@ declaration(charpointer, [C_variable | Rest]) :-
 %%  Variable: The variable to get the name of
 %%  Name: The name of the variable
 %% Eg: declaration__get_variable_name(UC_x, Result) -> Result = "x"
-declaration__get_variable_name(Variable,Name) :-
-    get_var_info(C_variable, name, Parser_name),
+declaration__get_variable_name(Variable, Name) :-
+    get_var_info(Variable, name, Parser_name),
     atom_string(Parser_name, Parser_name_as_string),
     % Strip 'LC_' or 'UC_' from the variable name
     sub_string(Parser_name_as_string, 3, _, 0, Stripped_parser_name),
-    utils__strip_suffix(Stripped_parser_name, C_name).
+    utils__strip_suffix(Stripped_parser_name, Name).

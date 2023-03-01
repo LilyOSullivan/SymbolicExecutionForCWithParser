@@ -65,7 +65,6 @@ utils__join(Strings, Result) :-
 %%  Result: The joined string
 %% Eg: join(["a","b","c"], "|", Result) -> Result = "a|b|c|"
 utils__join([], _, "").
-% utils__join([String], _, String).
 utils__join([String | More_strings], Separator, Result) :-
     once utils__join(More_strings, Separator, More_strings_result),
     concat_string([String, Separator, More_strings_result], Result).
@@ -103,35 +102,17 @@ utils__assign_arguments_to_parameters([Argument | More_arguments], [declaration(
     utils__assignment(Parameter, Argument, _),
     utils__assign_arguments_to_parameters(More_arguments, More_parameters).
 
-%% Normalises the return value of a function.
-%% Params
-%%  Return_value: The value returned by the function
-%%  Return_type: The return type of the function
-%%  Normalised_return_value: The 'Return_value' normalised
-%% Eg: utils__normalise_return(1+5-0, int, Result) -> Result = 6
-utils__normalise_return(Return_value, Return_type, Normalised_return_value) :-
-    (Return_type \== void ->
-        (
-            utils__c_to_ptc_type(Return_type, Ptc_type),
-            ptc_solver__variable([Normalised_return_value], Ptc_type),
-            ptc_solver__sdl(Normalised_return_value = Return_value),
-            once ptc_solver__label_integers([Normalised_return_value]),
-            !
-        )
-    ;
-        (
-            Normalised_return_value = Return_value
-        )
-    ).
-
+%% Copies the function_information, while retaining any assigned values
+%% such as global variables.
 utils__get_clean_function_info(Function_info, Function_name, Parameters, Body, Return_type) :-
     function_info__get_term(Function_info, Function_definition),
     copy_term(Function_definition, Function_definition_copy, Attributed_variables_mapping),
     util__unify_copy_term_mapping(Attributed_variables_mapping),
     Function_definition_copy = function_definition(Function_name, Parameters, Body, Return_type).
 
+%% Unifies attributed variables with the new copies creates as a result of copy_term
 util__unify_copy_term_mapping([]).
-util__unify_copy_term_mapping([[Attributed_variable|Free_variable]|More_variable_mappings]) :-
+util__unify_copy_term_mapping([[Attributed_variable | Free_variable] | More_variable_mappings]) :-
     Attributed_variable = Free_variable,
     util__unify_copy_term_mapping(More_variable_mappings).
 

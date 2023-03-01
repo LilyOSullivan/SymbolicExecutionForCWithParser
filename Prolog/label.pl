@@ -7,8 +7,13 @@
 %% The parameter is a list of declaration predicates, as output by the parser
 %% Eg: [declaration(integer,[x]), declaration(double,[a])]
 label_collectively([void]) :- !.
-label_collectively(Parameters) :-
-    label__group_by_ptc_type(Parameters, Grouped_parameters),
+label_collectively(Parameters, Function_return_value) :-
+    % Make the return value blend in as a declaration
+    c_var__get_ptc_type(Function_return_value, Ptc_type),
+    Function_return_as_declaration = [declaration(Ptc_type, [Function_return_value])],
+    append(Parameters, Function_return_as_declaration, Parameters_and_return),
+
+    label__group_by_ptc_type(Parameters_and_return, Grouped_parameters),
     label(Grouped_parameters).
 
 %% Groups declarations into the following structure: [[Type,[Variable,...]],[Type,[Variable,...]]...]
