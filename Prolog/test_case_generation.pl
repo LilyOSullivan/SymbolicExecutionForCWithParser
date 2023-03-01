@@ -26,10 +26,10 @@ cunit__write_test_case(Filename, Function_name, Params, Return_value, Return_typ
             printf(testcase, "\n", [])
         )
     ),
-    create_declaration_section(Params, "", Declaration_section),
+    create_declaration_section(Params, Declaration_section),
     cunit__create_assert(Function_name, Params, Return_value, Return_type, CUnit_assert),
     get_test_name(Test_name),
-    printf(testcase, "void %s(void) {\n\n%s\n%s}\n", [Test_name, Declaration_section, CUnit_assert]),
+    printf(testcase, "void %s(void) {\n%s%s}\n", [Test_name, Declaration_section, CUnit_assert]),
     cunit__write_main(Test_suite_name),
     close(testcase).
 
@@ -111,7 +111,6 @@ get_test_name(Test_name) :-
 %%      [declaration(int, [LC_x{"x"}]),declaration(int, [LC_y{"y"}])],
 %%      "", All_variable_names
 %%     )
-%%
 %%  -> All_variable_names = "x,y"
 var_names_as_parameters([], Variable_name_accumulator, All_variable_names) :-
     utils__strip_right_comma(Variable_name_accumulator, All_variable_names).
@@ -134,19 +133,19 @@ var_names_as_parameters([declaration(_, [Variable | _])|More_variables], Variabl
 %% Declaration_accumulator: The accumulator for the declarations, as a continuous string
 %% All_declarations: The variable that will be instantiated with the final string
 %% Eg: create_declaration_section(
-%%      [declaration(int, [LC_x{"x"}]),declaration(int, [LC_y{"y"}])],
-%%      "", All_declarations
-%%     )
-%%
+%%      [declaration(int, [LC_x{"x"}]), declaration(int, [LC_y{"y"}])], Declaration_section)
 %%  -> All_declarations = "int x = 5;\nint y = -2;\n"
-create_declaration_section([void], Declaration_accumulator, Declaration_accumulator) :- !.
+create_declaration_section(Declarations, Declaration_section) :-
+    create_declaration_section(Declarations, "", All_declarations),
+    concat_string(["\n", All_declarations, "\n"], Declaration_section).
+create_declaration_section([void], "").
 create_declaration_section([], Declaration_accumulator, Declaration_accumulator).
-create_declaration_section([declaration(_, [Variable | _])|More_variables], Declaration_accumulator, All_declarations) :-
+create_declaration_section([declaration(_, [Variable]) | More_variables], Declaration_accumulator, All_declarations) :-
     c_var__create_declaration(Variable, Declaration),
     sprintf(Result, "%s%s", [Declaration_accumulator, Declaration]),
     create_declaration_section(More_variables, Result, All_declarations),
     !.
-% create_declaration_section([declaration(_, [Variable|_])|More_variables], Declaration_accumulator, All_declarations) :-
+% create_declaration_section([declaration(_, [Variable]) | More_variables], Declaration_accumulator, All_declarations) :-
 %     c_array__create_declaration(Variable, Declaration),
 %     sprintf(Result, "%s%s", [Declaration_accumulator, Declaration]),
 %     create_declaration_section(More_variables, Result, All_declarations),
