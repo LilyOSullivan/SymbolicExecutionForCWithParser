@@ -319,8 +319,8 @@ and the assignmentstring (none given in this function) into the linked list List
 		strcpy(C_name, declarator);		// copy C name before modifying declarator
 		strcpy(vardetails, "other");	// store the variable details
 		strcpy(declarator, case_name(declarator)); 	// change to prolog terms - OUTPUT_FUNCTIONS.H
-		PushVar(declarator, Param);	 // push onto Stack (SCOPES.H)
-		strcpy(declarator, scope_details(declarator, Param)); // add scope lines - OUTPUT_FUNCTIONS.H
+		PushVar(declarator, YES);	 // push onto Stack (SCOPES.H)
+		strcpy(declarator, scope_details(declarator, YES)); // add scope lines - OUTPUT_FUNCTIONS.H
 		printnames(declarator, C_name);	// print prolog & c name to file - OUTPUT_FUNCTIONS.H
 	}
 

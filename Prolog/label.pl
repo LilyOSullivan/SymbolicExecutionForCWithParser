@@ -22,7 +22,7 @@ label_collectively(Parameters, Function_return_value) :-
 %%   - Value assigned the result
 %% Eg: [declaration(integer,[x]), declaration(double,[a])] -> [[integer,[x]],[double,[a]]]
 label__group_by_ptc_type([], []).
-label__group_by_ptc_type([declaration(_Type, [Variable | _]) | More_declarations], Grouped_variables) :-
+label__group_by_ptc_type([declaration(_Type, [Variable]) | More_declarations], Grouped_variables) :-
     label__group_by_ptc_type(More_declarations, Grouped_declarations),
     c_var__get_ptc_type(Variable, Type),
     c_var__get_in_var(Variable, In_var),

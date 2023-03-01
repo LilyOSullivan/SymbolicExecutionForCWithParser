@@ -1021,6 +1021,7 @@ parameter_declaration
 			P = CreatePList();	// PARAMETERS.H
 		}	
 		PushPList($2, P);		// PARAMETERS.H
+		Push(yylineno);	// SCOPES.H
 		addvariables($2, YES);			// DECL_FUNCTIONS.H
 		strcpy($$, findvariabledetails($1));	// DECL_FUNCTIONS.H	
 	}
