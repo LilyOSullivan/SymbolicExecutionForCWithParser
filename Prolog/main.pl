@@ -100,6 +100,11 @@ main(Filename_without_extension, Function_name, Path_to_C_file) :-
     string(Filename_without_extension),
     atom(Function_name),
     string(Path_to_C_file),
+    ptc_solver__clean_up,
+    ptc_solver__default_declarations,
+    ptc_solver__type(char, integer, range_bounds(33, 126)),
+    % 33-126 are the printable ASCII characters
+    % https://www.ascii-code.com
     concat_string([Path_to_C_file, "/", Filename_without_extension, ".pl"], Prolog_file),
     read_prolog_file(Prolog_file, Terms),
     declare_functions(Terms),
@@ -115,12 +120,6 @@ main(Filename_without_extension, Function_name, Path_to_C_file) :-
 %%                 Eg: get_sign
 %%  Path_to_C_file: The folder-path to the C file to be symbolically executed.
 setup_test_driver(Function_name,Path_to_C_file) :-
-    ptc_solver__clean_up,
-    ptc_solver__default_declarations,
-    ptc_solver__type(char, integer, range_bounds(33, 126)),
-    % 33-126 are the printable ASCII characters
-    % https://www.ascii-code.com
-
     get_flag(unix_time, Unix_time),
     % Format: 24Hours_Minutes_Seconds__days_months_year
     % Eg: 14_34_18__03_02_23
@@ -159,7 +158,7 @@ process_global_variables([]).
 process_global_variables([Term | More_terms]) :-
     % Statements 999 is a dummy variable created by the parser
     (Term = global_variables(Statements, _), Statements \== 999 ->
-        statement_handler(Statements, _) % From Statement_handler.pl
+        statement_handler(Statements, return(_,_)) % From Statement_handler.pl
     ;
         true
     ),
