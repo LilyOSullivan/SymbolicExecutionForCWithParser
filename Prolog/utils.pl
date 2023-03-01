@@ -21,7 +21,7 @@ utils__detect_not_all_code_paths_return(Return_value, Return_type) :-
 %% Parameters:
 %%  String_with_suffix: The string to remove the suffix from
 %%  String_without_suffix: The string without the suffix
-%% Eg: utils__strip_suffix("x__183", Result) -> Result = "x_"
+%% Eg: utils__strip_suffix("__x__183", Result) -> Result = "__x_"
 utils__strip_suffix(String_with_suffix, Result_without_suffix) :-
     utils__reverse_string(String_with_suffix, Reversed_string),
     split_string(Reversed_string, "_", "", [_ | Rest]),
@@ -63,8 +63,9 @@ utils__join(Strings, Result) :-
 %%  Strings: The list of strings to join
 %%  Separator: The string to join the strings with
 %%  Result: The joined string
-%% Eg: join(["a","b","c"], "|", Result) -> Result = "a|b|c|"
+%% Eg: utils__join(["a","b","c"], "|", Result) -> Result = "a|b|c"
 utils__join([], _, "").
+utils__join([String], _, String) :- !.
 utils__join([String | More_strings], Separator, Result) :-
     once utils__join(More_strings, Separator, More_strings_result),
     concat_string([String, Separator, More_strings_result], Result).
