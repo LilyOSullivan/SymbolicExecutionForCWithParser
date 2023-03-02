@@ -105,3 +105,8 @@ c_var__create_declaration(Variable, int, Declaration) :-
     c_var__get_in_var(Variable, Ptc_in_var),
     c_var__get_name(Variable, Var_name),
     sprintf(Declaration, "\t%s %s = %d;\n", [int, Var_name, Ptc_in_var]).
+c_var__create_declaration(Variable, char, Declaration) :-
+    c_var__get_in_var(Variable, Ptc_in_var),
+    char_code(Char, Ptc_in_var),
+    c_var__get_name(Variable, Var_name),
+    sprintf(Declaration, "\t%s %s = '%a';\n", [char, Var_name, Char]).

@@ -5,18 +5,6 @@ utils__get_all_array_inputs([], []).
 utils__get_all_array_inputs([(_, Value) | Rest], [Value | Rest2]) :-
 	utils__get_all_array_inputs(Rest, Rest2).
 
-utils__detect_not_all_code_paths_return(Return_value, Return_type) :-
-    (Return_type \== void, free(Return_value) ->
-        (
-            writeln("SOURCE-ERROR: Not all code paths return a value!!"),
-            Return_value = 0
-        )
-    ;
-        (
-            true % All okay, no error
-        )
-    ).
-
 %% Removes the line number suffix from a string, output by the parser (Eg: "_183").
 %% Parameters:
 %%  String_with_suffix: The string to remove the suffix from

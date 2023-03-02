@@ -7,12 +7,8 @@
 %% The parameter is a list of declaration predicates, as output by the parser
 %% Eg: [declaration(integer,[x]), declaration(double,[a])]
 label_collectively([void]) :- !.
-label_collectively(Parameters, Function_return_value) :-
-    % Make the return value blend in as a declaration
-    Function_return_as_declaration = [declaration(_, [Function_return_value])],
-    append(Parameters, Function_return_as_declaration, Parameters_and_return),
-
-    once label__group_by_ptc_type(Parameters_and_return, Grouped_parameters),
+label_collectively(Parameters) :-
+    once label__group_by_ptc_type(Parameters, Grouped_parameters),
     label(Grouped_parameters).
 
 %% Groups declarations into the following structure: [[Type,[Variable,...]],[Type,[Variable,...]]...]
@@ -21,9 +17,6 @@ label_collectively(Parameters, Function_return_value) :-
 %%   - Value assigned the result
 %% Eg: [declaration(integer,[x]), declaration(double,[a])] -> [[integer,[x]],[double,[a]]]
 label__group_by_ptc_type([], []).
-label__group_by_ptc_type([void], []).
-label__group_by_ptc_type([void | More_declarations], Grouped_declarations) :-
-    label__group_by_ptc_type(More_declarations, Grouped_declarations).
 label__group_by_ptc_type([declaration(_Type, [Variable]) | More_declarations], Grouped_variables) :-
     label__group_by_ptc_type(More_declarations, Grouped_declarations),
     c_var__get_ptc_type(Variable, Type),
@@ -41,7 +34,6 @@ label__group_by_ptc_type([declaration(_Type, [Variable]) | More_declarations], G
         Grouped_variables = [[Type, [In_var]] | Grouped_declarations]
     ).
 
-label([void]).
 label([]).
 
 %% Collectively pass integer-variables to be labelled to the solver

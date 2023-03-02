@@ -6,10 +6,9 @@
 function_handler(Filename, Function_name, Body, Params, Return_type) :-
     parameter_handler(Params),
     statement_handler(Body, return(Return_value, Return_type)),
-    utils__detect_not_all_code_paths_return(Return_value, Return_type),
-    once label_collectively(Params,Return_value),
-    c_var__get_out_var(Return_value, Normalised_return_value),
-    cunit__write_test_case_all(Filename, Function_name, Params, Normalised_return_value, Return_type).
+    once label_collectively(Params),
+    c_var__get_out_var(Return_value, Return_value_normalised),
+    cunit__write_test_case_all(Filename, Function_name, Params, Return_value_normalised, Return_type).
 function_handler(_, _, _, _, _).
 
 %% This variant of the function handler is used for function calls inside a function.
@@ -18,12 +17,11 @@ function_handler(_, _, _, _, _).
 %%  Function_name: The name of the function to call
 %%  Arguments: The arguments to pass to the function
 %%  Return_value: The returned value from the function
-function_handler(Function_info, Arguments, Return_value) :-
+function_handler(Function_info, Arguments, Return_value_normalised) :-
     utils__get_clean_function_info(Function_info, _, Params, Body, Return_type),
     once utils__assign_arguments_to_parameters(Arguments, Params),
     statement_handler(Body, return(Return_value, Return_type)),
-    utils__detect_not_all_code_paths_return(Return_value, Return_type).
-
+    c_var__get_out_var(Return_value, Return_value_normalised).
 %% Declare all parameters as variables
 parameter_handler([]).
 parameter_handler([void]) :- !.
