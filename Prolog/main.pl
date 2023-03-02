@@ -1,11 +1,15 @@
 :- lib(ptc_solver).
 
-:- ['utils'].
 :- use_module(c_var).
+:- use_module(function_info).
+
 :- ['expressions'].
 :- ['statement_handler'].
+:- ['utils'].
 
-:- dynamic var_names/2.
+%% sub_atom/5 is used in creating function_info variables.
+%% It strips the LC_/UC_ from the function name, while retaining it as an atom.
+:- import sub_atom/5 from iso_light.
 
 %% Global values:
 %%  test_id (Number, value:1): This is an Id used to identify test cases generated
@@ -80,8 +84,8 @@ regression_tests.
 
 %% A shortcut predicate to main/3 outputting to the Prolog directory
 %% Useful for development. This is not called in code, only by a developer
-main(Filename_without_extension, Function_name) :-
-    main(Filename_without_extension, Function_name, "./").
+main(Function_name) :-
+    main("sign", Function_name, "./").
 
 %% The entrypoint to the program
 %% Filename_without_extension: The name of the file without the .pl extension
@@ -96,30 +100,29 @@ main(Filename_without_extension, Function_name, Path_to_C_file) :-
     string(Filename_without_extension),
     atom(Function_name),
     string(Path_to_C_file),
-
     ptc_solver__clean_up,
     ptc_solver__default_declarations,
     ptc_solver__type(char, integer, range_bounds(33, 126)),
     % 33-126 are the printable ASCII characters
     % https://www.ascii-code.com
-
     concat_string([Path_to_C_file, "/", Filename_without_extension, ".pl"], Prolog_file),
     read_prolog_file(Prolog_file, Terms),
-    setval(parsed_terms, Terms),
-    find_function_information(Terms, Function_name, Params, Body, Return_type),
-    setup_test_driver(Filename_without_extension, Function_name, Path_to_C_file),
+    declare_functions(Terms),
     process_global_variables(Terms),
+    once find_function_information(Terms, Function_name, Function_info),
+    utils__get_clean_function_info(Function_info, _, Params, Body, Return_type),
+    setup_test_driver(Function_name, Path_to_C_file),
     function_handler(Filename_without_extension, Function_name, Body, Params, Return_type). % From Statement_handler.pl
 
-%           Possibly a merge-term of the function name per setval?
-%% Setup used for each function by the test-driver
-setup_test_driver(Filename, Function_name,Path_to_C_file) :-
-    concat_string([Path_to_C_file, "/", Filename, ".names"], Names_filename),
-    compile(Names_filename),
+%% Setup for the test-driver
+%% Parameters:
+%%  Function_name: The entry function to be tested. This should be an atom.
+%%                 Eg: get_sign
+%%  Path_to_C_file: The folder-path to the C file to be symbolically executed.
+setup_test_driver(Function_name,Path_to_C_file) :-
     get_flag(unix_time, Unix_time),
-
-    % Format: days/months/year__24Hours_Minutes_Seconds
-    % Eg: 03_02_23__14_34_18
+    % Format: 24Hours_Minutes_Seconds__days_months_year
+    % Eg: 14_34_18__03_02_23
     local_time_string(Unix_time,"%H_%M_%S__%d_%m_%y", Current_date_as_string),
     concat_string([Function_name, "_tests_", Current_date_as_string], Folder_name),
     concat_string([Path_to_C_file, "/", Folder_name, "/"], Path_to_test_directory),
@@ -142,7 +145,6 @@ setup_test_driver(Filename, Function_name,Path_to_C_file) :-
 %%  Result: The contents of the prolog file
 read_prolog_file(Relative_path, Result) :-
     open(Relative_path, read, Stream),
-
     % Asserting breaks the variable links.
     % Return the content directly instead.
     read_term(Stream, Parsed_terms, []),
@@ -156,7 +158,7 @@ process_global_variables([]).
 process_global_variables([Term | More_terms]) :-
     % Statements 999 is a dummy variable created by the parser
     (Term = global_variables(Statements, _), Statements \== 999 ->
-        statement_handler(Statements, _) % From Statement_handler.pl
+        statement_handler(Statements, return(_,_)) % From Statement_handler.pl
     ;
         true
     ),
@@ -169,11 +171,17 @@ process_global_variables([Term | More_terms]) :-
 %%  Params: The parameters of the function to be found
 %%  Body: The body of the function to be found
 %%  Return_type: The return type of the function to be found
-find_function_information([function_definition(Function_name, Params, Body, Return_type) | _], Function_name, Params, Body, Return_type) :-
-    !.
-find_function_information([_ | More_terms], Function_name, Params, Body, Return_type) :-
-    find_function_information(More_terms, Function_name, Params, Body, Return_type).
-find_function_information([], _, _, _, _).
+find_function_information([function_definition(Function_info, _, _ , _) | More_terms], Function_name, Return_function_info) :-
+    function_info__get_name(Function_info, Current_function_name),
+    (Current_function_name == Function_name ->
+        Return_function_info = Function_info,
+        !
+    ;
+        find_function_information(More_terms, Function_name, Return_function_info)
+    ).
+find_function_information([_ | More_terms], Function_name, Return_function_info) :-
+    find_function_information(More_terms, Function_name, Return_function_info).
+find_function_information([], _, _) :- !, false.
 
 %% Finds the name of a function from the parser-result prolog file
 %% Parameters:
@@ -183,3 +191,16 @@ find_function_name([function_definition(Function_name, _, _, _) | _], Function_n
 find_function_name([_ | More_terms], Function_name) :-
     find_function_name(More_terms, Function_name).
 find_function_name([], _) :- false.
+
+
+declare_functions([]).
+declare_functions([function_definition(Function_info, Params, Body, Return_type) | More_terms]) :-
+    get_var_info(Function_info, name, Function_name_as_atom),
+    % Strip 'LC_' or 'UC_' from the function name
+    sub_atom(Function_name_as_atom, 3, _, 0, Stripped_function_name),
+    Function_def = function_definition(Stripped_function_name, Params, Body, Return_type),
+    function_info__create(Function_def, Function_info),
+    declare_functions(More_terms),
+    !.
+declare_functions([_ | More_terms]) :-
+    declare_functions(More_terms).

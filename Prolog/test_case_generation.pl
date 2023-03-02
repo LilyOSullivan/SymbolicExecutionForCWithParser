@@ -7,13 +7,6 @@ cunit__write_test_case_all(Filename, Function_name, Params, Return_value, Return
     cunit__write_test_case(Filename, Function_name, Params, Return_value, Return_type),
     fail.
 
-%% Generate test cases for a function with no parameters
-%% A function with no parameters does not generate test cases, for now.
-% cunit__write_test_case(_, Function_name, [void], _, _) :-
-%     write("No test cases to generate for "),
-%     writeln(Function_name),
-%     !.
-
 %% Generate a singular test case
 cunit__write_test_case(Filename, Function_name, Params, Return_value, Return_type) :-
     getval(test_folder_path, Path_to_test_directory),
@@ -33,14 +26,13 @@ cunit__write_test_case(Filename, Function_name, Params, Return_value, Return_typ
             printf(testcase, "\n", [])
         )
     ),
-    create_declaration_section(Params, "", Declaration_section),
+    create_declaration_section(Params, Declaration_section),
     cunit__create_assert(Function_name, Params, Return_value, Return_type, CUnit_assert),
     get_test_name(Test_name),
-    printf(testcase, "void %s(void) {\n\n%s\n%s}\n", [Test_name, Declaration_section, CUnit_assert]),
+    printf(testcase, "void %s(void) {\n%s%s}\n", [Test_name, Declaration_section, CUnit_assert]),
     cunit__write_main(Test_suite_name),
     close(testcase).
 
-% IDEA: Split main function string among multiple strings
 %% Create the main function for the test suite
 cunit__write_main(Test_suite_name) :-
     getval(test_folder_path, Path_to_test_directory),
@@ -61,7 +53,7 @@ cunit__add_test_cases_to_suite([], Add_to_suite_accumulator, Add_to_suite_accumu
 
 %% Adds test cases to the test suite. This is the predicate that performs the operation
 %% of cunit__add_test_cases_to_suite/1
-cunit__add_test_cases_to_suite([Test_case|More_test_cases], Add_to_suite_accumulator, Add_all_test_cases_to_suite_string) :-
+cunit__add_test_cases_to_suite([Test_case | More_test_cases], Add_to_suite_accumulator, Add_all_test_cases_to_suite_string) :-
     sprintf(Accumulator_with_current_test_case, "%s\tif (NULL == CU_add_test(pSuite, \"test case\", %s)) {\n\t\tCU_cleanup_registry();\n\t\treturn CU_get_error();\n\t}\n", [Add_to_suite_accumulator, Test_case]),
     cunit__add_test_cases_to_suite(More_test_cases, Accumulator_with_current_test_case, Add_all_test_cases_to_suite_string).
 
@@ -75,7 +67,6 @@ cunit__create_assert(Function_name, Params, Return_value, Return_type, CUnit_ass
     var_names_as_parameters(Params, "", Var_names),
     sprintf(CUnit_assert, "\tCU_ASSERT(%s(%s) == %s);\n", [Function_name, Var_names, Return_value_as_string]).
 
-% FIXME: I imagine this is possible to be written without the use of an if
 %% Checks if this is the first test case being generated.
 %% This is to prevent the inclusion of the CUnit header files multiple times
 %% in the same file due to backtracking
@@ -120,17 +111,17 @@ get_test_name(Test_name) :-
 %%      [declaration(int, [LC_x{"x"}]),declaration(int, [LC_y{"y"}])],
 %%      "", All_variable_names
 %%     )
-%%
 %%  -> All_variable_names = "x,y"
 var_names_as_parameters([], Variable_name_accumulator, All_variable_names) :-
     utils__strip_right_comma(Variable_name_accumulator, All_variable_names).
-var_names_as_parameters([declaration(_, [Variable|_])|More_variables], Variable_name_accumulator, All_variable_names) :-
+var_names_as_parameters([declaration(_, [Variable])|More_variables], Variable_name_accumulator, All_variable_names) :-
     c_var__is_variable(Variable),
     !,
     c_var__get_name(Variable, Var_name),
     sprintf(Result, "%s%s,", [Variable_name_accumulator, Var_name]),
     var_names_as_parameters(More_variables, Result, All_variable_names).
-var_names_as_parameters([declaration(_, [Variable|_])|More_variables], Variable_name_accumulator, All_variable_names) :-
+
+var_names_as_parameters([declaration(_, [Variable]) | More_variables], Variable_name_accumulator, All_variable_names) :-
     c_array__is_array(Variable),
     !,
     c_array__get_name(Variable, Var_name),
@@ -142,19 +133,19 @@ var_names_as_parameters([declaration(_, [Variable|_])|More_variables], Variable_
 %% Declaration_accumulator: The accumulator for the declarations, as a continuous string
 %% All_declarations: The variable that will be instantiated with the final string
 %% Eg: create_declaration_section(
-%%      [declaration(int, [LC_x{"x"}]),declaration(int, [LC_y{"y"}])],
-%%      "", All_declarations
-%%     )
-%%
+%%      [declaration(int, [LC_x{"x"}]), declaration(int, [LC_y{"y"}])], Declaration_section)
 %%  -> All_declarations = "int x = 5;\nint y = -2;\n"
-create_declaration_section([void], Declaration_accumulator, Declaration_accumulator) :- !.
+create_declaration_section(Declarations, Declaration_section) :-
+    create_declaration_section(Declarations, "", All_declarations),
+    concat_string(["\n", All_declarations, "\n"], Declaration_section).
+create_declaration_section([void], "").
 create_declaration_section([], Declaration_accumulator, Declaration_accumulator).
-create_declaration_section([declaration(_, [Variable|_])|More_variables], Declaration_accumulator, All_declarations) :-
+create_declaration_section([declaration(_, [Variable]) | More_variables], Declaration_accumulator, All_declarations) :-
     c_var__create_declaration(Variable, Declaration),
     sprintf(Result, "%s%s", [Declaration_accumulator, Declaration]),
     create_declaration_section(More_variables, Result, All_declarations),
     !.
-% create_declaration_section([declaration(_, [Variable|_])|More_variables], Declaration_accumulator, All_declarations) :-
+% create_declaration_section([declaration(_, [Variable]) | More_variables], Declaration_accumulator, All_declarations) :-
 %     c_array__create_declaration(Variable, Declaration),
 %     sprintf(Result, "%s%s", [Declaration_accumulator, Declaration]),
 %     create_declaration_section(More_variables, Result, All_declarations),

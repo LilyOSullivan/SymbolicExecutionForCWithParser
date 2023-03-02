@@ -10,7 +10,6 @@
 :- export c_var__is_variable/1.
 :- export c_var__create_declaration/2.
 
-
 %% The module for the c_var attributed variable
 %% It maintains meta-data about a singular non-collection variable
 %% declared in the C source
@@ -57,18 +56,18 @@ print_c_var(_{cvar(_CType,_PTCType, _In, _Out, Name)}, Print_value) :-
         Print_value = cvar(Name).
 
 %% Constructor for a c_var
-c_var__create(C_type, Ptc_type,Ptc_variable_in, Var_name, C_var_instantiated) :-
+c_var__create(C_type, Ptc_type, Ptc_variable_in, Var_name, C_var_instantiated) :-
     add_attribute(C_var_instantiated, cvar(C_type, Ptc_type, Ptc_variable_in, Ptc_variable_in, Var_name)).
 
 %% Returns the c-type of the c_var
-c_var__get_c_type(_Var{C_var}, C_Type) :-
+c_var__get_c_type(_Var{C_var}, C_type) :-
     -?->
-        C_var = cvar(C_Type, _,_, _, _).
+        C_var = cvar(C_type, _, _, _, _).
 
 %% Returns ptc type of the c_var
-c_var__get_ptc_type(_Var{C_var}, Ptc_Type) :-
+c_var__get_ptc_type(_Var{C_var}, Ptc_type) :-
     -?->
-        C_var = cvar(_, Ptc_Type,_, _, _).
+        C_var = cvar(_, Ptc_type, _, _, _).
 
 %% Returns the name in the source code of the c_var
 c_var__get_name(_Var{C_var}, Name) :-
@@ -86,15 +85,16 @@ c_var__get_out_var(_Var{C_var}, Out_var) :-
         C_var = cvar(_, _, _, Out_var, _).
 
 %% Sets the out-value of the c_var
-c_var__set_out_var(_Var{C_var}, Value) :-
+c_var__set_out_var(_Var{C_var}, New_out_variable) :-
     -?->
-        setarg(4, C_var, Value).
+        setarg(4, C_var, New_out_variable).
 
 %% Passes if the variable is a c_var
 %% Fails otherwise
-c_var__is_variable(_{C_var}) :-
+c_var__is_variable(_Var{C_var}) :-
     -?->
-        C_var = cvar(_, _, _, _, _).
+        C_var = cvar(_, _, _, _, Name),
+        nonvar(Name).
 
 %% Creates a declaration in C for the c_var
 c_var__create_declaration(Variable, Declaration) :-
@@ -105,3 +105,8 @@ c_var__create_declaration(Variable, int, Declaration) :-
     c_var__get_in_var(Variable, Ptc_in_var),
     c_var__get_name(Variable, Var_name),
     sprintf(Declaration, "\t%s %s = %d;\n", [int, Var_name, Ptc_in_var]).
+c_var__create_declaration(Variable, char, Declaration) :-
+    c_var__get_in_var(Variable, Ptc_in_var),
+    char_code(Char, Ptc_in_var),
+    c_var__get_name(Variable, Var_name),
+    sprintf(Declaration, "\t%s %s = '%a';\n", [char, Var_name, Char]).
