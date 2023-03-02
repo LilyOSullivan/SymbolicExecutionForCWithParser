@@ -684,7 +684,6 @@ struct_or_union_specifier
 		else
 			strcpy(struct_name, "uc_");	
 		strcat(struct_name, $2);
-		printnames(struct_name, $2);
 		
 		////////////////////////////////////////////////////
 		strcpy($$, $1); strcat($$, ", "); 
@@ -710,7 +709,6 @@ struct_or_union_specifier
 		else
 			strcpy(struct_name, "uc_");	
 		strcat(struct_name, $2);
-		printnames(struct_name, $2);
 		
 		////////////////////////////////////////////////////		
 		strcpy($$, $1); strcat($$, ", "); 
@@ -818,7 +816,6 @@ enum_specifier
 		enum_name = (char *) malloc(STRING_LIMIT);
 		
 		strcpy(enum_name, change_enum($2));	// ENUM_FUNCTIONS.H
-		printnames(enum_name, $2);		// OUTPUT_FUNCTIONS.H
 		
 		strcpy($$, "enum , "); strcat($$, "["); strcat($$, enum_name);		
 		strcat($$, "]");       strcat($$, ", ");strcat($$, "["); 
@@ -867,7 +864,6 @@ enumerator
 		char *enum_name;
 		enum_name = (char *) malloc(STRING_LIMIT);		
 		strcpy(enum_name, change_enum($1));	// ENUM_FUNCTIONS.H
-		printnames(enum_name, $1);		// OUTPUT_FUNCTIONS.H	
 		strcpy($$, enum_name);
 		add_enums($1, -1);			// ENUM_FUNCTIONS.H
 		////////////////////////////////////////////////////////////////
@@ -887,7 +883,6 @@ enumerator
 		int i;
 		enum_name = (char *) malloc(STRING_LIMIT);		
 		strcpy(enum_name, change_enum($1));	// ENUM_FUNCTIONS.H
-		printnames(enum_name, $1);		// OUTPUT_FUNCTIONS.H
 		strcpy($$, enum_name);				
 		i = atoi($3);				// change string to integer
 		add_enums($1, i); 			// ENUM_FUNCTIONS.H

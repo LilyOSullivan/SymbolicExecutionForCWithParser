@@ -1,11 +1,11 @@
-int check_scope()
-{
-    int x = 5;
-    {
-      int x = 10;
-    }
-    return x;
-}
+// int check_scope()
+// {
+//     int x = 5;
+//     {
+//       int x = 10;
+//     }
+//     return x;
+// }
 
 int equals_expression(int x) {
     x=(x=2)+1;

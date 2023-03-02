@@ -74,11 +74,6 @@ char * PLFile;		// name of the file to which prolog terms are written
 					// appended to in grammar.y
 					// appended to in print_dummy_dec/1 (in this header file)
 
-char * NAMESFile;	// name of the file with the Prolog and C names
-					// named in main parser function
-					// created in parse_file/1  before calling parser (in this header file)
-					// appended to in decl_functions.h
-
 ////////////////////////////////////////////////////////////////
 // *** FUNCTION PROTOTYPES
 ////////////////////////////////////////////////////////////////
@@ -188,14 +183,10 @@ int parse_file(char * infile)
 
 	////////////////////////////////////////////////////////////////
 	// variable declarations
-	FILE * names_ptr;	// pointer to temporary names file
 	FILE *fp;			// pointer to infile (.i file)
 
 	////////////////////////////////////////////////////////////////
-	// Create the NAMES file before parsing
-	if((names_ptr = fopen(NAMESFile, "w")) == NULL)
-		return parser_error(ERROR2);
-	fclose(names_ptr);
+
 
 	////////////////////////////////////////////////////////////////
 	// open the infile for reading

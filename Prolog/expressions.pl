@@ -126,7 +126,7 @@ evaluate_expression(pre_decrement(Assign_to, Decrement_operation), Expression_re
     evaluate_expression(pre_increment(Assign_to, Decrement_operation), Expression_result).
 
 %% Negation operator (Unary minus)
-%% A value's sign being turned flipped with the minus operator
+%% A value's sign being flipped with the minus operator
 %% Eg: -x
 evaluate_expression(-Expression, -Expression_result) :-
     evaluate_expression(Expression, Expression_result).

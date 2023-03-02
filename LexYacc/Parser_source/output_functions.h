@@ -16,7 +16,6 @@ Prolog terms to the .PL file
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
 char * getline(FILE *fp);
-void printnames(char prolog_str[], char c_str[]);
 char * case_name(char  * varname);
 char * scope_details(char * varname, int param);
 void printfunction(char inputstring[]);
@@ -59,61 +58,6 @@ This function is used by printnames() to get each line of the
 	////////////////////////////////////////////////////////////////
 	// successfully leaving the function with a line of the file
 	return line;
-}
-////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////
-
-void printnames(char prolog_str[], char c_str[])
-{
-////////////////////////////////////////////////////////////////////
-/*
-This function is called by a variety of other functions defined in the 
-header files of the PARSER. Its purpose is to add the Prolog name and 
-the C name, passed as parameters, to the NAMESFile, if they are not already
-present in that file.
-*/
-////////////////////////////////////////////////////////////////////
-
-	/////////////////////////////////////////////////////////////////
-	// variable declarations
-	FILE * namefile_ptr;				// pointer to the NAMES file
-	char * fileline;					// line from the file
-	char * namesline;					// line with Prolog and C name
-	char * prolog_name = prolog_str;	// input parameter - Prolog Name
-	char * c_name = c_str;				// input parameter - C Name
-	int found = 0;						// indicates if namesline is already in NAMES file
-
-	////////////////////////////////////////////////////////////////////
-	// Create the prolog and C name string
-	namesline = (char *) malloc(STRING_LIMIT);
-	strcpy(namesline, "var_names(\'");
-	strcat(namesline, prolog_name);
-	strcat(namesline, "\', \"");
-	strcat(namesline, c_name);
-	strcat(namesline, "\").");
-
-	////////////////////////////////////////////////////////////////////
-	// Search the file to see if the 'namesline' is already there
-	// if it is, set found to true (1)
-	namefile_ptr = fopen(NAMESFile, "r");
-	while (!feof(namefile_ptr))
-	{
-		fileline = (char *) malloc(STRING_LIMIT);
-		strcpy(fileline, getline(namefile_ptr));
-		if (strstr(fileline, namesline) != NULL)
-			found = 1;
-	}
-	fclose(namefile_ptr);
-
-	////////////////////////////////////////////////////////////////////
-	// Add the Prolog and C name if it is not already there (found == 0)
-	if (found == 0)
-	{
-		namefile_ptr = fopen(NAMESFile, "a");
-		fprintf(namefile_ptr, "var_names(\'%s\', \"%s\").\n", prolog_name, c_name);
-		fclose(namefile_ptr);
-	}
-	////////////////////////////////////////////////////////////////////
 }
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////

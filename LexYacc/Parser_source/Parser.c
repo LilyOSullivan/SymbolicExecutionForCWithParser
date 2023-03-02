@@ -50,7 +50,6 @@ int main (int argc, char * argv[])
 	ifile		 = (char *) malloc(STRINGLIMIT);
 	// allocate space to the global variables
 	PLFile = (char *) malloc(STRINGLIMIT);
-	NAMESFile = (char *) malloc(STRINGLIMIT);
 
 	/////////////////////////////////////////////////////////////////
 	// take the parameters passed and store to appropriate strings
@@ -81,13 +80,9 @@ int main (int argc, char * argv[])
 	//print_discontiguous(PLFile);
 
 	print_start_of_parsed_predicate(PLFile);
-	
-	
 
 	/////////////////////////////////////////////////////////////////
 	// set up path (filepath) & name of the .NAMES file (NAMESFile - global)
-	strcpy(NAMESFile, filepath);	strcat(NAMESFile, "\\\\");
-	strcat(NAMESFile, filename);	strcat(NAMESFile, ".names");
 
 	/////////////////////////////////////////////////////////////////
 	// PARSE the input file	-- parse .i file (ifile)

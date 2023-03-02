@@ -254,7 +254,6 @@ and the assignmentstring (none given in this function) into the linked list List
 		strcpy(declarator, case_name(declarator));	// add prolog name details
 		PushVar(declarator, Param);					// push onto stack (scopes.h)
 		strcpy(declarator, scope_details(declarator, Param)); // add prolog scope details
-		printnames(declarator, C_name);				// print prolog & c name to file 
 													// OUTPUT_FUNCTIONS.H
 	}
 	////////////////////////////////////////////////////////////////////
@@ -272,7 +271,6 @@ and the assignmentstring (none given in this function) into the linked list List
 		PushVar(create_arrayname(declarator), Param);	// push array onto Stack (SCOPES.H) and ARRAY_FUNCTIONS.H
 		strcpy(array_p_name, create_arrayname(declarator)); // create the name of array	- ARRAY_FUNCTIONS.H	
 		strcpy(array_p_name, scope_details(array_p_name, Param)); // add prolog scope details-  OUTPUT_FUNCTIONS.H
-		printnames(array_p_name, C_name);	// print prolog & c name to file - OUTPUT_FUNCTIONS.H
 											
 		////////////////////////////////////////////////////////////////////
 		// SINGLE DIMENSIONAL ARRAY
@@ -321,7 +319,6 @@ and the assignmentstring (none given in this function) into the linked list List
 		strcpy(declarator, case_name(declarator)); 	// change to prolog terms - OUTPUT_FUNCTIONS.H
 		PushVar(declarator, YES);	 // push onto Stack (SCOPES.H)
 		strcpy(declarator, scope_details(declarator, YES)); // add scope lines - OUTPUT_FUNCTIONS.H
-		printnames(declarator, C_name);	// print prolog & c name to file - OUTPUT_FUNCTIONS.H
 	}
 
 	////////////////////////////////////////////////////////////////////
@@ -588,7 +585,6 @@ and the assignmentstring (none given in this function) into the linked list List
 		PushVar(varname, NO);					// Push onto Stack, not a parameter variable (NO)
 												// from SCOPES.H
 		strcpy(varname, scope_details(varname, NO));// append scope number if applicable - OUTPUT_FUNCTIONS.H
-		printnames(varname, C_name);			// print prolog & c name to file - OUTPUT_FUNCTIONS.H
 		strcpy(vardetails, "pointer");			// store details
 		strcpy(assigndetails, "\nassignment(");	// build assignment string
 		strcat(assigndetails, varname);
@@ -610,7 +606,6 @@ and the assignmentstring (none given in this function) into the linked list List
 		PushVar(arrayname, NO);						// Push onto Stack, not a parameter variable (NO)
 													// from SCOPES.H
 		strcpy(arrayname, scope_details(arrayname, NO));// append scope if applicable - OUTPUT_FUNCTIONS.H
-		printnames(arrayname, C_name);				// print prolog & C names - OUTPUT_FUNCTIONS.H
 		strcpy(finalvarname, "(");					// build final array name - "("
 		strcat(finalvarname, arrayname);			// array name
 		strcat(finalvarname, ", ");					// comma -- dimensions follow
@@ -678,7 +673,6 @@ and the assignmentstring (none given in this function) into the linked list List
 			PushVar(varname, NO);					// Push onto Stack, not a parameter variable (NO)
 													// from SCOPES.H
 			strcpy(varname, scope_details(varname, NO));// append scope if applicable - OUTPUT_FUNCTIONS.H
-			printnames(varname, C_name);				// print prolog & C names - OUTPUT_FUNCTIONS.H
 			strcpy(vardetails, "struct");				// store vardetails
 
 			strcpy(assigndetails, "\ninit_record(");	// begin assigndetails init_record/2
@@ -697,7 +691,6 @@ and the assignmentstring (none given in this function) into the linked list List
 			PushVar(varname, NO);				// Push onto Stack, not a parameter variable (NO)
 												// from SCOPES.H
 			strcpy(varname, scope_details(varname, NO));// append scope if applicable - OUTPUT_FUNCTIONS.H
-			printnames(varname, C_name);				// print prolog & C names - OUTPUT_FUNCTIONS.H														
 			strcpy(vardetails, "other");				// store vardetails
 
 			strcpy(assigndetails, "\nassignment(");		// build assigndetails
