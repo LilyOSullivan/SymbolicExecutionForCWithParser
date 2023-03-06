@@ -10,6 +10,7 @@
 %% sub_atom/5 is used in creating function_info variables.
 %% It strips the LC_/UC_ from the function name, while retaining it as an atom.
 :- import sub_atom/5 from iso_light.
+:- import atom_codes/2 from iso_light.
 
 %% Global values:
 %%  test_id (Number, value:1): This is an Id used to identify test cases generated
@@ -84,6 +85,16 @@ regression_tests.
 
 %% A shortcut predicate to main/3 outputting to the Prolog directory
 %% Useful for development. This is not called in code, only by a developer
+%% regression_main/1 is called during the regression tests
+regression_main(Function_name) :-
+    atom(Function_name),
+    atom_codes(Function_name, Codes),
+    string_codes(Filename_string, Codes),
+    main(Filename_string, Function_name, "./").
+
+%% A shortcut predicate to main/3 outputting to the Prolog directory
+%% Useful for development. This is not called in code, only by a developer
+%% main/1 is used during development of the symbolic execution engine
 main(Function_name) :-
     main("sign", Function_name, "./").
 
@@ -158,7 +169,7 @@ process_global_variables([]).
 process_global_variables([Term | More_terms]) :-
     % Statements 999 is a dummy variable created by the parser
     (Term = global_variables(Statements, _), Statements \== 999 ->
-        statement_handler(Statements, return(_,_)) % From Statement_handler.pl
+        statement_handler(Statements, return(_, _)) % From Statement_handler.pl
     ;
         true
     ),
