@@ -193,7 +193,6 @@ int main() {
 
             char compile_cunit[MAX_PATH];
             sprintf(compile_cunit, "cd %s && gcc %s_tests_main.c -lcunit", test_folder_path, filenames[i]);
-            printf("\t\tRunning: %s\n", compile_cunit);
             int result = system(compile_cunit);
             if (result != 0) {
                 fprintf(stderr, "\tGCC returned %d for compilation of %s\n", return_code, filenames[i]);
@@ -204,7 +203,6 @@ int main() {
 
             char run_cunit[MAX_PATH];
             sprintf(run_cunit, "cd %s && .\\a.exe > nul", test_folder_path);
-            printf("\t\tRunning: %s\n", run_cunit);
             result = system(run_cunit);
             if (result < 0) {
                 fprintf(stderr, "\tCUnit returned %d failed tests for %s\n", return_code, filenames[i]);
@@ -218,7 +216,9 @@ int main() {
 
             char delete_folder[MAX_PATH];
             sprintf(delete_folder, "rmdir /s /q \"%s\"", test_folder_path);
+            Sleep(125);
             system(delete_folder);
+
             free(test_folder_name);
             free(filenames[i]);  // Free memory allocated for each filename
         }
