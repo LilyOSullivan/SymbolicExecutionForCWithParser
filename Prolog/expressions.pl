@@ -87,7 +87,7 @@ evaluate_expression(Left+Right, Left_result+Right_result) :-
     evaluate_expression(Right, Right_result).
 
 %% Multiplication Operator for two expressions (*)
-evaluate_expression(Left*Right, Left_result*Right_result) :-
+evaluate_expression(multiply(Left, Right), Left_result*Right_result) :-
     evaluate_expression(Left, Left_result),
     evaluate_expression(Right, Right_result).
 

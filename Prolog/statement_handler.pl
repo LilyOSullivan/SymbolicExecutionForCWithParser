@@ -154,6 +154,8 @@ handle(post_decrement(Assign_to, Expression), _) :-
 handle(pre_decrement(Assign_to, Expression), _) :-
     handle(assignment(Assign_to, Expression), _).
 
+% handle(_, _).
+
 % handle(assignment(int(Z), extern(f(X), Library_hName)), _) :-
 %     ptc_solver__variable([X], integer),
 %     ptc_solver__variable([Z], integer),
