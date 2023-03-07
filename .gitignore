@@ -87,3 +87,5 @@ Prolog/cunit/
 Prolog/gtest/
 
 LexYacc/parsing/x64/
+
+.vs/
