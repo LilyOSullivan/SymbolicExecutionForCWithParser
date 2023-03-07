@@ -5,6 +5,7 @@ utils__get_all_array_inputs([], []).
 utils__get_all_array_inputs([(_, Value) | Rest], [Value | Rest2]) :-
 	utils__get_all_array_inputs(Rest, Rest2).
 
+%CHRIS: Ideas to make this process less-instruction-intensive
 %% Removes the line number suffix from a string, output by the parser (Eg: "_183").
 %% Parameters:
 %%  String_with_suffix: The string to remove the suffix from
@@ -107,3 +108,11 @@ util__unify_copy_term_mapping([[Attributed_variable | Free_variable] | More_vari
 
 %% Convert a c-type to a ptc-type
 utils__c_to_ptc_type(int, integer).
+
+last_underscore_location(String, Location) :-
+    sub_string(String, _, Length, After, '_'),
+    sub_string(String, _, After, 0, SubString),
+    sub_string(SubString, _, Index, _, '_'),
+    Location is Length - After - Index.
+
+

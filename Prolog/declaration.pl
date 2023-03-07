@@ -45,8 +45,8 @@ declaration(charpointer, [C_variable]) :-
 %% Gets a clean variable name as a string from the parser-output
 %% Parameters:
 %%  Variable: The variable to get the name of
-%%  Name: The name of the variable
-%% Eg: declaration__get_variable_name(LC_x, Result) -> Result = "x"
+%%  Name: The name of the variable, as a string
+%% Eg: declaration__get_variable_name(LC_x_83, Result) -> Result = "x"
 declaration__get_variable_name(Variable, Name) :-
     get_var_info(Variable, name, Parser_name),
     atom_string(Parser_name, Parser_name_as_string),
