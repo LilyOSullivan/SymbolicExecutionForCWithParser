@@ -120,7 +120,7 @@ handle(sub_assignment(Variable, Expression), _) :-
 %%  Breakdown: Variable *= Expression
 %%  Eg: x *= 2;
 handle(mul_assignment(Variable, Expression), _) :-
-    handle(assignment(Variable, Variable * Expression), _).
+    handle(assignment(Variable, multiply(Variable, Expression)), _).
 
 %% Handle the /= operator
 %%  Breakdown: Variable /= Expression
