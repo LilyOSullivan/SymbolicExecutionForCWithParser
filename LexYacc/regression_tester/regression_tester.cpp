@@ -143,7 +143,7 @@ int main() {
 
             char delete_folder[MAX_PATH];
             sprintf(delete_folder, "rmdir /s /q \"%s\"", test_folder_path);
-            Sleep(125);
+            Sleep(50);
             system(delete_folder);
 
             free(test_folder_name);
