@@ -139,8 +139,7 @@ evaluate_expression(assignment(Assign_to, Expression), Expression_result) :-
 
 evaluate_expression(function_call(Function_info, Arguments), Expression_result) :-
     maplist(evaluate_expression, Arguments, Arguments_result),
-    function_handler(Function_info, Arguments_result, Function_call_result), % Statement_handler.pl
-    c_var__get_out_var(Function_call_result, Expression_result).
+    function_handler(Function_info, Arguments_result, Expression_result). % Statement_handler.pl
 
 %% Accessing an array element (Indexing)
 %% Eg: Arr[2]

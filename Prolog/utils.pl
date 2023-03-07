@@ -108,11 +108,3 @@ util__unify_copy_term_mapping([[Attributed_variable | Free_variable] | More_vari
 
 %% Convert a c-type to a ptc-type
 utils__c_to_ptc_type(int, integer).
-
-last_underscore_location(String, Location) :-
-    sub_string(String, _, Length, After, '_'),
-    sub_string(String, _, After, 0, SubString),
-    sub_string(SubString, _, Index, _, '_'),
-    Location is Length - After - Index.
-
-
