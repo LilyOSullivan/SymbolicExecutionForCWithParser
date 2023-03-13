@@ -2,7 +2,7 @@
 <Project>
   <ProjectOutputs>
     <ProjectOutput>
-      <FullPath>C:\Parser\ParserSource\x64\Debug\LilyParser.exe</FullPath>
+      <FullPath>C:\Parser\Parser_source\x64\Debug\LilyParser.exe</FullPath>
     </ProjectOutput>
   </ProjectOutputs>
   <ContentFiles />

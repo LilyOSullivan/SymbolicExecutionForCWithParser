@@ -1,3 +1,5 @@
 C:\Users\Chris2\GoogleDrive\Research\Std Lily\parsing\x64\Debug\LilyParser.exe
 C:\Users\Person\Desktop\parsing\x64\Debug\LilyParser.exe
 C:\Parser\ParserSource\x64\Debug\LilyParser.exe
+\\Mac\Dropbox\Mac (2)\Documents\Github\SymbolicExecutionForCWithParser\LexYacc\Parser_source\x64\Debug\LilyParser.exe
+C:\Parser\Parser_source\x64\Debug\LilyParser.exe

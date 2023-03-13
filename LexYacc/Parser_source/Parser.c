@@ -6,24 +6,25 @@
 // Functionality
 // **************
 // Parse the file (.i file as preprocessed) passed as one of the
-// parameters to produce Prolog Terms File ( .PL) and the names
-// (.NAMES) files.
+// parameters to produce Prolog Terms File ( .PL)
 //
 // Input
 // *****
 // 4 parameters -- 	name of parser,
-//				--  path of C file -- this is where .PL and .NAMES files
+//				--  path of C file -- this is where .PL
 //					are  output to
 //				--	the name of file to be parsed (less extension)
 //				--  the path to the .i file - relative path
 // Notes
 // *****
 // The .i file is deleted after parsing is complete.
-// The .PL and .NAMES files are output to the path of the C program.
+// The .PL files are output to the path of the C program.
 //
 /////////////////////////////////////////////////////////////////
 // *** BEGIN MAIN PARSER FUNCTION
 /////////////////////////////////////////////////////////////////
+#include <io.h>
+
 #include "Parser_Functions.h"
 // User defined header file containing all the functions used
 // in the parser
@@ -51,29 +52,46 @@ int main (int argc, char * argv[])
 	// allocate space to the global variables
 	PLFile = (char *) malloc(STRINGLIMIT);
 
-	/////////////////////////////////////////////////////////////////
-	// take the parameters passed and store to appropriate strings
-	if(argc == PARSER_PARAMS )
-	{
-		strcpy(filepath, argv[1]);		// path of file
-		strcpy(filename, argv[2]);		// name of file
-		strcpy(relativepath, argv[3]);	// path from where parser is called
+	/////////////////////////////////////////////////////////////////                              
+	char* arguments[3];
+	arguments[0] = ".";
+	arguments[2] = ".";
+
+	process_argument_flags(argc, argv, arguments);
+	char C_path[_MAX_PATH];
+	sprintf(C_path, "%s\\%s.c", arguments[0], arguments[1]);
+	if (_access(C_path, 0) != 0) {
+		printf(".c file '%s' does not exist at path: %s\n", filename, arguments[0]);
+		exit(1);
 	}
-	else
-		return parser_error(ERROR1);
+	char I_path[_MAX_PATH];
+	sprintf(I_path, "%s\\%s.c", arguments[2], arguments[1]);
+	if (_access(I_path, 0) != 0) {
+		printf(".i file '%s' does not exist at path: %s\n", filename, arguments[2]);
+		exit(1);
+	}
+
+	strcpy(filepath, arguments[0]);		// path of file
+	strcpy(filename, arguments[1]);		// name of file
+	strcpy(relativepath, arguments[2]);	// path from where parser is called
 
 	C_Filename = (char*)malloc(STRINGLIMIT);
-	strcpy(C_Filename, filename); strcat(C_Filename, ".c");
+	strcpy(C_Filename, filename); 
+	strcat(C_Filename, ".c");
 
 	/////////////////////////////////////////////////////////////////
 	// set up path (filepath) & name of the .PL file (PLFile - global)
-	strcpy(PLFile, filepath);		strcat(PLFile, "\\\\");
-	strcat(PLFile, filename);		strcat(PLFile, ".pl");
+	strcpy(PLFile, filepath);		
+	strcat(PLFile, "\\\\");
+	strcat(PLFile, filename);		
+	strcat(PLFile, ".pl");
 
 	/////////////////////////////////////////////////////////////////
 	// set up path (relativepath) & name of the .i file (ifile)
-	strcpy(ifile, relativepath);	strcat(ifile, "\\\\");
-	strcat(ifile, filename);		strcat(ifile, ".i");
+	strcpy(ifile, relativepath);	
+	strcat(ifile, "\\\\");
+	strcat(ifile, filename);		
+	strcat(ifile, ".i");
 
 	/////////////////////////////////////////////////////////////////
 	// print the discontiguous statements -- to PLFile
