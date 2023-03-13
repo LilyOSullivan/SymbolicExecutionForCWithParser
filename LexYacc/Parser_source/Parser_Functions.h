@@ -10,20 +10,19 @@
 // Functionality
 // **************
 // Parse the file (.i file as preprocessed) passed as one of the
-// parameters to produce Prolog Terms File ( .PL) and the names
-// (.NAMES) files.
+// parameters to produce Prolog Terms File ( .PL)
 //
 // Input
 // *****
 // 4 parameters -- 	name of parser,
-//				--  path of C file -- this is where .PL and .NAMES files
+//				--  path of C file -- this is where .PL 
 //					are output to
 //				--	the name of file to be parsed (less extension)
 //				--  the path to the .i file - relative path
 // Notes
 // *****
 // The .i file is deleted after parsing is complete.
-// The .PL and .NAMES files are output to the path of the C program.
+// The .PL file is output to the path of the C program.
 //
 ////////////////////////////////////////////////////////////////
 // *** LIBRARIES USED
@@ -103,7 +102,7 @@ void process_argument_flags(int argc, char* argv[],char* arguments[]) {
 			switch (argv[i][1])
 			{
 				case 'h': // Print help information
-					printf("Usage: .\\LilyParser [OPTION]... [FILE]\nParse a C file to Prolog terms.\n\n-h\t Display help information\n-p\t Path to the .c file (DEFAULT: Current Directory ('.'))\n-d\t Relative path from the parser file to the .i file (DEFAULT: Current Directory ('.'))\n\nExamples:\n\t.\LilyParser -p\".\" -d\".\" get_sign \n\t.\LilyParser get_sign \n\t.\LilyParser -p\"C:/Parser/\" sign \n");
+					printf("Usage: .\\LilyParser [OPTION]... [FILE]\nParse a C file to Prolog terms.\n\n-h\t Display help information\n-p\t Path to the .c file (DEFAULT: Current Directory ('.'))\n-d\t Relative path from the parser to the .i file (DEFAULT: Current Directory ('.'))\n\nExamples:\n\t.\LilyParser -p\".\" -d\".\" get_sign \n\t.\LilyParser get_sign \n\t.\LilyParser -p\"C:/Parser/\" sign \n");
 					exit(1);
 				case 'p':
 					{
