@@ -61,13 +61,13 @@ int main (int argc, char * argv[])
 	char C_path[_MAX_PATH];
 	sprintf(C_path, "%s\\%s.c", arguments[0], arguments[1]);
 	if (_access(C_path, 0) != 0) {
-		printf(".c file '%s' does not exist at path: %s\n", filename, arguments[0]);
+		printf(".c file '%s' does not exist at path: %s\n", arguments[1], arguments[0]);
 		exit(1);
 	}
 	char I_path[_MAX_PATH];
 	sprintf(I_path, "%s\\%s.c", arguments[2], arguments[1]);
 	if (_access(I_path, 0) != 0) {
-		printf(".i file '%s' does not exist at path: %s\n", filename, arguments[2]);
+		printf(".i file '%s' does not exist at path: %s\n", arguments[1], arguments[2]);
 		exit(1);
 	}
 

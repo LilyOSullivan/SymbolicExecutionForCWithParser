@@ -137,7 +137,7 @@ void process_argument_flags(int argc, char* argv[],char* arguments[]) {
 				printf("Filename '%s' must not have an extension\n", argv[i]);
 				exit(1);
 			}
-			arguments[1] = argv[i]; // No - means it is the filename 
+			arguments[1] = argv[i]; // No '-' means it is the filename 
 		}
 	}
 }
