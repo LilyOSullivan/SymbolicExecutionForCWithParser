@@ -38,7 +38,7 @@ int main (int argc, char * argv[])
 {
 	/////////////////////////////////////////////////////////////////
 	// variable declarations
-	char * filepath;	// path of the original C file -- where .pl & .names files will go
+	char * filepath;	// path of the original C file -- where .pl
 	char * filename;	// name of the file to be parsed (less extension)
 	char * relativepath;// path from where parser is called -- .i file in this path
 	char * ifile;		// path (relativepath) and name of the .i file
@@ -98,9 +98,6 @@ int main (int argc, char * argv[])
 	//print_discontiguous(PLFile);
 
 	print_start_of_parsed_predicate(PLFile);
-
-	/////////////////////////////////////////////////////////////////
-	// set up path (filepath) & name of the .NAMES file (NAMESFile - global)
 
 	/////////////////////////////////////////////////////////////////
 	// PARSE the input file	-- parse .i file (ifile)

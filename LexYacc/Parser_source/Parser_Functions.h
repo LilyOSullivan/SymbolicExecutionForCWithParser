@@ -103,7 +103,7 @@ void process_argument_flags(int argc, char* argv[],char* arguments[]) {
 			switch (argv[i][1])
 			{
 				case 'h': // Print help information
-					printf("Usage: .\\LilyParser [OPTION]... [FILE]\nParse a C file to Prolog terms.\n\n-h\t Display help information\n-p\t Path to the .c file (DEFAULT: Current Directory ('.'))\n-f\t The name of the .c/i file, without the extension. The .c/.i are expected to be named the same as output by CL\n-d\t Relative path from the parser file to the .i file (DEFAULT: Current Directory ('.'))\n\nExamples:\n\t.\LilyParser -p\".\" -d\".\" get_sign \n\t.\LilyParser get_sign \n\t.\LilyParser -p\"C:/Parser/\" sign \n");
+					printf("Usage: .\\LilyParser [OPTION]... [FILE]\nParse a C file to Prolog terms.\n\n-h\t Display help information\n-p\t Path to the .c file (DEFAULT: Current Directory ('.'))\n-d\t Relative path from the parser file to the .i file (DEFAULT: Current Directory ('.'))\n\nExamples:\n\t.\LilyParser -p\".\" -d\".\" get_sign \n\t.\LilyParser get_sign \n\t.\LilyParser -p\"C:/Parser/\" sign \n");
 					exit(1);
 				case 'p':
 					{
