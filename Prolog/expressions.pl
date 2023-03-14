@@ -3,19 +3,15 @@
 :- use_module(c_array).
 :- use_module(c_var).
 
-%% The below operators are used to return values the ptc_solver can understand.
-:- op(1200, xfy, and_then).
-:- op(1200, xfy, or_else).
-
 %% Evaluate an expression. Failing if it is invalid, passing if it is valid.
-evaluate_expression(Expression) :-
-    once evaluate_expression(Expression, Expression_result),
-    ptc_solver__sdl(Expression_result).
-
 %% Evaluate a not expression (!). Failing if it is invalid, passing if it is valid.
 evaluate_expression(not(Expression)) :-
     once evaluate_expression(Expression, Expression_result),
-    ptc_solver__sdl(not Expression_result).
+    ptc_solver__sdl(not (Expression_result = 1)).
+
+evaluate_expression(Expression) :-
+    once evaluate_expression(Expression, Expression_result),
+    ptc_solver__sdl(Expression_result = 1).
 
 %% Returns the 'out' ptc_variable of a c_var
 evaluate_expression(Expression, Ptc_variable) :-
@@ -28,18 +24,24 @@ evaluate_expression(Expression, Expression) :-
     number(Expression).
 
 %% And Operator (&&)
-evaluate_expression(andop(Left, Right), Left_result and_then Right_result) :-
+evaluate_expression(andop(Left, Right), Expression_result) :-
     evaluate_expression(Left, Left_result),
-    evaluate_expression(Right, Right_result).
+    evaluate_expression(Right, Right_result),
+    ptc_solver__variable([Expression_result], boolean_int),
+    ptc_solver__sdl(reif(Left_result = 1 and_then Right_result = 1, Expression_result)).
 
 %% Or Operator (||)
-evaluate_expression(orop(Left, Right), Left_result or_else Right_result) :-
+evaluate_expression(orop(Left, Right), Expression_result) :-
     evaluate_expression(Left, Left_result),
-    evaluate_expression(Right, Right_result).
+    evaluate_expression(Right, Right_result),
+    ptc_solver__variable([Expression_result], boolean_int),
+    ptc_solver__sdl(reif(Left_result = 1 or_else Right_result = 1, Expression_result)).
 
 %% Not Operator (!)
-evaluate_expression(not(Expression), not Result) :-
-    evaluate_expression(Expression, Result).
+evaluate_expression(exclamation(Expression), Expression_result) :-
+    evaluate_expression(Expression, Result),
+    ptc_solver__variable([Expression_result], boolean_int),
+    ptc_solver__sdl(reif(Result = 0, Expression_result)).
 
 %% Modulo Operator (%)
 evaluate_expression(mod(Left ,Right), Left_result mod Right_result) :-
@@ -47,34 +49,68 @@ evaluate_expression(mod(Left ,Right), Left_result mod Right_result) :-
     evaluate_expression(Right, Right_result).
 
 %% Not Equal (!=)
-evaluate_expression(Left<>Right, Left_result <> Right_result) :-
+evaluate_expression(Left<>Right, Expression_result) :-
     evaluate_expression(Left, Left_result),
-    evaluate_expression(Right, Right_result).
+    evaluate_expression(Right, Right_result),
+    ptc_solver__variable([Expression_result], boolean_int),
+    ptc_solver__sdl(reif(Left_result <> Right_result, Expression_result)).
+
+% %% Equal Boolean Operator (==)
+% evaluate_expression(Left==Right, Left_result=Right_result) :-
+%     evaluate_expression(Left, Left_result),
+%     evaluate_expression(Right, Right_result).
 
 %% Equal Boolean Operator (==)
-evaluate_expression(Left==Right, Left_result=Right_result) :-
+evaluate_expression(Left==Right, Expression_result) :-
     evaluate_expression(Left, Left_result),
-    evaluate_expression(Right, Right_result).
+    evaluate_expression(Right, Right_result),
+    ptc_solver__variable([Expression_result], boolean_int),
+    ptc_solver__sdl(reif(Left_result = Right_result, Expression_result)).
 
 %% Greater than Boolean Operator (>)
-evaluate_expression(Left>Right, Left_result>Right_result) :-
+% evaluate_expression(Left>Right, Left_result>Right_result) :-
+%     evaluate_expression(Left, Left_result),
+%     evaluate_expression(Right, Right_result).
+
+%% Greater than Boolean Operator (>)
+evaluate_expression(Left>Right, Expression_result) :-
     evaluate_expression(Left, Left_result),
-    evaluate_expression(Right, Right_result).
+    evaluate_expression(Right, Right_result),
+    ptc_solver__variable([Expression_result], boolean_int),
+    ptc_solver__sdl(reif(Left_result > Right_result, Expression_result)).
 
 %% Greater than or equal Boolean Operator (>=)
-evaluate_expression(Left>=Right, Left_result>=Right_result) :-
+% evaluate_expression(Left>=Right, Left_result>=Right_result) :-
+%     evaluate_expression(Left, Left_result),
+%     evaluate_expression(Right, Right_result).
+
+evaluate_expression(Left>=Right, Expression_result) :-
     evaluate_expression(Left, Left_result),
-    evaluate_expression(Right, Right_result).
+    evaluate_expression(Right, Right_result),
+    ptc_solver__variable([Expression_result], boolean_int),
+    ptc_solver__sdl(reif(Left_result >= Right_result, Expression_result)).
 
 %% Less than Boolean Operator (<)
-evaluate_expression(Left<Right, Left_result<Right_result) :-
+% evaluate_expression(Left<Right, Left_result<Right_result) :-
+%     evaluate_expression(Left, Left_result),
+%     evaluate_expression(Right, Right_result).
+
+evaluate_expression(Left<Right, Expression_result) :-
     evaluate_expression(Left, Left_result),
-    evaluate_expression(Right, Right_result).
+    evaluate_expression(Right, Right_result),
+    ptc_solver__variable([Expression_result], boolean_int),
+    ptc_solver__sdl(reif(Left_result < Right_result, Expression_result)).
 
 %% Less than or equal Boolean Operator (<=)
-evaluate_expression(Left<=Right, Left_result<=Right_result) :-
+% evaluate_expression(Left<=Right, Left_result<=Right_result) :-
+%     evaluate_expression(Left, Left_result),
+%     evaluate_expression(Right, Right_result).
+
+evaluate_expression(Left<=Right, Expression_result) :-
     evaluate_expression(Left, Left_result),
-    evaluate_expression(Right, Right_result).
+    evaluate_expression(Right, Right_result),
+    ptc_solver__variable([Expression_result], boolean_int),
+    ptc_solver__sdl(reif(Left_result <= Right_result, Expression_result)).
 
 %% Subtraction (Minus) Operator for two expressions (-)
 evaluate_expression(Left-Right, Left_result-Right_result) :-

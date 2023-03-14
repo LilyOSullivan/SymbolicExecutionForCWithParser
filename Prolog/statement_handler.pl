@@ -22,6 +22,7 @@ function_handler(Function_info, Arguments, Return_value_normalised) :-
     once utils__assign_arguments_to_parameters(Arguments, Params),
     statement_handler(Body, return(Return_value, Return_type)),
     c_var__get_out_var(Return_value, Return_value_normalised).
+
 %% Declare all parameters as variables
 parameter_handler([]).
 parameter_handler([void]) :- !.
@@ -44,14 +45,7 @@ statement_handler([Statement | More_statements], return(Return_value, Return_typ
             true
     ).
 
-%% This is if a new scope is created using { } not tied to a loop, if or function
-%% Eg:
-%%  int y = 15;
-%%  {
-%%      int x = 1;
-%%  }
-handle(List_of_statements, Return_info) :-
-    statement_handler(List_of_statements, Return_info).
+
 
 %% This occurs if a variable is declared in the function body
 %% Eg:
@@ -153,6 +147,15 @@ handle(post_decrement(Assign_to, Expression), _) :-
 %% Eg: --x;
 handle(pre_decrement(Assign_to, Expression), _) :-
     handle(assignment(Assign_to, Expression), _).
+
+%% This is if a new scope is created using { } not tied to a loop, if or function
+%% Eg:
+%%  int y = 15;
+%%  {
+%%      int x = 1;
+%%  }
+handle(List_of_statements, Return_info) :-
+    statement_handler(List_of_statements, Return_info).
 
 % handle(_, _).
 
