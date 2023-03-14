@@ -1190,7 +1190,7 @@ statement_list
 
 expression_statement
 	: ';'				{ strcpy($$, "null");   }	
-	| expression ';'	{ strcpy($$, $1);   	}
+	| expression ';'	{ strcpy($$, "expression_statement("); strcat($$, $1); strcat($$, ")");  }
 	;					
 	
 ////////////////////////////////////////////////////////////////

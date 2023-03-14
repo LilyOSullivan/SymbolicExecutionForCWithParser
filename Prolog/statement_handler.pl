@@ -45,7 +45,14 @@ statement_handler([Statement | More_statements], return(Return_value, Return_typ
             true
     ).
 
-
+%% This is if a new scope is created using { } not tied to a loop, if or function
+%% Eg:
+%%  int y = 15;
+%%  {
+%%      int x = 1;
+%%  }
+handle(List_of_statements, Return_info) :-
+    statement_handler(List_of_statements, Return_info).
 
 %% This occurs if a variable is declared in the function body
 %% Eg:
@@ -148,16 +155,20 @@ handle(post_decrement(Assign_to, Expression), _) :-
 handle(pre_decrement(Assign_to, Expression), _) :-
     handle(assignment(Assign_to, Expression), _).
 
-%% This is if a new scope is created using { } not tied to a loop, if or function
+%% This is incase of unnecessary semicolons
 %% Eg:
-%%  int y = 15;
-%%  {
-%%      int x = 1;
-%%  }
-handle(List_of_statements, Return_info) :-
-    statement_handler(List_of_statements, Return_info).
+%%  int x = 5;;;
+%%  ;;
+handle(null, _).
 
-% handle(_, _).
+%% This is incase of an expression existing as a statement
+%% Eg:
+%%  2/2;
+%%  2+give_five();
+%%  2;
+%%  2+(x=3);
+handle(expression_statement(Expression), _) :-
+    evaluate_expression(Expression, _).
 
 % handle(assignment(int(Z), extern(f(X), Library_hName)), _) :-
 %     ptc_solver__variable([X], integer),

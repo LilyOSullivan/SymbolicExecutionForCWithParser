@@ -10,6 +10,8 @@
 %% sub_atom/5 is used in creating function_info variables.
 %% It strips the LC_/UC_ from the function name, while retaining it as an atom.
 :- import sub_atom/5 from iso_light.
+
+%$ Used in regression_main/1 to convert an atom to a string
 :- import atom_codes/2 from iso_light.
 
 %% Global values:
@@ -84,8 +86,8 @@ regression_tests :-
 regression_tests.
 
 %% A shortcut predicate to main/3 outputting to the Prolog directory
-%% Useful for development. This is not called in code, only by a developer
-%% regression_main/1 is called during the regression tests
+%% Useful for development. This is not called in code,
+%% only by the regression testing tool.
 regression_main(Function_name) :-
     atom(Function_name),
     atom_codes(Function_name, Codes),
@@ -94,7 +96,7 @@ regression_main(Function_name) :-
 
 %% A shortcut predicate to main/3 outputting to the Prolog directory
 %% Useful for development. This is not called in code, only by a developer
-%% main/1 is used during development of the symbolic execution engine
+%% main/1 is used during development of the test-driver
 main(Function_name) :-
     main("sign", Function_name, "./").
 

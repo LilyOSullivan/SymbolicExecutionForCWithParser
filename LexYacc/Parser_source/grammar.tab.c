@@ -3279,7 +3279,7 @@ yyreduce:
 
   case 192: /* expression_statement: expression ';'  */
 #line 1193 "grammar.y"
-                                { strcpy((yyval.id), (yyvsp[-1].id));   	}
+                                { strcpy((yyval.id), "expression_statement("); strcat((yyval.id), (yyvsp[-1].id)); strcat((yyval.id), ")");  }
 #line 3284 "grammar.tab.c"
     break;
 
