@@ -16,7 +16,7 @@ cunit__write_test_case(Filename, Function_name, Params, Return_value, Return_typ
         (
             mkdir(Path_to_test_directory),
             open(Test_suite_filepath, append, testcase),
-            printf(testcase, "#include \"CUnit/Basic.h\"\n", []),
+            printf(testcase, "#include \"assert.h\"\n", []),
             printf(testcase, "#include \"../%s.c\"\n\n", [Filename])
         )
     ;
@@ -41,7 +41,7 @@ cunit__write_main(Test_suite_name) :-
     cunit__add_test_cases_to_suite(Add_tests_to_suite_string),
     open(Filepath_to_main, write, testcase_main),
     printf(testcase_main, "#include \"%s\"\n\n", [Test_suite_filename]),
-    printf(testcase_main, "int main()\n{\n\tif (CUE_SUCCESS != CU_initialize_registry())\n\t\treturn CU_get_error();\n\n\tCU_pSuite pSuite = CU_add_suite(\"Suite_1\", NULL, NULL);\n\tif (NULL == pSuite) {\n\t\tCU_cleanup_registry();\n\t\treturn CU_get_error();\n\t}\n\n%s\n\tCU_basic_set_mode(CU_BRM_VERBOSE);\n\tCU_basic_run_tests();\n\n\tif(CU_get_error() != CUE_SUCCESS) {\n\t\tCU_cleanup_registry();\n\t\treturn CU_get_error();\n\t}\n\tunsigned int failed = CU_get_number_of_tests_failed();\n\tCU_cleanup_registry();\n\treturn failed;\n}\n", [Add_tests_to_suite_string]),
+    printf(testcase_main, "int main()\n{\n%s\n\treturn 0;\n}\n", [Add_tests_to_suite_string]),
     close(testcase_main).
 
 %% Creates the code to add all test cases to the test suite, for CUnit
@@ -54,18 +54,18 @@ cunit__add_test_cases_to_suite([], Add_to_suite_accumulator, Add_to_suite_accumu
 %% Adds test cases to the test suite. This is the predicate that performs the operation
 %% of cunit__add_test_cases_to_suite/1
 cunit__add_test_cases_to_suite([Test_case | More_test_cases], Add_to_suite_accumulator, Add_all_test_cases_to_suite_string) :-
-    sprintf(Accumulator_with_current_test_case, "%s\tif (NULL == CU_add_test(pSuite, \"test case\", %s)) {\n\t\tCU_cleanup_registry();\n\t\treturn CU_get_error();\n\t}\n", [Add_to_suite_accumulator, Test_case]),
+    sprintf(Accumulator_with_current_test_case, "%s\t%s();\n", [Add_to_suite_accumulator, Test_case]),
     cunit__add_test_cases_to_suite(More_test_cases, Accumulator_with_current_test_case, Add_all_test_cases_to_suite_string).
 
 %% Creates the CUnit assert statement that performs unit-testing
 cunit__create_assert(Function_name, [void], Return_value, Return_type, CUnit_assert) :-
     create_return(Return_value, Return_type, Return_value_as_string),
-    sprintf(CUnit_assert, "\tCU_ASSERT(%s() == %s);\n", [Function_name, Return_value_as_string]).
+    sprintf(CUnit_assert, "\tassert(%s() == %s);\n", [Function_name, Return_value_as_string]).
 
 cunit__create_assert(Function_name, Params, Return_value, Return_type, CUnit_assert) :-
     create_return(Return_value, Return_type, Return_value_as_string),
     var_names_as_parameters(Params, "", Var_names),
-    sprintf(CUnit_assert, "\tCU_ASSERT(%s(%s) == %s);\n", [Function_name, Var_names, Return_value_as_string]).
+    sprintf(CUnit_assert, "\tassert(%s(%s) == %s);\n", [Function_name, Var_names, Return_value_as_string]).
 
 %% Checks if this is the first test case being generated.
 %% This is to prevent the inclusion of the CUnit header files multiple times
@@ -79,7 +79,7 @@ cunit__is_first_test(Filename) :-
             open(Filename, read, testcase_read),
             read_string(testcase_read, 24, First_chars),
             close(testcase_read),
-            not string_contains(First_chars, "CUnit/Basic.h")
+            not string_contains(First_chars, "assert.h")
         ;
             true
     ).
