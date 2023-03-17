@@ -6,7 +6,7 @@
 function_handler(Filename, Function_name, Body, Params, Return_type) :-
     parameter_handler(Params),
     statement_handler(Body, return(Return_value, Return_type)),
-    once label_collectively(Params),
+    label_collectively(Params),
     c_var__get_out_var(Return_value, Return_value_normalised),
     cunit__write_test_case_all(Filename, Function_name, Params, Return_value_normalised, Return_type).
 function_handler(_, _, _, _, _).
@@ -19,7 +19,7 @@ function_handler(_, _, _, _, _).
 %%  Return_value: The returned value from the function
 function_handler(Function_info, Arguments, Return_value_normalised) :-
     utils__get_clean_function_info(Function_info, _, Params, Body, Return_type),
-    once utils__assign_arguments_to_parameters(Arguments, Params),
+    utils__assign_arguments_to_parameters(Arguments, Params),
     statement_handler(Body, return(Return_value, Return_type)),
     c_var__get_out_var(Return_value, Return_value_normalised).
 
@@ -63,12 +63,12 @@ handle(declaration(Type, Vars), _) :-
 %% If statement handler
 handle(if_statement(_Line_Number, expression(Expression), If_body, Else_body), Return_info) :-
     (
-        once evaluate_expression(Expression),
+        evaluate_expression(Expression),
         statement_handler(If_body, Return_info)
     )
         ; % Deliberate Choice Point
     (
-        once evaluate_expression(not(Expression)),
+        evaluate_expression(not(Expression)),
         statement_handler(Else_body, Return_info)
     ).
 

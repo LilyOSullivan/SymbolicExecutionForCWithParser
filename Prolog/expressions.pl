@@ -6,22 +6,26 @@
 %% Evaluate an expression. Failing if it is invalid, passing if it is valid.
 %% Evaluate a not expression (!). Failing if it is invalid, passing if it is valid.
 evaluate_expression(not(Expression)) :-
-    once evaluate_expression(Expression, Expression_result),
-    ptc_solver__sdl(not (Expression_result = 1)).
+    evaluate_expression(Expression, Expression_result),
+    ptc_solver__sdl(not (Expression_result = 1)),
+    !.
 
 evaluate_expression(Expression) :-
-    once evaluate_expression(Expression, Expression_result),
-    ptc_solver__sdl(Expression_result = 1).
+    evaluate_expression(Expression, Expression_result),
+    ptc_solver__sdl(Expression_result = 1),
+    !.
 
 %% Returns the 'out' ptc_variable of a c_var
 evaluate_expression(Expression, Ptc_variable) :-
     var(Expression),
-    c_var__get_out_var(Expression, Ptc_variable).
+    c_var__get_out_var(Expression, Ptc_variable),
+    !.
 
 %% Returns a number-constant
 %% Eg: 2
 evaluate_expression(Expression, Expression) :-
-    number(Expression).
+    number(Expression),
+    !.
 
 %% And Operator (&&)
 evaluate_expression(andop(Left, Right), Expression_result) :-

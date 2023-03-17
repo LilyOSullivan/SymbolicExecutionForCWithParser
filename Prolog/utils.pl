@@ -71,8 +71,8 @@ utils__assignment(Assign_to, Value, Assigned_value) :-
 %% Parameters:
 %%  Arguments: The arguments to assign
 %%  Parameters: The parameters to be assigned to
-utils__assign_arguments_to_parameters([], []).
-utils__assign_arguments_to_parameters([], [void]).
+utils__assign_arguments_to_parameters([], []) :- !.
+utils__assign_arguments_to_parameters([], [void]) :- !.
 utils__assign_arguments_to_parameters([Argument | More_arguments], [declaration(Type, Parameters) | More_parameters]) :-
     declaration(Type, Parameters), % Calls declaration.pl
     Parameters = [Parameter | _],
