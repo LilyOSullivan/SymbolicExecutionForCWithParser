@@ -93,5 +93,16 @@ util__unify_copy_term_mapping([[Attributed_variable | Free_variable] | More_vari
     Attributed_variable = Free_variable,
     util__unify_copy_term_mapping(More_variable_mappings).
 
+%%
+util__error_if_false(Goal, Error_message) :-
+    (
+        Goal ->
+            true
+        ;
+            concat_string(["Error: ", Error_message], Error_message_complete),
+            writeln(Error_message_complete),
+            abort
+    ).
+
 %% Convert a c-type to a ptc-type
 utils__c_to_ptc_type(int, integer).
