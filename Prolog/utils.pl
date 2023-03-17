@@ -1,5 +1,5 @@
 :- lib(ptc_solver).
-
+:- lib(regex).
 % From Eileen's Code
 utils__get_all_array_inputs([], []).
 utils__get_all_array_inputs([(_, Value) | Rest], [Value | Rest2]) :-
@@ -12,20 +12,7 @@ utils__get_all_array_inputs([(_, Value) | Rest], [Value | Rest2]) :-
 %%  String_without_suffix: The string without the suffix
 %% Eg: utils__strip_suffix("__x__183", Result) -> Result = "__x_"
 utils__strip_suffix(String_with_suffix, Result_without_suffix) :-
-    utils__reverse_string(String_with_suffix, Reversed_string),
-    split_string(Reversed_string, "_", "", [_ | Rest]),
-    utils__join(Rest, "_", Result_reversed),
-    utils__reverse_string(Result_reversed,Result_without_suffix).
-
-%% Reverses a string
-%% Parameters:
-%%  String_to_reverse: The string to reverse
-%%  String_reversed: The reversed string
-%% Eg: utils__reverse_string("abc", Result) -> Result = "cba"
-utils__reverse_string(String_to_reverse,String_reversed):-
-    string_codes(String_to_reverse, Codes),
-    reverse(Codes, Reversed_codes),
-    string_codes(String_reversed, Reversed_codes).
+    split("(_[0-9]+)$", String_with_suffix, [], [Result_without_suffix | _]).
 
 %% Removes the last character if it is a comma
 %% Parameters:
