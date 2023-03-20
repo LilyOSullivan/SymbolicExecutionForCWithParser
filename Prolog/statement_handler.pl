@@ -105,56 +105,6 @@ handle(assignment(Assign_to, Expression), _) :-
     !,
     utils__assignment(Assign_to,Evaluated_expression, _).
 
-%% Handle the += operator
-%%  Breakdown: Variable += Expression
-%%  Eg: x += 2;
-handle(add_assignment(Variable, Expression), _) :-
-    handle(assignment(Variable, Variable + Expression), _).
-
-%% Handle the -= operator
-%%  Breakdown: Variable -= Expression
-%%  Eg: x -= 2;
-handle(sub_assignment(Variable, Expression), _) :-
-    handle(assignment(Variable, Variable - Expression), _).
-
-%% Handle the *= operator
-%%  Breakdown: Variable *= Expression
-%%  Eg: x *= 2;
-handle(mul_assignment(Variable, Expression), _) :-
-    handle(assignment(Variable, multiply(Variable, Expression)), _).
-
-%% Handle the /= operator
-%%  Breakdown: Variable /= Expression
-%%  Eg: x /= 2;
-handle(div_assignment(Variable, Expression), _) :-
-    handle(assignment(Variable, Variable / Expression), _).
-
-% Handle the %= operator
-%  Breakdown: Variable %= Expression
-%  Eg: x %= 2;
-handle(mod_assignment(Variable, Expression), _) :-
-    handle(assignment(Variable, mod(Variable, Expression)), _).
-
-%% Handles the ++ post-increment-operator as a single line statement
-%% Eg: x++;
-handle(post_increment(Assign_to, Expression), _) :-
-    handle(assignment(Assign_to, Expression), _).
-
-%% Handles the ++ pre-increment-operator as a single line statement
-%% Eg: ++x;
-handle(pre_increment(Assign_to, Expression), _) :-
-    handle(assignment(Assign_to, Expression), _).
-
-%% Handles the -- post-decrement-operator as a single line statement
-%% Eg: x--;
-handle(post_decrement(Assign_to, Expression), _) :-
-    handle(assignment(Assign_to, Expression), _).
-
-%% Handles the -- pre-decrement-operator as a single line statement
-%% Eg: --x;
-handle(pre_decrement(Assign_to, Expression), _) :-
-    handle(assignment(Assign_to, Expression), _).
-
 %% This is incase of unnecessary semicolons
 %% Eg:
 %%  int x = 5;;;

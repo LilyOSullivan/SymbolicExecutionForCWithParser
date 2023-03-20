@@ -177,6 +177,58 @@ evaluate_expression(assignment(Assign_to, Expression), Expression_result) :-
     evaluate_expression(Expression, Right_result),
     utils__assignment(Assign_to,Right_result, Expression_result).
 
+%% Handle the += operator
+%%  Breakdown: Variable += Expression
+%%  Eg: x += 2;
+evaluate_expression(add_assignment(Variable, Expression), Expression_result) :-
+    evaluate_expression(assignment(Variable, Variable + Expression), Expression_result).
+
+%% Handle the -= operator
+%%  Breakdown: Variable -= Expression
+%%  Eg: x -= 2;
+evaluate_expression(sub_assignment(Variable, Expression), Expression_result) :-
+    evaluate_expression(assignment(Variable, Variable - Expression), Expression_result).
+
+%% Handle the *= operator
+%%  Breakdown: Variable *= Expression
+%%  Eg: x *= 2;
+evaluate_expression(mul_assignment(Variable, Expression), Expression_result) :-
+    evaluate_expression(assignment(Variable, multiply(Variable, Expression)), Expression_result).
+
+%% Handle the /= operator
+%%  Breakdown: Variable /= Expression
+%%  Eg: x /= 2;
+evaluate_expression(div_assignment(Variable, Expression), Expression_result) :-
+    evaluate_expression(assignment(Variable, Variable / Expression), Expression_result).
+
+% Handle the %= operator
+%  Breakdown: Variable %= Expression
+%  Eg: x %= 2;
+evaluate_expression(mod_assignment(Variable, Expression), Expression_result) :-
+    evaluate_expression(assignment(Variable, mod(Variable, Expression)), Expression_result).
+
+%% Handles the ++ post-increment-operator as a single line statement
+%% Eg: x++;
+evaluate_expression(post_increment(Assign_to, Expression), Expression_result) :-
+    evaluate_expression(assignment(Assign_to, Expression), Expression_result).
+
+%% Handles the ++ pre-increment-operator as a single line statement
+%% Eg: ++x;
+evaluate_expression(pre_increment(Assign_to, Expression), Expression_result) :-
+    evaluate_expression(assignment(Assign_to, Expression), Expression_result).
+
+%% Handles the -- post-decrement-operator as a single line statement
+%% Eg: x--;
+evaluate_expression(post_decrement(Assign_to, Expression), Expression_result) :-
+    evaluate_expression(assignment(Assign_to, Expression), Expression_result).
+
+%% Handles the -- pre-decrement-operator as a single line statement
+%% Eg: --x;
+evaluate_expression(pre_decrement(Assign_to, Expression), Expression_result) :-
+    evaluate_expression(assignment(Assign_to, Expression), Expression_result).
+
+%% Function call as expression
+%% Eg: int x = 2+give_five();
 evaluate_expression(function_call(Function_info, Arguments), Expression_result) :-
     maplist(evaluate_expression, Arguments, Arguments_result),
     function_handler(Function_info, Arguments_result, Expression_result). % Statement_handler.pl
