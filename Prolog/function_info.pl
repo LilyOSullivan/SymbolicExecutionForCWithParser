@@ -78,6 +78,8 @@ function_info__get_term(_Var{Function_info}, Function_definition) :-
     -?->
         Function_info = function(Function_definition).
 
+%% Copies the function information, while retaining any assigned values
+%% such as global variables, or function attributed variables
 function_info__get_clean_function(Function_info, Function_name, Parameters, Body, Return_type) :-
     function_info__get_term(Function_info, Function_definition),
     copy_term(Function_definition, Function_definition_copy, Attributed_variables_mapping),

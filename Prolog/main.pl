@@ -59,7 +59,7 @@ main(Filename_without_extension, Function_name, Path_to_C_file) :-
     read_prolog_file(Prolog_file, Terms),
     declare_functions(Terms),
     process_global_variables(Terms),
-    once find_function_information(Terms, Function_name, Function_info),
+    find_function_information(Terms, Function_name, Function_info),
     function_info__get_clean_function(Function_info, _, Params, Body, Return_type),
     setup_test_driver(Function_name, Path_to_C_file),
     function_handler(Filename_without_extension, Function_name, Body, Params, Return_type). % From Statement_handler.pl
@@ -124,10 +124,14 @@ process_global_variables([Term | More_terms]) :-
 find_function_information([function_definition(Function_info, _, _ , _) | More_terms], Function_name, Return_function_info) :-
     function_info__get_name(Function_info, Current_function_name),
     (Current_function_name == Function_name ->
-        Return_function_info = Function_info,
-        !
+        (
+            Return_function_info = Function_info,
+            !
+        )
     ;
-        find_function_information(More_terms, Function_name, Return_function_info)
+        (
+            find_function_information(More_terms, Function_name, Return_function_info)
+        )
     ).
 find_function_information([_ | More_terms], Function_name, Return_function_info) :-
     find_function_information(More_terms, Function_name, Return_function_info).
@@ -135,23 +139,14 @@ find_function_information([], Function_name, _) :- !,
     sprintf(Error_message, "The entry function %a cannot be found", [Function_name]),
     util__error_if_false(false, Error_message).
 
-%% Finds the name of a function from the parser-result prolog file
-%% Parameters:
-%%  Terms: The contents of the parser-result prolog file
-%%  Function_name: The name of the function to be found
-find_function_name([function_definition(Function_name, _, _, _) | _], Function_name).
-find_function_name([_ | More_terms], Function_name) :-
-    find_function_name(More_terms, Function_name).
-find_function_name([], _) :- false.
-
 declare_functions([]).
 declare_functions([function_definition(Function_info, Params, Body, Return_type) | More_terms]) :-
+    !,
     get_var_info(Function_info, name, Function_name_as_atom),
     % Strip 'LC_' or 'UC_' from the function name
     sub_atom(Function_name_as_atom, 3, _, 0, Stripped_function_name),
     Function_def = function_definition(Stripped_function_name, Params, Body, Return_type),
     function_info__create(Function_def, Function_info),
-    declare_functions(More_terms),
-    !.
+    declare_functions(More_terms).
 declare_functions([_ | More_terms]) :-
     declare_functions(More_terms).
