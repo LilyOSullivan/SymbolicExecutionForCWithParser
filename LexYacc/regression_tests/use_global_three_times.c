@@ -1,6 +1,6 @@
 // Call a function that re-uses a global
 
-int x=1;
+int x = 1;
 
 int inc() {
     x += 1;

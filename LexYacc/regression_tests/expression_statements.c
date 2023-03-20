@@ -10,9 +10,9 @@ int give_five() {
 }
 
 int expression_statements(int x) {
+    int y = 8;
     2-x;
     5;
-    int y = 8;
     (x=12345)/2;
     3+give_five();
     return x;

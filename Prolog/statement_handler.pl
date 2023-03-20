@@ -8,7 +8,7 @@ function_handler(Filename, Function_name, Body, Params, Return_type) :-
     statement_handler(Body, return(Return_value, Return_type)),
     label_collectively(Params),
     c_var__get_out_var(Return_value, Return_value_normalised),
-    cunit__write_test_case_all(Filename, Function_name, Params, Return_value_normalised, Return_type).
+    write_test_case_all(Filename, Function_name, Params, Return_value_normalised, Return_type).
 function_handler(_, _, _, _, _).
 
 %% This variant of the function handler is used for function calls inside a function.
