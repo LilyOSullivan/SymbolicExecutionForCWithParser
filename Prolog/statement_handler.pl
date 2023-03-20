@@ -18,7 +18,7 @@ function_handler(_, _, _, _, _).
 %%  Arguments: The arguments to pass to the function
 %%  Return_value: The returned value from the function
 function_handler(Function_info, Arguments, Return_value_normalised) :-
-    utils__get_clean_function_info(Function_info, _, Params, Body, Return_type),
+    function_info__get_clean_function(Function_info, _, Params, Body, Return_type),
     utils__assign_arguments_to_parameters(Arguments, Params),
     statement_handler(Body, return(Return_value, Return_type)),
     c_var__get_out_var(Return_value, Return_value_normalised).

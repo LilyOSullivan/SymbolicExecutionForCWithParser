@@ -5,7 +5,6 @@ utils__get_all_array_inputs([], []).
 utils__get_all_array_inputs([(_, Value) | Rest], [Value | Rest2]) :-
 	utils__get_all_array_inputs(Rest, Rest2).
 
-%CHRIS: Ideas to make this process less-instruction-intensive
 %% Removes the line number suffix from a string, output by the parser (Eg: "_183").
 %% Parameters:
 %%  String_with_suffix: The string to remove the suffix from
@@ -34,7 +33,7 @@ utils__strip_right_comma(String_with_comma, String_without_comma) :-
 utils__join(Strings, Result) :-
     utils__join(Strings, "", Result).
 
-% Join a list of strings together with a string separator
+%% Join a list of strings together with a string separator
 %% Parameters:
 %%  Strings: The list of strings to join
 %%  Separator: The string to join the strings with
@@ -78,20 +77,6 @@ utils__assign_arguments_to_parameters([Argument | More_arguments], [declaration(
     Parameters = [Parameter | _],
     utils__assignment(Parameter, Argument, _),
     utils__assign_arguments_to_parameters(More_arguments, More_parameters).
-
-%% Copies the function_information, while retaining any assigned values
-%% such as global variables.
-utils__get_clean_function_info(Function_info, Function_name, Parameters, Body, Return_type) :-
-    function_info__get_term(Function_info, Function_definition),
-    copy_term(Function_definition, Function_definition_copy, Attributed_variables_mapping),
-    util__unify_copy_term_mapping(Attributed_variables_mapping),
-    Function_definition_copy = function_definition(Function_name, Parameters, Body, Return_type).
-
-%% Unifies attributed variables with the new copies creates as a result of copy_term
-util__unify_copy_term_mapping([]).
-util__unify_copy_term_mapping([[Attributed_variable | Free_variable] | More_variable_mappings]) :-
-    Attributed_variable = Free_variable,
-    util__unify_copy_term_mapping(More_variable_mappings).
 
 %%
 util__error_if_false(Goal, Error_message) :-

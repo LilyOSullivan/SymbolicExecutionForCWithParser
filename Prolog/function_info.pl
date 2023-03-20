@@ -6,6 +6,7 @@
 :- export function_info__get_body/2.
 :- export function_info__get_return_type/2.
 :- export function_info__get_term/2.
+:- export function_info__get_clean_function/5.
 
 %% The module for the function_info attributed variable
 %% It maintains the parsed-term for a function definition from the parser
@@ -76,3 +77,15 @@ function_info__get_return_type(_Var{Function_info}, Return_type) :-
 function_info__get_term(_Var{Function_info}, Function_definition) :-
     -?->
         Function_info = function(Function_definition).
+
+function_info__get_clean_function(Function_info, Function_name, Parameters, Body, Return_type) :-
+    function_info__get_term(Function_info, Function_definition),
+    copy_term(Function_definition, Function_definition_copy, Attributed_variables_mapping),
+    unify_copy_term_mapping(Attributed_variables_mapping),
+    Function_definition_copy = function_definition(Function_name, Parameters, Body, Return_type).
+
+%% Unifies attributed variables with the new copies created as a result of copy_term
+unify_copy_term_mapping([]).
+unify_copy_term_mapping([[Attributed_variable | Free_variable] | More_variable_mappings]) :-
+    Attributed_variable = Free_variable,
+    unify_copy_term_mapping(More_variable_mappings).
