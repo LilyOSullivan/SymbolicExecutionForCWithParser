@@ -111,7 +111,7 @@ main(Function_name) :-
 %%                 Eg: "C:\\Users\\user\\Desktop"
 main(Filename_without_extension, Function_name, Path_to_C_file) :-
     util__error_if_false(string(Filename_without_extension), "Filename must be a string"),
-    util__error_if_false(string_contains(Filename_without_extension, "."), "Filename should not contain an extension"),
+    util__error_if_false(not string_contains(Filename_without_extension, "."), "Filename should not contain an extension"),
     util__error_if_false(atom(Function_name), "Function name must be an atom"),
     util__error_if_false(string(Path_to_C_file), "Path to C file must be a string"),
     util__error_if_false(get_file_info(Path_to_C_file, type, directory), "Path to C file is not a valid directory-path"),
