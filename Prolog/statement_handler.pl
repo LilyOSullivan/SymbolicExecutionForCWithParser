@@ -74,7 +74,8 @@ handle(if_statement(_Line_Number, expression(Expression), If_body, Else_body), R
 
 %% Empty return statement
 %% Eg: return;
-handle(return, void) :-
+handle(return, return(Return_value, Return_type)) :-
+    c_var__create(Return_type, _, void, "__return__", Return_value),
     writeln("Void Return").
 
 %% Return statement with value to return

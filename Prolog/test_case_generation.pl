@@ -61,7 +61,6 @@ write_calls_to_test_cases([Test_case | More_test_cases], Add_to_suite_accumulato
 create_assert(Function_name, [void], Return_value, Return_type, Assert) :-
     create_return(Return_value, Return_type, Return_value_as_string),
     sprintf(Assert, "\tassert(%s() == %s);\n", [Function_name, Return_value_as_string]).
-
 create_assert(Function_name, Params, Return_value, Return_type, Assert) :-
     create_return(Return_value, Return_type, Return_value_as_string),
     var_names_as_parameters(Params, "", Var_names),
@@ -76,12 +75,16 @@ is_first_test(Filename) :-
     % incase the file is empty/does not exist
     (
         exists(Filename), get_file_info(Filename, size, File_size), File_size > 0 ->
-            open(Filename, read, testcase_read),
-            read_string(testcase_read, 24, First_chars),
-            close(testcase_read),
-            not string_contains(First_chars, "assert.h")
+            (
+                open(Filename, read, testcase_read),
+                read_string(testcase_read, 20, First_characters),
+                close(testcase_read),
+                not string_contains(First_characters, "assert.h")
+            )
         ;
-            true
+            (
+                true
+            )
     ).
 
 %% Check if a string contains a substring

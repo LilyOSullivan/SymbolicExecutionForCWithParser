@@ -61,6 +61,7 @@ main(Filename_without_extension, Function_name, Path_to_C_file) :-
     process_global_variables(Terms),
     find_function_information(Terms, Function_name, Function_info),
     function_info__get_clean_function(Function_info, _, Params, Body, Return_type),
+    util__error_if_false(Return_type \= void, "No unit tests to generate for a void-returning function"),
     setup_test_driver(Function_name, Path_to_C_file),
     function_handler(Filename_without_extension, Function_name, Body, Params, Return_type). % From Statement_handler.pl
 
@@ -135,14 +136,15 @@ find_function_information([function_definition(Function_info, _, _ , _) | More_t
     ).
 find_function_information([_ | More_terms], Function_name, Return_function_info) :-
     find_function_information(More_terms, Function_name, Return_function_info).
-find_function_information([], Function_name, _) :- !,
+find_function_information([], Function_name, _) :-
+    !,
     sprintf(Error_message, "The entry function %a cannot be found", [Function_name]),
     util__error_if_false(false, Error_message).
 
 declare_functions([]).
 declare_functions([function_definition(Function_info, Params, Body, Return_type) | More_terms]) :-
-    !,
     get_var_info(Function_info, name, Function_name_as_atom),
+    !,
     % Strip 'LC_' or 'UC_' from the function name
     sub_atom(Function_name_as_atom, 3, _, 0, Stripped_function_name),
     Function_def = function_definition(Stripped_function_name, Params, Body, Return_type),

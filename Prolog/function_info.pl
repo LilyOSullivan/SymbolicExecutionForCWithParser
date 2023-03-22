@@ -12,7 +12,7 @@
 %% It maintains the parsed-term for a function definition from the parser
 %%
 %% It holds a singular term:
-%%      Function_definition in the form function_definition(Function_name, Params, Body, Return_type)
+%%  Function_definition in the form function_definition(Function_name, Params, Body, Return_type)
 %%
 %% function_info structure:
 %%  function_info{function_definition(Function_name, Params, Body, Return_type)}
@@ -29,14 +29,16 @@ unify_function_info(Term, Attr) :-
     nonvar(Attr),
     unify_term_function_info(Term, Attr).
 
-%% This is used for Unification, as part of the unification handler
+%% This is used for Unification, as part of the unification handler internally
+%% by ECLiPSe
 unify_term_function_info(Value, _Attr) :-
 	nonvar(Value).
 unify_term_function_info(Y{AttrY}, AttrX) :-
 	-?->
 	    unify_function_info_function_info(Y, AttrX, AttrY).
 
-%% This is used for Unification, as part of the unification handler
+%% This is used for Unification, as part of the unification handler internally
+%% by ECLiPSe
 unify_function_info_function_info(_Y, AttrX, AttrY) :-
     var(AttrY),
     AttrX = AttrY.
