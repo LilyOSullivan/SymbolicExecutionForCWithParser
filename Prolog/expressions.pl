@@ -3,17 +3,17 @@
 :- use_module(c_array).
 :- use_module(c_var).
 
-%% Evaluate an expression. Failing if it is invalid, passing if it is valid.
 %% Evaluate a not expression (!). Failing if it is invalid, passing if it is valid.
+%% 0 is false, anything else is true
 evaluate_expression(not(Expression)) :-
     evaluate_expression(Expression, Expression_result),
-    ptc_solver__sdl(not (Expression_result = 1)),
-    !.
+    ptc_solver__sdl(not (Expression_result <> 0)).
 
+%% Evaluate an expression. Failing if it is invalid, passing if it is valid.
+%% 0 is false, anything else is true
 evaluate_expression(Expression) :-
     evaluate_expression(Expression, Expression_result),
-    ptc_solver__sdl(Expression_result = 1),
-    !.
+    ptc_solver__sdl(Expression_result <> 0).
 
 %% Returns the 'out' ptc_variable of a c_var
 evaluate_expression(Expression, Ptc_variable) :-
@@ -26,6 +26,13 @@ evaluate_expression(Expression, Ptc_variable) :-
 evaluate_expression(Expression, Expression) :-
     number(Expression),
     !.
+
+%% The parser can mark expressions as expression_statements, such as in a for loop
+%% Eg:
+%%  for (i = 0; i < 10; i++)  becomes
+%%  for (expression_statement(i = 0); i < 10; i++)
+evaluate_expression(expression_statement(Expression), Expression_result) :-
+    evaluate_expression(Expression, Expression_result).
 
 %% And Operator (&&)
 evaluate_expression(andop(Left, Right), Expression_result) :-
@@ -59,22 +66,12 @@ evaluate_expression(Left<>Right, Expression_result) :-
     ptc_solver__variable([Expression_result], boolean_int),
     ptc_solver__sdl(reif(Left_result <> Right_result, Expression_result)).
 
-% %% Equal Boolean Operator (==)
-% evaluate_expression(Left==Right, Left_result=Right_result) :-
-%     evaluate_expression(Left, Left_result),
-%     evaluate_expression(Right, Right_result).
-
 %% Equal Boolean Operator (==)
 evaluate_expression(Left==Right, Expression_result) :-
     evaluate_expression(Left, Left_result),
     evaluate_expression(Right, Right_result),
     ptc_solver__variable([Expression_result], boolean_int),
     ptc_solver__sdl(reif(Left_result = Right_result, Expression_result)).
-
-%% Greater than Boolean Operator (>)
-% evaluate_expression(Left>Right, Left_result>Right_result) :-
-%     evaluate_expression(Left, Left_result),
-%     evaluate_expression(Right, Right_result).
 
 %% Greater than Boolean Operator (>)
 evaluate_expression(Left>Right, Expression_result) :-
@@ -84,10 +81,6 @@ evaluate_expression(Left>Right, Expression_result) :-
     ptc_solver__sdl(reif(Left_result > Right_result, Expression_result)).
 
 %% Greater than or equal Boolean Operator (>=)
-% evaluate_expression(Left>=Right, Left_result>=Right_result) :-
-%     evaluate_expression(Left, Left_result),
-%     evaluate_expression(Right, Right_result).
-
 evaluate_expression(Left>=Right, Expression_result) :-
     evaluate_expression(Left, Left_result),
     evaluate_expression(Right, Right_result),
@@ -95,10 +88,6 @@ evaluate_expression(Left>=Right, Expression_result) :-
     ptc_solver__sdl(reif(Left_result >= Right_result, Expression_result)).
 
 %% Less than Boolean Operator (<)
-% evaluate_expression(Left<Right, Left_result<Right_result) :-
-%     evaluate_expression(Left, Left_result),
-%     evaluate_expression(Right, Right_result).
-
 evaluate_expression(Left<Right, Expression_result) :-
     evaluate_expression(Left, Left_result),
     evaluate_expression(Right, Right_result),
@@ -106,10 +95,6 @@ evaluate_expression(Left<Right, Expression_result) :-
     ptc_solver__sdl(reif(Left_result < Right_result, Expression_result)).
 
 %% Less than or equal Boolean Operator (<=)
-% evaluate_expression(Left<=Right, Left_result<=Right_result) :-
-%     evaluate_expression(Left, Left_result),
-%     evaluate_expression(Right, Right_result).
-
 evaluate_expression(Left<=Right, Expression_result) :-
     evaluate_expression(Left, Left_result),
     evaluate_expression(Right, Right_result),

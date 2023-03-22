@@ -9,7 +9,8 @@
 label_collectively([void]) :- !.
 label_collectively(Parameters) :-
     label__group_by_ptc_type(Parameters, Grouped_parameters),
-    label(Grouped_parameters).
+    label(Grouped_parameters),
+    !.
 
 %% Groups declarations into the following structure: [[Type,[Variable,...]],[Type,[Variable,...]]...]
 %% Parameters:
@@ -42,7 +43,6 @@ label([]) :- !.
 %% This structure is created by the predicate label__group_by_ptc_type
 label([label_variables(integer,Integers_to_label) | More_to_label]) :-
     ptc_solver__label_integers(Integers_to_label),
-    !,
     label(More_to_label).
 
 label([label_variables(intpointer,Values_to_label) | More_to_label]) :-
@@ -51,7 +51,6 @@ label([label_variables(intpointer,Values_to_label) | More_to_label]) :-
         utils__get_all_array_inputs(Indexs, Array_inputs)
     ),
     ptc_solver__label_integers(Array_values),
-    !,
     label(More_to_label).
 
 label([label_variables(charpointer,Values_to_label) | More_to_label]) :-
@@ -60,7 +59,6 @@ label([label_variables(charpointer,Values_to_label) | More_to_label]) :-
         utils__get_all_array_inputs(Indexs, Array_inputs)
     ),
     ptc_solver__label_integers(Array_values),
-    !,
 
     % TODO:Handle generation of backslashes and single quotes, by escaping them
 
