@@ -80,26 +80,11 @@ char* find_folder_by_prefix(char* path, char* prefix) {
 }
 
 int main(int argc, char* argv[]) {
+   //char main_pl_path[MAX_PATH] = "Z:/Documents/Github/SymbolicExecutionForCWithParser/Prolog/main.pl";
+    
     char main_pl_path[MAX_PATH];
-    if (argc == 2) {
-        int str_len = strlen(argv[1]);
-        int substr_len = strlen(".pl");
-
-        if (!(str_len >= substr_len && strcmp(argv[1] + str_len - substr_len, ".pl") == 0)) {
-            fprintf(stderr, "The filepath to the main.pl file should end with the .pl");
-            exit(1);
-        }
-
-        if (_access(argv[1], 0) != 0) {
-            fprintf(stderr, "The filepath to the main.pl does not lead to a file");
-            exit(1);
-        }
-
-        sprintf(main_pl_path, "%s", argv[1]);
-    }
-    else {
-        sprintf(main_pl_path, "Z:/Documents/Github/SymbolicExecutionForCWithParser/Prolog/main.pl");
-    }
+    // Convert a relative to absolute path
+    _fullpath(main_pl_path, "../Prolog/main.pl", MAX_PATH);
 
     char path[MAX_PATH];
     wchar_t pathW[MAX_PATH];
