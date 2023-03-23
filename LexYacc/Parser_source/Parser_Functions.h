@@ -114,9 +114,10 @@ void process_argument_flags(int argc, char* argv[],char* arguments[]) {
 							exit(1);
 						}
 						arguments[0] = path;
+						arguments[2] = path;
 						break;
 					}
-				case 'd':
+/*				case 'd':
 					{
 						char* path = argv[i];
 						path += 2; // Remove -d
@@ -128,6 +129,7 @@ void process_argument_flags(int argc, char* argv[],char* arguments[]) {
 						arguments[2] = path;
 						break;
 					}
+*/
 				default:
 					printf("Unsupported flag '-%c', ignoring.", argv[i][1]);
 			}

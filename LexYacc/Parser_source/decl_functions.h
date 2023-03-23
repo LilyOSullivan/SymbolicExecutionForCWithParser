@@ -772,7 +772,6 @@ to the function prototype string and returned.
 	retstring 	 = (char *) malloc(STRING_LIMIT);
 	lenstring = strlen(vartype) - 1;
 	
-
 	////////////////////////////////////////////////////////////////////
 	// Begin searching the linked list, starting at the beginning.	
 	varnode = varstart.varnext;
@@ -921,7 +920,7 @@ to the function prototype string and returned.
 	
 	////////////////////////////////////////////////////////////////
 	// successfully leaving the function		
-	strcpy(retstring, declstring);	
+	strcpy(retstring, declstring);
 	return retstring;
 }
 ////////////////////////////////////////////////////////////////
