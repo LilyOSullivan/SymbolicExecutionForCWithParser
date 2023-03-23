@@ -8,13 +8,6 @@
 // Parse the file (.i file as preprocessed) passed as one of the
 // parameters to produce Prolog Terms File ( .PL)
 //
-// Input
-// *****
-// 4 parameters -- 	name of parser,
-//				--  path of C file -- this is where .PL
-//					are  output to
-//				--	the name of file to be parsed (less extension)
-//				--  the path to the .i file - relative path
 // Notes
 // *****
 // The .i file is deleted after parsing is complete.
@@ -29,10 +22,6 @@
 // User defined header file containing all the functions used
 // in the parser
 
-//////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////
-// MAIN
-//////////////////////////////////////////////////////////////////
 
 int main (int argc, char * argv[])
 {
@@ -43,16 +32,15 @@ int main (int argc, char * argv[])
 	char * relativepath;// path from where parser is called -- .i file in this path
 	char * ifile;		// path (relativepath) and name of the .i file
 
-	/////////////////////////////////////////////////////////////////
-	// allocate space to the string variables used
+
 	filepath 	 = (char *) malloc(STRINGLIMIT);
 	filename 	 = (char *) malloc(STRINGLIMIT);
 	relativepath = (char *) malloc(STRINGLIMIT);
 	ifile		 = (char *) malloc(STRINGLIMIT);
+
 	// allocate space to the global variables
 	PLFile = (char *) malloc(STRINGLIMIT);
-
-	/////////////////////////////////////////////////////////////////                              
+                         
 	char* arguments[3];
 	arguments[0] = ".";
 	arguments[2] = ".";

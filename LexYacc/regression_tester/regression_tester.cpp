@@ -100,13 +100,23 @@ int main(int argc, char* argv[]) {
     else {
         sprintf(main_pl_path, "Z:/Documents/Github/SymbolicExecutionForCWithParser/Prolog/main.pl");
     }
-    char path[] = ".\\regression_tests\\";
+
+    char path[MAX_PATH];
+    wchar_t pathW[MAX_PATH];
+    if (GetCurrentDirectoryW(MAX_PATH, pathW) != NULL) {
+        char temp[MAX_PATH];
+        WideCharToMultiByte(CP_UTF8, 0, pathW, -1, temp, MAX_PATH, NULL, NULL);
+        sprintf(path, "%s/%s", temp, "regression_tests/");
+    }
+    else {
+        fprintf(stderr, "Error getting the current directory");
+        exit(1);
+    }
     char* filenames[200];  
 
     int count = get_filenames(path, filenames);
 
    if (count > 0) {
-        printf("Files in directory %s:\n", path);
         for (int i = 0; i < count; i++) {
             char* dot_c_substring;
             if ((dot_c_substring = strstr(filenames[i], ".c")) != NULL && strlen(dot_c_substring) == 2) {
@@ -121,47 +131,48 @@ int main(int argc, char* argv[]) {
             }
             printf("\t%s.c\n", filenames[i]);
             // Preprocess the file, and run the parser
-            char run_preprocessor[200];
-            sprintf(run_preprocessor, "cd regression_tests && CL /EP /P /nologo %s.c > nul && cd .. && .\\LilyParser.exe -p\"regression_tests\" %s -d\"regression_tests\" > nul", filenames[i], filenames[i]);
+            char run_preprocessor[MAX_PATH*3];
+            sprintf(run_preprocessor, "cd \"%s\" && CL /EP /P /nologo %s.c > nul && cd .. && .\\LilyParser.exe -p\"regression_tests\" %s -d\"regression_tests\" > nul", path, filenames[i], filenames[i]);
             int return_code = system(run_preprocessor);
             if (return_code != 0) {
                 fprintf(stderr, "CL/Parser returned status code %d for %s\n", return_code, filenames[i]);
                 free(filenames[i]);  // Free memory allocated for each filename
                 continue;
             }
+            
 
             // Run ECLiPSe Prolog
-            char run_eclipse[MAX_PATH];
-            sprintf(run_eclipse, "cd regression_tests && eclipse -f \"%s\" -e \"regression_main('%s').\" > nul", main_pl_path, filenames[i]);
+            char run_eclipse[MAX_PATH*2];
+            sprintf(run_eclipse, "cd \"%s\" && eclipse -f \"%s\" -e \"regression_main('%s').\" > nul", path, main_pl_path, filenames[i]);
             system(run_eclipse);
 
             char* test_folder_name = find_folder_by_prefix(path, filenames[i]);
             if (test_folder_name == NULL) {
-                fprintf(stderr, "\tFolder-prefix search returned status code %d for %s\n", return_code, filenames[i]);
+                fprintf(stderr, "\tFolder-prefix search unable to find folder for %s\n", filenames[i]);
                 free(filenames[i]);  // Free memory allocated for each filename
                 continue;
             }
 
-            char test_folder_path[MAX_PATH];
+            char test_folder_path[MAX_PATH*2];
             sprintf(test_folder_path, "%s%s", path, test_folder_name);
 
             // Compile the generated test-cases
-            char compile_cunit[MAX_PATH];
-            sprintf(compile_cunit, "cd %s && gcc %s_tests_main.c -lcunit > nul", test_folder_path, filenames[i]);
-            int result = system(compile_cunit);
-            if (result != 0) {
-                fprintf(stderr, "\tGCC returned %d for compilation of %s\n", return_code, filenames[i]);
+            char compile_test_case[MAX_PATH*2];
+            sprintf(compile_test_case, "cd \"C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Auxiliary/Build\" && vcvarsall.bat amd64 > nul && cd \"%s\" && cl /nologo %s_tests_main.c /Fe:a.exe > nul", test_folder_path, filenames[i]);
+            return_code = system(compile_test_case);
+            if (return_code != 0) {
+                fprintf(stderr, "\tCL returned %d for compilation of %s\n", return_code, filenames[i]);
                 free(test_folder_name);
                 free(filenames[i]);
                 continue;
             }
 
             // Run the generated test-cases
-            char run_cunit[MAX_PATH];
-            sprintf(run_cunit, "cd %s && .\\a.exe > nul", test_folder_path);
-            result = system(run_cunit);
-            if (result < 0) {
-                fprintf(stderr, "\tCUnit returned %d failed tests for %s\n", return_code, filenames[i]);
+            char run_test_case[MAX_PATH*2];
+            sprintf(run_test_case, "cd \"%s\" && a.exe", test_folder_path);
+            return_code = system(run_test_case);
+            if (return_code != 0) {
+                fprintf(stderr, "\Test-cases returned %d failed tests for %s\n", return_code, filenames[i]);
                 free(test_folder_name);
                 free(filenames[i]);
                 continue;
