@@ -2,7 +2,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <windows.h>
+#include <io.h>
 
+// Return a count of the number of files in a directory. 
+// This modifies the second parameter to point an array of characters 
+// Which each are a filename
+// Eg: count = 2, char[0] = "hello.cpp", filenames[1] = "world.pdf"
 int get_filenames(char* directory_path, char** filenames)
 {
     WIN32_FIND_DATAW file_data;
@@ -35,6 +40,7 @@ int get_filenames(char* directory_path, char** filenames)
     return count;
 }
 
+// Return a foldername which begins with the second parameter (Prefix)
 char* find_folder_by_prefix(char* path, char* prefix) {
     HANDLE hFind;
     WIN32_FIND_DATAW FindData;
@@ -73,7 +79,27 @@ char* find_folder_by_prefix(char* path, char* prefix) {
     return folder_name;
 }
 
-int main() {
+int main(int argc, char* argv[]) {
+    char main_pl_path[MAX_PATH];
+    if (argc == 2) {
+        int str_len = strlen(argv[1]);
+        int substr_len = strlen(".pl");
+
+        if (!(str_len >= substr_len && strcmp(argv[1] + str_len - substr_len, ".pl") == 0)) {
+            fprintf(stderr, "The filepath to the main.pl file should end with the .pl");
+            exit(1);
+        }
+
+        if (_access(argv[1], 0) != 0) {
+            fprintf(stderr, "The filepath to the main.pl does not lead to a file");
+            exit(1);
+        }
+
+        sprintf(main_pl_path, "%s", argv[1]);
+    }
+    else {
+        sprintf(main_pl_path, "Z:/Documents/Github/SymbolicExecutionForCWithParser/Prolog/main.pl");
+    }
     char path[] = ".\\regression_tests\\";
     char* filenames[200];  
 
@@ -90,13 +116,13 @@ int main() {
                 }
             }
             else {
-                free(filenames[i]);  // Free memory allocated for each filename
+                free(filenames[i]);  // Free memory-allocated for each filename
                 continue; // Ignore non-.c files
             }
             printf("\t%s.c\n", filenames[i]);
             // Preprocess the file, and run the parser
             char run_preprocessor[200];
-            sprintf(run_preprocessor, "cd regression_tests && CL /EP /P /nologo %s.c > nul && cd .. && .\\LilyParser.exe regression_tests %s regression_tests > nul", filenames[i], filenames[i]);
+            sprintf(run_preprocessor, "cd regression_tests && CL /EP /P /nologo %s.c > nul && cd .. && .\\LilyParser.exe -p\"regression_tests\" %s -d\"regression_tests\" > nul", filenames[i], filenames[i]);
             int return_code = system(run_preprocessor);
             if (return_code != 0) {
                 fprintf(stderr, "CL/Parser returned status code %d for %s\n", return_code, filenames[i]);
@@ -104,13 +130,14 @@ int main() {
                 continue;
             }
 
+            // Run ECLiPSe Prolog
             char run_eclipse[MAX_PATH];
-            sprintf(run_eclipse, "cd regression_tests && eclipse -f \"Z:/Documents/Github/SymbolicExecutionForCWithParser/Prolog/main.pl\" -e \"regression_main('%s').\" > nul", filenames[i]);
+            sprintf(run_eclipse, "cd regression_tests && eclipse -f \"%s\" -e \"regression_main('%s').\" > nul", main_pl_path, filenames[i]);
             system(run_eclipse);
 
             char* test_folder_name = find_folder_by_prefix(path, filenames[i]);
             if (test_folder_name == NULL) {
-                fprintf(stderr, "\tCL/Parser returned status code %d for %s\n", return_code, filenames[i]);
+                fprintf(stderr, "\tFolder-prefix search returned status code %d for %s\n", return_code, filenames[i]);
                 free(filenames[i]);  // Free memory allocated for each filename
                 continue;
             }
@@ -118,8 +145,9 @@ int main() {
             char test_folder_path[MAX_PATH];
             sprintf(test_folder_path, "%s%s", path, test_folder_name);
 
+            // Compile the generated test-cases
             char compile_cunit[MAX_PATH];
-            sprintf(compile_cunit, "cd %s && gcc %s_tests_main.c -lcunit", test_folder_path, filenames[i]);
+            sprintf(compile_cunit, "cd %s && gcc %s_tests_main.c -lcunit > nul", test_folder_path, filenames[i]);
             int result = system(compile_cunit);
             if (result != 0) {
                 fprintf(stderr, "\tGCC returned %d for compilation of %s\n", return_code, filenames[i]);
@@ -128,6 +156,7 @@ int main() {
                 continue;
             }
 
+            // Run the generated test-cases
             char run_cunit[MAX_PATH];
             sprintf(run_cunit, "cd %s && .\\a.exe > nul", test_folder_path);
             result = system(run_cunit);
@@ -141,13 +170,17 @@ int main() {
                 printf("\t%s successfully passed\n", filenames[i]);
             }
 
+            // Remove the generated tests and compiled executable
             char delete_folder[MAX_PATH];
-            sprintf(delete_folder, "rmdir /s /q \"%s\"", test_folder_path);
-            Sleep(50);
-            system(delete_folder);
+            sprintf(delete_folder, "rmdir /s /q \"%s\" > nul", test_folder_path);
+            Sleep(75);
+            if (system(delete_folder) != 0) {
+                Sleep(135);
+                system(delete_folder);
+            }
 
             free(test_folder_name);
-            free(filenames[i]);  // Free memory allocated for each filename
+            free(filenames[i]);  // Free memory-allocated for each filename
         }
     }
     else {
