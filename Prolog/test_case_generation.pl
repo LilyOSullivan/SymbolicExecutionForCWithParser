@@ -117,18 +117,28 @@ get_test_name(Test_name) :-
 %%  -> All_variable_names = "x,y"
 var_names_as_parameters([], Variable_name_accumulator, All_variable_names) :-
     utils__strip_right_comma(Variable_name_accumulator, All_variable_names).
-var_names_as_parameters([declaration(_, [Variable])|More_variables], Variable_name_accumulator, All_variable_names) :-
+var_names_as_parameters([declaration(_, [Variable]) | More_variables], Variable_name_accumulator, All_variable_names) :-
     c_var__is_variable(Variable),
     !,
     c_var__get_name(Variable, Var_name),
-    sprintf(Result, "%s%s,", [Variable_name_accumulator, Var_name]),
-    var_names_as_parameters(More_variables, Result, All_variable_names).
-var_names_as_parameters([declaration(_, [Variable]) | More_variables], Variable_name_accumulator, All_variable_names) :-
-    c_array__is_array(Variable),
-    !,
-    c_array__get_name(Variable, Var_name),
-    sprintf(Result, "%s%s,", [Variable_name_accumulator, Var_name]),
-    var_names_as_parameters(More_variables, Result, All_variable_names).
+    c_var__get_scope(Variable, Scope),
+    (
+        Scope = global ->
+            (
+                var_names_as_parameters(More_variables, Variable_name_accumulator, All_variable_names)
+            )
+        ;
+            (
+                sprintf(Result, "%s%s,", [Variable_name_accumulator, Var_name]),
+                var_names_as_parameters(More_variables, Result, All_variable_names)
+            )
+    ).
+% var_names_as_parameters([declaration(_, [Variable]) | More_variables], Variable_name_accumulator, All_variable_names) :-
+%     c_array__is_array(Variable),
+%     !,
+%     c_array__get_name(Variable, Var_name),
+%     sprintf(Result, "%s%s,", [Variable_name_accumulator, Var_name]),
+%     var_names_as_parameters(More_variables, Result, All_variable_names).
 
 %% Creates a declaration, and assignment, section for variables used in the test cases
 %% Params: The list of parameters

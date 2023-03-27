@@ -3,6 +3,7 @@
 :- use_module(c_var).
 :- use_module(function_info).
 
+:- ['declaration'].
 :- ['expressions'].
 :- ['statement_handler'].
 :- ['utils'].
@@ -57,10 +58,30 @@ main(Filename_without_extension, Function_name, Path_to_C_file) :-
     % https://www.ascii-code.com
     concat_string([Path_to_C_file, "/", Filename_without_extension, ".pl"], Prolog_file),
     read_prolog_file(Prolog_file, Terms),
-    declare_functions(Terms),
-    process_global_variables(Terms),
-    find_function_information(Terms, Function_name, Function_info),
-    function_info__get_clean_function(Function_info, _, Params, Body, Return_type),
+
+    Override_globals = false,
+    (Override_globals = true ->
+            process_global_variables(Terms, [], All_globals),
+            declare_functions(Terms),
+            find_function_information(Terms, Function_name, Function_info),
+            function_info__get_clean_function(Function_info, _, Parameters, Body, Return_type),
+            (
+                Parameters = [void] ->
+                    (
+                        Params = All_globals
+                    )
+                ;
+                    (
+                        append(All_globals, Parameters, Params)
+                    )
+            )
+        ;
+            process_global_variables(Terms),
+            declare_functions(Terms),
+            find_function_information(Terms, Function_name, Function_info),
+            function_info__get_clean_function(Function_info, _, Params, Body, Return_type)
+    ),
+
     util__error_if_false(Return_type \= void, "No unit tests to generate for a void-returning function"),
     setup_test_driver(Function_name, Path_to_C_file),
     function_handler(Filename_without_extension, Function_name, Body, Params, Return_type). % From Statement_handler.pl
@@ -105,15 +126,28 @@ read_prolog_file(Relative_path, Result) :-
 %% Initialise global variables
 %% Parameters:
 %%  Terms: The contents of the parser-result prolog file
+process_global_variables([], List_of_global_declarations, List_of_global_declarations).
+process_global_variables([Term | More_terms], Global_variable_declaration_accumulator, List_of_global_declarations) :-
+    % Statements 999 is a dummy variable created by the parser
+    ( Term = global_variables(Statements, _), Statements \== 999 ->
+        Statements = [Declaration | _],
+        Declaration, % From declaration.pl
+        term_variables(Declaration, [Var|_]),
+        c_var__set_scope(Var, global),
+
+        append([Declaration], Global_variable_declaration_accumulator, New_global_variable_accumulator),
+        process_global_variables(More_terms, New_global_variable_accumulator, List_of_global_declarations)
+    ;
+        process_global_variables(More_terms, Global_variable_declaration_accumulator, List_of_global_declarations)
+    ).
 process_global_variables([]).
 process_global_variables([Term | More_terms]) :-
-    % Statements 999 is a dummy variable created by the parser
-    (Term = global_variables(Statements, _), Statements \== 999 ->
-        statement_handler(Statements, return(_, _)) % From Statement_handler.pl
+    ( Term = global_variables(Statements, _), Statements \== 999 ->
+        handle(Statements, return(_, _)), % From Statement_handler.pl
+        process_global_variables(More_terms)
     ;
-        true
-    ),
-    process_global_variables(More_terms).
+        process_global_variables(More_terms)
+    ).
 
 %% Finds the function definition for a desired function
 %% Parameters:
@@ -122,7 +156,8 @@ process_global_variables([Term | More_terms]) :-
 %%  Params: The parameters of the function to be found
 %%  Body: The body of the function to be found
 %%  Return_type: The return type of the function to be found
-find_function_information([function_definition(Function_info, _, _ , _) | More_terms], Function_name, Return_function_info) :-
+find_function_information([function_definition(Function_info, _, _, _) | More_terms], Function_name, Return_function_info) :-
+    !,
     function_info__get_name(Function_info, Current_function_name),
     (Current_function_name == Function_name ->
         (
@@ -135,6 +170,7 @@ find_function_information([function_definition(Function_info, _, _ , _) | More_t
         )
     ).
 find_function_information([_ | More_terms], Function_name, Return_function_info) :-
+    !,
     find_function_information(More_terms, Function_name, Return_function_info).
 find_function_information([], Function_name, _) :-
     !,
@@ -147,8 +183,7 @@ declare_functions([function_definition(Function_info, Params, Body, Return_type)
     !,
     % Strip 'LC_' or 'UC_' from the function name
     sub_atom(Function_name_as_atom, 3, _, 0, Stripped_function_name),
-    Function_def = function_definition(Stripped_function_name, Params, Body, Return_type),
-    function_info__create(Function_def, Function_info),
+    function_info__create(function_definition(Stripped_function_name, Params, Body, Return_type), Function_info),
     declare_functions(More_terms).
 declare_functions([_ | More_terms]) :-
     declare_functions(More_terms).

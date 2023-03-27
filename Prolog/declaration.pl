@@ -10,14 +10,14 @@
 declaration(int, [C_variable]) :-
     declaration__get_variable_name(C_variable, C_name),
     ptc_solver__variable([In], integer),
-    c_var__create(int, integer, In, C_name, C_variable),
+    c_var__create(int, integer, In, local, C_name, C_variable),
     !.
 
 %% Declare a char variable
 declaration(char, [C_variable]) :-
     declaration__get_variable_name(C_variable, C_name),
     ptc_solver__variable([In], char),
-    c_var__create(char, char, In, C_name, C_variable),
+    c_var__create(char, char, In, local, C_name, C_variable),
     !.
 
 %% Declare an integer array

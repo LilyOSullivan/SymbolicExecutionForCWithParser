@@ -1,6 +1,6 @@
 :- module(c_var).
 
-:- export c_var__create/5.
+:- export c_var__create/6.
 :- export c_var__get_name/2.
 :- export c_var__get_in_var/2.
 :- export c_var__get_out_var/2.
@@ -9,6 +9,8 @@
 :- export c_var__get_ptc_type/2.
 :- export c_var__is_variable/1.
 :- export c_var__create_declaration/2.
+:- export c_var__get_scope/2.
+:- export c_var__set_scope/2.
 
 %% The module for the c_var attributed variable
 %% It maintains meta-data about a singular non-collection variable
@@ -18,6 +20,7 @@
 %%      Type: The variable type: Eg Int, Float, Char...
 %%      In: A Ptc_solver variable of the attributed variables initial data.
 %%      Out: A Ptc_solver variable that is modified upon assignment or value change.
+%%      Variable_scope: The scope of the variable: Eg. Local, Global, Static...
 %%      c_source_variable_name: The variable name in the C-source-code
 %%
 %% c_var structure:
@@ -51,62 +54,92 @@ unify_c_var_c_var(_Y, _AttrX, AttrY) :-
 
 %% Used internally by ECLiPSe for printing a c_var
 %% Additionally controls how the debugger displays the value
-print_c_var(_{cvar(_CType,_PTCType, _In, _Out, Name)}, Print_value) :-
+print_c_var(_{cvar(_CType,_PTCType,_Variable_scope , _In, _Out, Name)}, Print_value) :-
     -?->
         Print_value = cvar(Name).
 
 %% Constructor for a c_var
-c_var__create(C_type, Ptc_type, Ptc_variable_in, Var_name, C_var_instantiated) :-
-    add_attribute(C_var_instantiated, cvar(C_type, Ptc_type, Ptc_variable_in, Ptc_variable_in, Var_name)).
+c_var__create(C_type, Ptc_type, Ptc_variable_in, Variable_scope, Var_name, C_var_instantiated) :-
+    add_attribute(C_var_instantiated, cvar(C_type, Ptc_type, Ptc_variable_in, Ptc_variable_in, Variable_scope, Var_name)).
 
 %% Returns the c-type of the c_var
 c_var__get_c_type(_Var{C_var}, C_type) :-
     -?->
-        C_var = cvar(C_type, _, _, _, _).
+        C_var = cvar(C_type, _, _, _, _, _).
 
 %% Returns ptc type of the c_var
 c_var__get_ptc_type(_Var{C_var}, Ptc_type) :-
     -?->
-        C_var = cvar(_, Ptc_type, _, _, _).
+        C_var = cvar(_, Ptc_type, _, _, _, _).
 
 %% Returns the name in the source code of the c_var
 c_var__get_name(_Var{C_var}, Name) :-
     -?->
-        C_var = cvar(_, _, _, _, Name).
+        C_var = cvar(_, _, _, _, _, Name).
 
 %% Returns the in-value of the c_var
 c_var__get_in_var(_Var{C_var}, In_var) :-
     -?->
-        C_var = cvar(_, _, In_var, _, _).
+        C_var = cvar(_, _, In_var, _, _, _).
 
 %% Returns the out-value of the c_var
 c_var__get_out_var(_Var{C_var}, Out_var) :-
     -?->
-        C_var = cvar(_, _, _, Out_var, _).
+        C_var = cvar(_, _, _, Out_var, _, _).
 
 %% Sets the out-value of the c_var
 c_var__set_out_var(_Var{C_var}, New_out_variable) :-
     -?->
         setarg(4, C_var, New_out_variable).
 
+c_var__get_scope(_Var{C_var}, Scope) :-
+    -?->
+        C_var = cvar(_, _, _, _, Scope, _).
+
+c_var__set_scope(_Var{C_var}, New_scope) :-
+    -?->
+        setarg(5, C_var, New_scope).
+
 %% Passes if the variable is a c_var
 %% Fails otherwise
 c_var__is_variable(_Var{C_var}) :-
     -?->
-        C_var = cvar(_, _, _, _, Name),
+        C_var = cvar(_, _, _, _, _, Name),
         nonvar(Name).
 
 %% Creates a declaration in C for the c_var
 c_var__create_declaration(Variable, Declaration) :-
     c_var__is_variable(Variable),
     c_var__get_c_type(Variable, C_Type),
-    c_var__create_declaration(Variable, C_Type,Declaration).
+    c_var__create_declaration(Variable, C_Type,Declaration),
+    !.
 c_var__create_declaration(Variable, int, Declaration) :-
     c_var__get_in_var(Variable, Ptc_in_var),
     c_var__get_name(Variable, Var_name),
-    sprintf(Declaration, "\t%s %s = %d;\n", [int, Var_name, Ptc_in_var]).
+    c_var__get_scope(Variable, Scope),
+    (
+        Scope = global ->
+            (
+                sprintf(Declaration, "\t%s = %d;\n", [Var_name, Ptc_in_var])
+            )
+        ;
+            (
+                sprintf(Declaration, "\t%s %s = %d;\n", [int, Var_name, Ptc_in_var])
+            )
+    ).
+
 c_var__create_declaration(Variable, char, Declaration) :-
     c_var__get_in_var(Variable, Ptc_in_var),
     char_code(Char, Ptc_in_var),
     c_var__get_name(Variable, Var_name),
-    sprintf(Declaration, "\t%s %s = '%a';\n", [char, Var_name, Char]).
+    c_var__get_scope(Variable, Scope),
+    (
+        Scope = global ->
+            (
+                sprintf(Declaration, "\t%s = %d;\n", [Var_name, Char])
+            )
+        ;
+            (
+                sprintf(Declaration, "\t%s %s = %d;\n", [char, Var_name, Char])
+            )
+    ).

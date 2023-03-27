@@ -6,6 +6,7 @@
 %% Evaluate a not expression (!). Failing if it is invalid, passing if it is valid.
 %% 0 is false, anything else is true
 evaluate_expression(not(Expression)) :-
+    !,
     evaluate_expression(Expression, Expression_result),
     ptc_solver__sdl(not (Expression_result <> 0)).
 

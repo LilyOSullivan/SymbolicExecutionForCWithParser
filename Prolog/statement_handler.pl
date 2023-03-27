@@ -1,11 +1,11 @@
-:- ['declaration'].
+
 :- ['label'].
 :- ['test_case_generation'].
 
 %% The entrypoint to function analysis
 function_handler(Filename, Function_name, Body, Params, Return_type) :-
     parameter_handler(Params),
-    statement_handler(Body, return(Return_value, Return_type)),
+    handle(Body, return(Return_value, Return_type)),
     label_collectively(Params),
     c_var__get_out_var(Return_value, Return_value_normalised),
     write_test_case_all(Filename, Function_name, Params, Return_value_normalised, Return_type).
@@ -20,7 +20,7 @@ function_handler(_, _, _, _, _).
 function_handler(Function_info, Arguments, Return_value_normalised) :-
     function_info__get_clean_function(Function_info, _, Params, Body, Return_type),
     utils__assign_arguments_to_parameters(Arguments, Params),
-    statement_handler(Body, return(Return_value, Return_type)),
+    handle(Body, return(Return_value, Return_type)),
     c_var__get_out_var(Return_value, Return_value_normalised).
 
 %% Declare all parameters as variables
@@ -31,28 +31,25 @@ parameter_handler([Declaration | More_declarations]) :-
     parameter_handler(More_declarations).
 
 %% The primary loop dictating the execution of statements
-%% It passes a final parameter of return_info
-%%  Return_value is the value returned at a 'return' keyword, it is
-%%               used to stop iterating in statement handler
-%%  Return_type is the type of the return of the function
-statement_handler([], _).
-statement_handler([Statement | More_statements], return(Return_value, Return_type)) :-
-    handle(Statement, return(Return_value, Return_type)),
-    (
-        free(Return_value) ->
-            statement_handler(More_statements, return(Return_value, Return_type))
-        ;
-            true
-    ).
-
-%% This is if a new scope is created using { } not tied to a loop, if or function
+%% Also handles if a new scope is created using { } not tied to a loop, if or function
 %% Eg:
 %%  int y = 15;
 %%  {
 %%      int x = 1;
 %%  }
-handle(List_of_statements, Return_info) :-
-    statement_handler(List_of_statements, Return_info).
+%% It passes a final parameter of return_info
+%%  Return_value is the value returned at a 'return' keyword, it is
+%%               used to stop iterating in statement handler
+%%  Return_type is the type of the return of the function
+handle([], _).
+handle([Statement | More_statements], return(Return_value, Return_type)) :-
+    handle(Statement, return(Return_value, Return_type)),
+    (
+        free(Return_value) ->
+            handle(More_statements, return(Return_value, Return_type))
+        ;
+            true
+    ).
 
 %% This occurs if a variable is declared in the function body
 %% Eg:
@@ -64,18 +61,18 @@ handle(declaration(Type, Vars), _) :-
 handle(if_statement(_Line_Number, expression(Expression), If_body, Else_body), Return_info) :-
     (
         evaluate_expression(Expression),
-        statement_handler(If_body, Return_info)
+        handle(If_body, Return_info)
     )
         ; % Deliberate Choice Point
     (
         evaluate_expression(not(Expression)),
-        statement_handler(Else_body, Return_info)
+        handle(Else_body, Return_info)
     ).
 
 %% Empty return statement
 %% Eg: return;
 handle(return, return(Return_value, Return_type)) :-
-    c_var__create(Return_type, _, void, "__return__", Return_value),
+    c_var__create(Return_type, _, void, local, "__return__", Return_value),
     writeln("Void Return").
 
 %% Return statement with value to return
@@ -85,7 +82,7 @@ handle(return(Expression), return(Return_value,Return_type)) :-
     once evaluate_expression(Expression, Return_expression),
     ptc_solver__variable([Return_variable], Ptc_type),
     ptc_solver__sdl(Return_variable = Return_expression),
-    c_var__create(Return_type, Ptc_type, Return_variable, "__return__", Return_value),
+    c_var__create(Return_type, Ptc_type, Return_variable, local, "__return__", Return_value),
     writeln(Return_expression).
 
 handle(init_record(Variable, function_call(Function_name, Arguments)), _) :-
