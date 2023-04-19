@@ -27,13 +27,13 @@ regression_main(Function_name) :-
     atom(Function_name),
     atom_codes(Function_name, Codes),
     string_codes(Filename_string, Codes),
-    main(Filename_string, Function_name, "./").
+    main(Filename_string, Function_name, "./", false).
 
 %% A shortcut predicate to main/3 outputting to the Prolog directory
 %% Useful for development. This is not called in code, only by a developer
 %% main/1 is used during development of the test-driver
 main(Function_name) :-
-    main("sign", Function_name, "./").
+    main("sign", Function_name, "./", false).
 
 %% The entrypoint to the program
 %% Filename_without_extension: The name of the file without the .pl extension
@@ -44,7 +44,7 @@ main(Function_name) :-
 %% Path_to_C_file: The folder-path to the C file to be symbolically executed.
 %%                          This should be a string.
 %%                 Eg: "C:\\Users\\user\\Desktop"
-main(Filename_without_extension, Function_name, Path_to_C_file) :-
+main(Filename_without_extension, Function_name, Path_to_C_file, Override_globals) :-
     util__error_if_false(string(Filename_without_extension), "Filename must be a string"),
     util__error_if_false(not string_contains(Filename_without_extension, "."), "Filename should not contain an extension"),
     util__error_if_false(atom(Function_name), "Function name must be an atom"),
@@ -59,7 +59,6 @@ main(Filename_without_extension, Function_name, Path_to_C_file) :-
     concat_string([Path_to_C_file, "/", Filename_without_extension, ".pl"], Prolog_file),
     read_prolog_file(Prolog_file, Terms),
 
-    Override_globals = false,
     (Override_globals = true ->
             process_global_variables(Terms, [], All_globals),
             declare_functions(Terms),
