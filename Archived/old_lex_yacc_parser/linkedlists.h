@@ -1,3 +1,8 @@
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+// *** HEADER FILE -- LINKEDLISTS.H
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
 /*
 This header file contains the code for a variety of linked lists.
 These linked lists are used to record the line number at which 
@@ -30,7 +35,11 @@ of using the function:
 	void DisposeList(List L);
 */
 
-#include <stdarg.h>
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+// *** VARIABLES
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
 
 // The Linked List structure used for all the Linked Lists declared.
 struct Node;
@@ -42,6 +51,7 @@ struct Node
 	PtrToNode Next;
 };
 
+////////////////////////////////////////////////////////////////
 // FOR LOOPS
 List For;
 // Linked List, detailing the line number where the 'for' token is parsed
@@ -49,6 +59,7 @@ int ForListUsed = NO;
 //  This variable is set to NO (0) indicating that the linked list 'For' has not previously been
 //	used. It is reset to YES (1) whenever the list is created (in grammar.l)
 
+////////////////////////////////////////////////////////////////
 // DO...WHILE LOOPS
 List Do;
 // Linked List, detailing the line number where the 'do' token is parsed
@@ -56,6 +67,7 @@ int DoListUsed = NO;
 //  This variable is set to NO (0) indicating that the linked list 'Do' has not previously been
 //	used. It is reset to YES (1) whenever the list is created (in grammar.l)
 
+////////////////////////////////////////////////////////////////
 // WHILE LOOPS
 List While;
 // Linked List, detailing the line number where the 'while' token is parsed
@@ -64,6 +76,7 @@ int WhileListUsed = NO;
 //	used. It is reset to YES (1) whenever the list is created (in grammar.l)
 
 
+////////////////////////////////////////////////////////////////
 // IF STATEMENTS
 List If;
 // Linked List, detailing the line number where the 'if' token is parsed
@@ -73,6 +86,7 @@ int IfListUsed = NO;
 int IfEnded = 0;
 //  This variable counts the number of if statements parsed
 
+////////////////////////////////////////////////////////////////
 // SWITCH STATEMENTS
 List Switch;
 // Linked List, detailing the line number where the 'switch' token is parsed
@@ -80,6 +94,7 @@ int SwitchListUsed = NO;
 //  This variable is set to NO (0) indicating that the linked list 'Switch' has not previously been
 //	used. It is reset to YES (1) whenever the list is created (in grammar.l)
 
+////////////////////////////////////////////////////////////////
 // CASE STATEMENTS
 List Case;
 // Linked List, detailing the line number where the 'case' token is parsed
@@ -87,6 +102,7 @@ int CaseListUsed = NO;
 // This variable is set to NO (0) indicating that the linked list 'Case' has not previously been
 //	used. It is reset to YES (1) whenever the list is created (in grammar.l)
 
+////////////////////////////////////////////////////////////////
 // DEFAULT STATEMENTS
 List Default;
 // Linked List, detailing the line number where the 'default' token is parsed
@@ -94,6 +110,11 @@ int DefaultListUsed = NO;
 //  This variable is set to NO (0) indicating that the linked list 'Default' has not previously been
 //	used. It is reset to YES (1) whenever the list is created (in grammar.l)
 
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+// *** FUNCTION PROTOTYPES
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
 int IsEmptyList(List L);
 List CreateList(void);
 void MakeEmpty(List L);
@@ -103,35 +124,51 @@ char * PopList(List L);
 char * BottomList(List L);
 int CountList(List L);
 
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+// *** FUNCTION DEFINITIONS
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
 int IsEmptyList(List L)
 {
-	/*
-		This function checks if the list passed as parameter is empty or not.
-	*/
+////////////////////////////////////////////////////////////////
+/*
+This function checks if the list passed as parameter is empty or not.
+*/
+////////////////////////////////////////////////////////////////
 
+	////////////////////////////////////////////////////////////////
 	// if the List is empty return NULL 
 	return L->Next == NULL;
 }
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
 
 List CreateList(void)
 {
-	/*
-		Create the linked list List. This is an EMPTY linked list.
-	*/
+////////////////////////////////////////////////////////////////
+/*
+Create the linked list List. This is an EMPTY linked list.
+*/
+////////////////////////////////////////////////////////////////
 	List L;
-	L = malloc(sizeof(struct Node));
+	L = malloc( sizeof( struct Node ) );
 	if(L == NULL)
 		printf("ERROR: OUT OF SPACE");
 	L->Next = NULL;
 	MakeEmpty(L);
 	return L;
 }
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
 
 void MakeEmpty(List L)
 {
-	/*
-		Empty the linked list passed as parameter.
-	*/
+////////////////////////////////////////////////////////////////
+/*
+Empty the linked list passed as parameter.
+*/
+////////////////////////////////////////////////////////////////
 	if( L == NULL )
 		printf( "ERROR: MUST USE CREATELIST FIRST" );
 	else
@@ -139,20 +176,29 @@ void MakeEmpty(List L)
 			PopList(L);
 }
 
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+
 void DisposeList(List L)
 {
-	/*
-		Dispose of the Linked list L, free up any allocated memory.
-	*/
+////////////////////////////////////////////////////////////////
+/*
+Dispose of the Linked list L, free up any allocated memory.
+*/
+////////////////////////////////////////////////////////////////
 	MakeEmpty(L);
 	free(L);
 }
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
 
 void PushList(int X, List L)
 {
-	/*
-		Push the number X onto the linked list L
-	*/
+////////////////////////////////////////////////////////////////
+/*
+Push the number X onto the linked list L
+*/
+////////////////////////////////////////////////////////////////
 
 	PtrToNode TmpCell;
 	TmpCell = malloc( sizeof(struct Node));
@@ -165,53 +211,57 @@ void PushList(int X, List L)
 		L->Next = TmpCell;
 	}
 }
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
 
 char * PopList(List L)
 {
-	/*
-		This function finds the element that is at the top of the list passed as parameter
-		and returns this number as a string. The node is popped from the linked list and
-		the associated memory is freed.
-	*/
+////////////////////////////////////////////////////////////////
+/*
+This function finds the element that is at the top of the list passed as parameter
+and returns this number as a string. The node is popped from the linked list and
+the associated memory is freed.
+*/
+////////////////////////////////////////////////////////////////
 	PtrToNode FirstCell;
-	char* elem_str;
+	char * elem_str;
+
+	elem_str = (char *) malloc(STRING_LIMIT);
 
 	if( IsEmptyList(L) )
 	{
 		printf("ERROR: EMPTY STACK - CANNOT POP THE NODE");
-		elem_str = (char*)malloc(1 + 1);
 		strcpy(elem_str, "");
 	}
 	else
 	{
 		FirstCell = L->Next;
-		// Calculate the length of the string representation of the integer value
-		int length = snprintf(NULL, 0, "%d", FirstCell->Element);
-		elem_str = (char*)malloc(length + 1);
-		// Convert integer to string
-		snprintf(elem_str, length + 1, "%d", FirstCell->Element);
-		//itoa(FirstCell->Element, elem_str, RADIX);
+		itoa(FirstCell->Element, elem_str, RADIX);
 		L->Next = L->Next->Next;
-		free(FirstCell);
+		free( FirstCell );
 	}
 	return elem_str;
 }
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
 
 char * BottomList(List L)
 {
-	/*
-		This function finds the element that is at the bottom of the list passed as parameter
-		and returns this number as a string. The node is popped from the linked list and
-		the associated memory is freed.
-	*/
-
+////////////////////////////////////////////////////////////////
+/*
+This function finds the element that is at the bottom of the list passed as parameter
+and returns this number as a string. The node is popped from the linked list and
+the associated memory is freed.
+*/
+////////////////////////////////////////////////////////////////
 	PtrToNode LastCell;
-	char* elem_str;
+	char * elem_str;
+
+	elem_str = (char *) malloc(STRING_LIMIT);
 
 	if( IsEmptyList(L) )
 	{
 		printf("ERROR: CAN NOT POP NODE FROM EMPTY STACK");
-		elem_str = (char*)malloc(1 + 1);
 		strcpy(elem_str, "");
 	}
 	else
@@ -223,22 +273,21 @@ char * BottomList(List L)
 		LastCell = L->Next;
 		L->Next = NULL;
 
-		// Calculate the length of the string representation of the integer value
-		int length = snprintf(NULL, 0, "%d", LastCell->Element);
-		elem_str = (char*)malloc(length + 1);
-		// Convert integer to string
-		snprintf(elem_str, length + 1, "%d", LastCell->Element);
-
-		free(LastCell);
+		itoa(LastCell->Element, elem_str, RADIX);
+		free( LastCell );
 	}
 	return elem_str;
 }
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
 
 int CountList(List L)
 {
-	/*
-		This function counts the number of nodes in the linked list L
-	*/
+////////////////////////////////////////////////////////////////
+/*
+This function counts the number of nodes in the linked list L
+*/
+////////////////////////////////////////////////////////////////	
 	List Temp;
 	int counter = 0;
 	Temp = L;
@@ -251,3 +300,8 @@ int CountList(List L)
 	return counter;
 }
 
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+// *** END HEADER FILE -- LINKEDLISTS.H
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////

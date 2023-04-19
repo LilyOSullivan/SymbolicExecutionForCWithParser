@@ -1,8 +1,3 @@
-/////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////
-// *** MAIN PARSER -- PARSER.C
-/////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////
 // Functionality
 // **************
 // Parse the file (.i file as preprocessed) passed as one of the
@@ -12,34 +7,21 @@
 // *****
 // The .i file is deleted after parsing is complete.
 // The .PL files are output to the path of the C program.
-//
-/////////////////////////////////////////////////////////////////
-// *** BEGIN MAIN PARSER FUNCTION
-/////////////////////////////////////////////////////////////////
+
 #include <io.h>
 
 #include "Parser_Functions.h"
 // User defined header file containing all the functions used
 // in the parser
 
-
 int main (int argc, char * argv[])
 {
-	/////////////////////////////////////////////////////////////////
-	// variable declarations
-	char * filepath;	// path of the original C file -- where .pl
-	char * filename;	// name of the file to be parsed (less extension)
-	char * relativepath;// path from where parser is called -- .i file in this path
-	char * ifile;		// path (relativepath) and name of the .i file
+	char* filepath = (char*)malloc(STRINGLIMIT);	// path of the original C file -- where .pl
+	char* filename = (char*)malloc(STRINGLIMIT);	// name of the file to be parsed (less extension)
+	char* relativepath = (char*)malloc(STRINGLIMIT);// path from where parser is called -- .i file in this path
+	char* ifile = (char*)malloc(STRINGLIMIT);		// path (relativepath) and name of the .i file
 
-
-	filepath 	 = (char *) malloc(STRINGLIMIT);
-	filename 	 = (char *) malloc(STRINGLIMIT);
-	relativepath = (char *) malloc(STRINGLIMIT);
-	ifile		 = (char *) malloc(STRINGLIMIT);
-
-	// allocate space to the global variables
-	PLFile = (char *) malloc(STRINGLIMIT);
+	PLFile = (char*)malloc(STRINGLIMIT);
                          
 	char* arguments[3];
 	arguments[0] = ".";
@@ -67,48 +49,33 @@ int main (int argc, char * argv[])
 	strcpy(C_Filename, filename); 
 	strcat(C_Filename, ".c");
 
-	/////////////////////////////////////////////////////////////////
 	// set up path (filepath) & name of the .PL file (PLFile - global)
 	strcpy(PLFile, filepath);		
 	strcat(PLFile, "\\\\");
 	strcat(PLFile, filename);		
 	strcat(PLFile, ".pl");
 
-	/////////////////////////////////////////////////////////////////
 	// set up path (relativepath) & name of the .i file (ifile)
 	strcpy(ifile, relativepath);	
 	strcat(ifile, "\\\\");
 	strcat(ifile, filename);		
 	strcat(ifile, ".i");
 
-	/////////////////////////////////////////////////////////////////
 	// print the discontiguous statements -- to PLFile
 	//print_discontiguous(PLFile);
 
 	print_start_of_parsed_predicate(PLFile);
 
-	/////////////////////////////////////////////////////////////////
 	// PARSE the input file	-- parse .i file (ifile)
 	parse_file(ifile);
 
-	/////////////////////////////////////////////////////////////////
 	// print the dummy declarations	 -- to PLFile
 	print_dummy_dec(PLFile);
 
 	print_end_of_parsed_predicate(PLFile);
-	//print_functionname_database(PLFile);
 
-	/////////////////////////////////////////////////////////////////
 	// remove the preprocessed C code (.i file) as it is no longer required
-	
 	remove(ifile);
 
-	/////////////////////////////////////////////////////////////////
-	// successfully leaving the parser
 	return 0;
 }
-
-////////////////////////////////////////////////////////////////
-// *** END MAIN PARSER -- PARSER.C
-////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////

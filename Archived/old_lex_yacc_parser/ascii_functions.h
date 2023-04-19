@@ -1,3 +1,8 @@
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+// *** HEADER FILE -- ASCII_FUNCTIONS.H
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
 /*
 The main function in this header program:
 	char * ascii_function(char inputconstant[]);
@@ -9,7 +14,7 @@ is called from the following place in the Grammar.y file:
 		| '(' expression ')'
 		;
 This function will call the appropriate function, declared in this header file,
-to convert characters to their decimal (ascii) equivalent and return this number 
+to convert characters to their decimal (ascii) equivalent and return this number
 as a string so that it can be appended to pseudo-variable $$.
 
 
@@ -109,63 +114,92 @@ DECIMAL (ASCII)		CHAR	NAME	OTHER		HEX		OCTAL
 	127				DEL
 */
 
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+// *** FUNCTION PROTOTYPES
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
 char * ascii_function(char inputconstant[]);
 char * convertascii(char inputconstant[]);
 char * specialascii(char inputconstant[]);
 char * controlascii(char inputconstant[]);
 char * escapeascii(char inputconstant[]);
 
-char* ascii_function(char inputconstant[])
-{
-	/*
-		This function will call the appropriate function that will convert characters
-		to their decimal (ascii) equivalent and return this number as a string so
-		that it can be appended to pseudo-variable $$.
-	*/
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+// *** FUNCTION DEFINITIONS
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
 
+char * ascii_function(char inputconstant[])
+{
+////////////////////////////////////////////////////////////////
+/*
+This function will call the appropriate function that will convert characters
+to their decimal (ascii) equivalent and return this number as a string so
+that it can be appended to pseudo-variable $$.
+*/
+////////////////////////////////////////////////////////////////
+
+	/////////////////////////////////////////////////////////////////
+	// variable declarations
+
+
+	/////////////////////////////////////////////////////////////////
 	// If the first character if inputconstant begins with a "'",
 	// process the character to return its decimal equivalent,
 	// otherwise, return inputconstant unchanged
 	if (inputconstant[0] == SINGLEQUOTE)
 	{
+		/////////////////////////////////////////////////////////////////
 		// Process a normal character string, e.g. 'a'
 		if (strlen(inputconstant) == 3)
 			strcpy(inputconstant, convertascii(inputconstant));
+		/////////////////////////////////////////////////////////////////
 		// Process a character string such as '^J'
 		else if ( (strlen(inputconstant) == 4) && (inputconstant[1] == CARET) )
 			strcpy(inputconstant, controlascii(inputconstant));
+		/////////////////////////////////////////////////////////////////
 		// Process a character string such as '\t'
 		else if ( (strlen(inputconstant) == 4) && (inputconstant[1] == ESCAPE) )
 			strcpy(inputconstant, specialascii(inputconstant));
+		/////////////////////////////////////////////////////////////////
 		// Process a character string such as '^\\'
 		else if (strlen(inputconstant) == 5  && (inputconstant[2] == ESCAPE))
 			strcpy(inputconstant, escapeascii(inputconstant));
-		// Process a character string such as  '98'		
-		else 		
+		/////////////////////////////////////////////////////////////////
+		// Process a character string such as  '98'
+		else
 			strcpy(inputconstant, convertascii(inputconstant));
 	}
-	
-	// successfully leaving the function	
+
+	////////////////////////////////////////////////////////////////
+	// successfully leaving the function
+	/////////////////////////////////////////////////////////////////
 	// allocate space to the string variables used
-	char* returnstr = (char*) malloc(strlen(inputconstant) + 1);
+	char * returnstr = (char *) malloc(strlen(inputconstant));
 	strcpy(returnstr, inputconstant);
 	return returnstr;
 }
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
 
 char * convertascii(char inputconstant[])
 {
-	/*	
-		Given an inputconstant, this function will return the ascii value of the inputconstant
-		as a string. In this function the ascii values of all letters (a-z and A-Z) and any single
-		character representation are coded.
-	*/
+////////////////////////////////////////////////////////////////
+/*
+Given an inputconstant, this function will return the ascii value of the inputconstant
+as a string. In this function the ascii values of all letters (a-z and A-Z) and any single
+character representation are coded.
+*/
+////////////////////////////////////////////////////////////////
+
 	switch(inputconstant[1])
 	{
 		case ' ':	strcpy(inputconstant, "32"); break;
 		case '!':	strcpy(inputconstant, "33"); break;
 		case '"':	strcpy(inputconstant, "34"); break;
-		/* 	
-			the double quote " has the ascii value 34			
+		/* 	the double quote " has the ascii value 34
 			this character can also be declared using the escape
 			character \, so it is also included in specialascii()
 		*/
@@ -174,10 +208,9 @@ char * convertascii(char inputconstant[])
 		case '$':	strcpy(inputconstant, "36"); break;
 		case '%':	strcpy(inputconstant, "37"); break;
 		case '&':	strcpy(inputconstant, "38"); break;
-		/* 	
-			ascii value 39 (single quote ') should go here
-			but this character has to use the escape char \	
-			so it is included in specialascii() instead		
+		/* 	ascii value 39 (single quote ') should go here
+			but this character has to use the escape char \
+			so it is included in specialascii() instead
 		*/
 
 		case '(':	strcpy(inputconstant, "40"); break;
@@ -206,8 +239,7 @@ char * convertascii(char inputconstant[])
 		case '=':	strcpy(inputconstant, "61"); break;
 		case '>':	strcpy(inputconstant, "62");  break;
 		case '?':	strcpy(inputconstant, "63"); break;
-		/* 	
-			the question mark ? has the ascii value 63		
+		/* 	the question mark ? has the ascii value 63
 			this character can also be declared using the escape
 			character \, so it is also included in specialascii()
 		*/
@@ -243,10 +275,9 @@ char * convertascii(char inputconstant[])
 
 		case '[':	strcpy(inputconstant, "91");  break;
 
-		/* 	
-			ascii value 92 (backslash \) should go here 
+		/* 	ascii value 92 (backslash \) should go here
 			but this character has to use the escape char \
-			so it is included in specialascii() instead		
+			so it is included in specialascii() instead
 		*/
 
 		case ']':	strcpy(inputconstant, "93");  break;
@@ -286,92 +317,114 @@ char * convertascii(char inputconstant[])
 		case '}':	strcpy(inputconstant, "125"); break;
 		case '~':	strcpy(inputconstant, "126"); break;
 	}
-	// successfully leaving the function		
+	////////////////////////////////////////////////////////////////
+	// successfully leaving the function
 	return inputconstant;
 }
 
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+
 char * specialascii(char inputconstant[])
 {
-	/*	
-		Given an inputconstant, this function will return the ascii value of the inputconstant
-		as a string. In this function the ascii values for any characters that follow the backslash
-		symbol \ are coded. For Example: '\t'	is the tab character, ascii value 9
-	*/
+////////////////////////////////////////////////////////////////
+/*
+Given an inputconstant, this function will return the ascii value of the inputconstant
+as a string. In this function the ascii values for any characters that follow the backslash
+symbol \ are coded. For Example: '\t'	is the tab character, ascii value 9
+*/
+////////////////////////////////////////////////////////////////
 	switch(inputconstant[2])
 	{
-		case '0':	strcpy(inputconstant, "0");  break;	// NULL '\0'	
-		case 'a':	strcpy(inputconstant, "7");  break;	// audible alert 
-		case 'b':	strcpy(inputconstant, "8");  break;	// backspace	
+		case '0':	strcpy(inputconstant, "0");  break;	// NULL '\0'
+		case 'a':	strcpy(inputconstant, "7");  break;	// audible alert
+		case 'b':	strcpy(inputconstant, "8");  break;	// backspace
 		case 't':	strcpy(inputconstant, "9");  break; // horizontal tab
-		case 'n':	strcpy(inputconstant, "10"); break; // newline		
-		case 'v':	strcpy(inputconstant, "11"); break; // vertical tab	
-		case 'f':	strcpy(inputconstant, "12"); break; // formfeed		
-		case 'r':	strcpy(inputconstant, "13"); break; // carriage return	
+		case 'n':	strcpy(inputconstant, "10"); break; // newline
+		case 'v':	strcpy(inputconstant, "11"); break; // vertical tab
+		case 'f':	strcpy(inputconstant, "12"); break; // formfeed
+		case 'r':	strcpy(inputconstant, "13"); break; // carriage return
 
 		case '"':	strcpy(inputconstant, "34"); break;
 		// 34 is the ascii value for the double quote "
 		case 39 :	strcpy(inputconstant, "39"); break;
-		// 39 is the ascii value for the single quote ' 
+		// 39 is the ascii value for the single quote '
 		case 92 :	strcpy(inputconstant, "92"); break;
-		// 92 is the ascii value for the backslash \  
+		// 92 is the ascii value for the backslash \
 	}
-	// successfully leaving the function	
+	////////////////////////////////////////////////////////////////
+	// successfully leaving the function
 	return inputconstant;
 }
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
 
 char * controlascii(char inputconstant[])
 {
-	/*	
-		Given an inputconstant, this function will return the ascii value of the inputconstant
-		as a string. In this function the ascii values for any characters that follow the caret
-		symbol ^ are coded. For Example: ^@ is the NULL character '\0'
-	*/
+////////////////////////////////////////////////////////////////
+/*
+Given an inputconstant, this function will return the ascii value of the inputconstant
+as a string. In this function the ascii values for any characters that follow the caret
+symbol ^ are coded. For Example: ^@ is the NULL character '\0'
+*/
+////////////////////////////////////////////////////////////////
 	switch(inputconstant[2])
 	{
-		case '@':	strcpy(inputconstant, "0");  break; // NUL	
-		case 'A':	strcpy(inputconstant, "1");  break; // SOH	
-		case 'B':	strcpy(inputconstant, "2");  break; // STX	
-		case 'C':	strcpy(inputconstant, "3");  break; // ETX	
-		case 'D':	strcpy(inputconstant, "4");  break; // EOT	
-		case 'E':	strcpy(inputconstant, "5");  break; // ENQ	
-		case 'F':	strcpy(inputconstant, "6");  break; // ACK  	
-		case 'G':	strcpy(inputconstant, "7");  break; // BEL, \a	
-		case 'H':	strcpy(inputconstant, "8");  break; // BS,  \b	
-		case 'I':	strcpy(inputconstant, "9");  break; // TAB, \t	
-		case 'J':	strcpy(inputconstant, "10"); break; // LF,  \n	
-		case 'K':	strcpy(inputconstant, "11"); break; // VT,  \v	
-		case 'L':	strcpy(inputconstant, "12"); break; // FF,  \f	
-		case 'M':	strcpy(inputconstant, "13"); break; // CR,  \r  
-		case 'N':	strcpy(inputconstant, "14"); break; // SO	
-		case 'O':	strcpy(inputconstant, "15"); break; // SI	
-		case 'P':	strcpy(inputconstant, "16"); break; // DLE	
-		case 'Q':	strcpy(inputconstant, "17"); break; // DC1	
-		case 'R':	strcpy(inputconstant, "18"); break; // DC2	
-		case 'S':	strcpy(inputconstant, "19"); break; // DC3	
-		case 'T':	strcpy(inputconstant, "20"); break; // DC4 	
-		case 'U':	strcpy(inputconstant, "21"); break; // NAK 	
-		case 'V':	strcpy(inputconstant, "22"); break; // SYN 	
-		case 'W':	strcpy(inputconstant, "23"); break; // ETB 	
-		case 'X':	strcpy(inputconstant, "24"); break; // CAN 	
-		case 'Y':	strcpy(inputconstant, "25"); break; // EM  	
-		case 'Z':	strcpy(inputconstant, "26"); break; // SUB 	
-		case '[':	strcpy(inputconstant, "27"); break; // ESC 	
+		case '@':	strcpy(inputconstant, "0");  break; // NUL
+		case 'A':	strcpy(inputconstant, "1");  break; // SOH
+		case 'B':	strcpy(inputconstant, "2");  break; // STX
+		case 'C':	strcpy(inputconstant, "3");  break; // ETX
+		case 'D':	strcpy(inputconstant, "4");  break; // EOT
+		case 'E':	strcpy(inputconstant, "5");  break; // ENQ
+		case 'F':	strcpy(inputconstant, "6");  break; // ACK
+		case 'G':	strcpy(inputconstant, "7");  break; // BEL, \a
+		case 'H':	strcpy(inputconstant, "8");  break; // BS,  \b
+		case 'I':	strcpy(inputconstant, "9");  break; // TAB, \t
+		case 'J':	strcpy(inputconstant, "10"); break; // LF,  \n
+		case 'K':	strcpy(inputconstant, "11"); break; // VT,  \v
+		case 'L':	strcpy(inputconstant, "12"); break; // FF,  \f
+		case 'M':	strcpy(inputconstant, "13"); break; // CR,  \r
+		case 'N':	strcpy(inputconstant, "14"); break; // SO
+		case 'O':	strcpy(inputconstant, "15"); break; // SI
+		case 'P':	strcpy(inputconstant, "16"); break; // DLE
+		case 'Q':	strcpy(inputconstant, "17"); break; // DC1
+		case 'R':	strcpy(inputconstant, "18"); break; // DC2
+		case 'S':	strcpy(inputconstant, "19"); break; // DC3
+		case 'T':	strcpy(inputconstant, "20"); break; // DC4
+		case 'U':	strcpy(inputconstant, "21"); break; // NAK
+		case 'V':	strcpy(inputconstant, "22"); break; // SYN
+		case 'W':	strcpy(inputconstant, "23"); break; // ETB
+		case 'X':	strcpy(inputconstant, "24"); break; // CAN
+		case 'Y':	strcpy(inputconstant, "25"); break; // EM
+		case 'Z':	strcpy(inputconstant, "26"); break; // SUB
+		case '[':	strcpy(inputconstant, "27"); break; // ESC
 		// ascii 28 is catered for in escapeascii() function
-		case ']':	strcpy(inputconstant, "29"); break; // GS  	
-		case '^':	strcpy(inputconstant, "30"); break; // RS  	
-		case '_':	strcpy(inputconstant, "31"); break; // US  	
+		case ']':	strcpy(inputconstant, "29"); break; // GS
+		case '^':	strcpy(inputconstant, "30"); break; // RS
+		case '_':	strcpy(inputconstant, "31"); break; // US
 	}
-	// successfully leaving the function		
+	////////////////////////////////////////////////////////////////
+	// successfully leaving the function
 	return inputconstant;
 }
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
 
 char * escapeascii(char inputconstant[])
 {
-	/*	
-		Given an inputconstant, this function will return the ascii value of the inputconstant
-		as a string. In this function the ascii values for '^\\' is coded.
-	*/
-	strcpy(inputconstant, "28");	//FS 
-	// successfully leaving the function		
+////////////////////////////////////////////////////////////////
+/*
+Given an inputconstant, this function will return the ascii value of the inputconstant
+as a string. In this function the ascii values for '^\\' is coded.
+*/
+////////////////////////////////////////////////////////////////
+	strcpy(inputconstant, "28");	//FS
+	////////////////////////////////////////////////////////////////
+	// successfully leaving the function
 	return inputconstant;
 }
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+// *** END HEADER FILE -- ASCII_FUNCTIONS.H
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////

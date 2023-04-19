@@ -1,53 +1,58 @@
 %{
-	// https://www.quut.com/c/ANSI-C-grammar-y.html
-	extern void yyerror(const char*);
-	extern int yychar;
 
-	#include "string.h"
-	#include "definitions.h"
-	#include "string_functions.h"
-	#include "linkedlists.h"
-	#include "parameters.h"
-	#include "scopes.h"
-	#include "ascii_functions.h"
-	#include "switch_functions.h"
-	#include "typedef_functions.h"
-	#include "enum_functions.h"
-	#include "output_functions.h"
-	#include "array_functions.h"
-	#include "decl_functions.h"
-	#include "if_functions.h"
-	#include "iteration_functions.h"
-	#include "structures.h"
-	#include "conversion_functions.h"
+// *** GRAMMAR.Y SPECIFICATION FILE
+
+/*
+This is the grammar specification file for the ANSI C programming
+language. The original file has been sourced at the following
+reference:
+	J. Lee. ANSI C Lex and YACC Grammar Files, April 1985.
+	FTP: ftp.uu.net, FILE: usenet/net.sources/ansi.c.grammar.Z.
+
+This file is used as the input grammar file of the parser generator
+used in the WCET Analysis Tool.
+*/
+
+extern void yyerror(const char*);
+extern int yychar;
+
+#include "string.h"
+#include "definitions.h"
+#include "string_functions.h"
+#include "linkedlists.h"
+#include "parameters.h"
+#include "scopes.h"
+#include "ascii_functions.h"
+#include "switch_functions.h"
+#include "typedef_functions.h"
+#include "enum_functions.h"
+#include "output_functions.h"
+#include "array_functions.h"
+#include "decl_functions.h"
+#include "if_functions.h"
+#include "iteration_functions.h"
+#include "structures.h"
+#include "conversion_functions.h"
+
 %}
-
 
 %union
 {
 	char *id;
 }
-
-%token	<id> IDENTIFIER I_CONSTANT F_CONSTANT STRING_LITERAL FUNC_NAME SIZEOF
-%token	PTR_OP INC_OP DEC_OP LEFT_OP RIGHT_OP LE_OP GE_OP EQ_OP NE_OP
-%token	AND_OP OR_OP MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN
-%token	SUB_ASSIGN LEFT_ASSIGN RIGHT_ASSIGN AND_ASSIGN
-%token	XOR_ASSIGN OR_ASSIGN
-%token	<id> TYPEDEF_NAME ENUMERATION_CONSTANT
-
-%token	TYPEDEF EXTERN STATIC AUTO REGISTER INLINE
-%token	CONST RESTRICT VOLATILE
-%token	BOOL CHAR SHORT INT LONG SIGNED UNSIGNED FLOAT DOUBLE VOID
-%token	COMPLEX IMAGINARY
-%token	STRUCT UNION ENUM ELLIPSIS
-
-%token	CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
-
-%token	ALIGNAS ALIGNOF ATOMIC GENERIC NORETURN STATIC_ASSERT THREAD_LOCAL
-
-
+%token <id> IDENTIFIER CONSTANT STRING_LITERAL
+%token SIZEOF
+%token PTR_OP INC_OP DEC_OP LEFT_OP RIGHT_OP LE_OP GE_OP EQ_OP NE_OP
+%token AND_OP OR_OP MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN
+%token SUB_ASSIGN LEFT_ASSIGN RIGHT_ASSIGN AND_ASSIGN
+%token XOR_ASSIGN OR_ASSIGN
+%token <id> TYPE_NAME
+%token TYPEDEF EXTERN STATIC REGISTER
+%token AUTO
+%token CHAR SHORT INT LONG SIGNED UNSIGNED FLOAT DOUBLE CONST VOLATILE VOID
+%token STRUCT UNION ENUM ELLIPSIS
+%token CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
 %type <id> primary_expression
-%type <id> constant
 %type <id> expression
 %type <id> assignment_operator
 %type <id> assignment_expression
@@ -102,21 +107,13 @@
 %type <id> statement
 %type <id> labeled_statement
 %type <id> compound_statement
+%type <id> statement_list
 %type <id> selection_statement
 %type <id> iteration_statement
 %type <id> jump_statement
 %type <id> function_definition
 %type <id> external_declaration
-%type <id> block_item
-%type <id> block_item_list
-%type <id> enumeration_constant
-%type <id> string
 %type <id> translation_unit
-%type <id> designation
-%type <id> designator
-%type <id> designator_list
-
-
 %start translation_unit
 %%
 
@@ -127,14 +124,14 @@ primary_expression
         strcpy($$, identifier_function($1)); // DECL_FUNCTIONS.H
         free($1);
 	}
-	| constant
+	| CONSTANT
 	{
         $$ = (char*) malloc(STRING_LIMIT);
 		strcpy($$, ascii_function($1)); // ASCII_FUNCTIONS.H
 		strcpy($$, check_number($1));   // CONVERSION_FUNCTIONS.H
         free($1);
 	}
-	| string
+	| STRING_LITERAL
 	{
         $$ = (char*) malloc(strlen($1));
 		strcpy($$, $1);
@@ -142,74 +139,11 @@ primary_expression
 	}
 	| '(' expression ')'
 	{
-        $$ = (char*) malloc(1 + strlen($2) + 1 + 1);
+        $$ = (char*) malloc(strlen($2)+2);
 		strcpy($$, "(");
         strcat($$, $2);
         strcat($$, ")");
-		free($2);
 	}
-	| generic_selection
-	;
-
-constant
-	: I_CONSTANT		/* includes character_constant */
-		{
-        $$ = (char*) malloc(strlen($1) + 1);
-        strcpy($$, $1);
-        free($1);
-    }
-	| F_CONSTANT
-	{
-        $$ = (char*) malloc(strlen($1) + 1);
-        strcpy($$, $1);
-        free($1);
-    }
-	| ENUMERATION_CONSTANT	/* after it has been defined as such */
-	{
-        $$ = (char*) malloc(strlen($1) + 1);
-        strcpy($$, $1);
-        free($1);
-    }
-
-	;
-
-/* before it has been defined as such */
-enumeration_constant
-	: IDENTIFIER
-	{
-        $$ = (char*) malloc(strlen($1) + 1);
-        strcpy($$, $1);
-        free($1);
-    }
-	;
-
-string
-	: STRING_LITERAL
-	{
-		$$ = (char*) malloc(strlen($1) + 1);
-        strcpy($$, $1);
-        free($1);
-	}
-	| FUNC_NAME
-	{
-		$$ = (char*) malloc(strlen($1) + 1);
-        strcpy($$, $1);
-        free($1);
-	}
-	;
-
-generic_selection
-	: GENERIC '(' assignment_expression ',' generic_assoc_list ')'
-	;
-
-generic_assoc_list
-	: generic_association
-	| generic_assoc_list ',' generic_association
-	;
-
-generic_association
-	: type_name ':' assignment_expression
-	| DEFAULT ':' assignment_expression
 	;
 
 postfix_expression
@@ -290,7 +224,7 @@ postfix_expression
         free($3);
 	}
 	| postfix_expression '.' IDENTIFIER
-		{
+	{
 		////////////////////////////////////////////////////////////////
 		// Process records/structures
 		////////////////////////////////////////////////////////////////
@@ -315,7 +249,7 @@ postfix_expression
         free($3);
 	}
 	| postfix_expression INC_OP
-		{
+	{
 		////////////////////////////////////////////////////////////////
 		// Process statements such as i++;
 		////////////////////////////////////////////////////////////////
@@ -356,14 +290,12 @@ postfix_expression
         strcat($$, "-1)");
         free($1);
 	}
-	| '(' type_name ')' '{' initializer_list '}'
-	| '(' type_name ')' '{' initializer_list ',' '}'
 	;
 
 argument_expression_list
 	: assignment_expression
 	{
-        $$ = (char*) malloc(strlen($1) + 1);
+        $$ = (char*) malloc(strlen($1));
         strcpy($$, $1);
         free($1);
     }
@@ -449,7 +381,6 @@ unary_expression
 		strcat($$, ")");
 		free($3);
 	}
-	| ALIGNOF '(' type_name ')'
 	;
 
 unary_operator
@@ -570,7 +501,6 @@ multiplicative_expression
 	}
 	;
 
-
 additive_expression
 	: multiplicative_expression
 	{
@@ -669,7 +599,6 @@ relational_expression
 		free($3);
 	}
 	;
-
 
 equality_expression
 	: relational_expression
@@ -781,14 +710,11 @@ logical_or_expression
 	}
 	| logical_or_expression OR_OP logical_and_expression
 	{
-		$$ = (char*) malloc(5 + strlen($1) + 3 + strlen($3) + 1 + 1);
 		strcpy($$, "orop(");
 		strcat($$, $1);
 		strcat($$, " , ");
 		strcat($$, $3);
 		strcat($$, ")");
-		free($1);
-		free($3);
 	}
 	;
 
@@ -951,11 +877,16 @@ declaration
 		free($1);
 		free($2);
 	}
-	| static_assert_declaration
 	;
 
 declaration_specifiers
-	: storage_class_specifier declaration_specifiers
+	: storage_class_specifier
+	{
+		$$ = (char*) malloc(strlen($1) + 1);
+		strcpy($$, $1);
+		free($1);
+	}
+	| storage_class_specifier declaration_specifiers
 	{
 		$$ = (char*) malloc(strlen($1) + strlen($2) + 1);
 		strcpy($$, $1);
@@ -963,14 +894,14 @@ declaration_specifiers
 		free($1);
 		free($2);
 	}
-	| storage_class_specifier
+	| type_specifier
 	{
 		$$ = (char*) malloc(strlen($1) + 1);
 		strcpy($$, $1);
 		free($1);
 	}
 	| type_specifier declaration_specifiers
-{
+	{
 		////////////////////////////////////////////////////////////////
 		// Only append comma if not a type such as "unsigned int"
 		////////////////////////////////////////////////////////////////
@@ -991,7 +922,7 @@ declaration_specifiers
 		free($1);
 		free($2);
 	}
-	| type_specifier
+	| type_qualifier
 	{
 		$$ = (char*) malloc(strlen($1) + 1);
 		strcpy($$, $1);
@@ -1003,16 +934,6 @@ declaration_specifiers
 		strcpy($$, $1);
 		strcat($$, $2);
 	}
-	| type_qualifier
-	{
-		$$ = (char*) malloc(strlen($1) + 1);
-		strcpy($$, $1);
-		free($1);
-	}
-	| function_specifier declaration_specifiers
-	| function_specifier
-	| alignment_specifier declaration_specifiers
-	| alignment_specifier
 	;
 
 init_declarator_list
@@ -1034,49 +955,31 @@ init_declarator_list
 	;
 
 init_declarator
-	: declarator '=' initializer
-	{
-		$$ = (char*) malloc(strlen($1) + 1);
-		strcpy($$, $1);
-		addvariabledetails($1, $3);// DECL_FUNCTIONS.H
-	}
-	| declarator
+	: declarator
 	{
 		$$ = (char*) malloc(strlen($1) + 1);
 		strcpy($$, $1);
 		addvariables($1, NO);	// DECL_FUNCTIONS.H
 		free($1);
 	}
+	| declarator '=' initializer
+	{
+		$$ = (char*) malloc(strlen($1) + 1);
+		strcpy($$, $1);
+		addvariabledetails($1, $3);// DECL_FUNCTIONS.H
+	}
 	;
 
 storage_class_specifier
-	: TYPEDEF	/* identifiers must be flagged as TYPEDEF_NAME */
+	: TYPEDEF
 	{
-		$$ = (char*) malloc(7 + 1);
 		strcpy($$, "typedef");
 		set_typedef_flag();	// TYPEDEF_FUNCTIONS.H
 	}
-	| EXTERN
-	{
-		$$ = (char*) malloc(1);
-		strcpy($$, "");
-	}
-	| STATIC
-	{
-		$$ = (char*) malloc(7 + 1);
-		strcpy($$, "Static_");
-	}
-	| THREAD_LOCAL
-	| AUTO
-	{
-		$$ = (char*) malloc(1);
-		strcpy($$, "");
-	}
-	| REGISTER
-	{
-		$$ = (char*) malloc(1);
-		strcpy($$, "");
-	}
+	| EXTERN	{ strcpy($$, ""); }
+	| STATIC	{ strcpy($$, ""); }
+	| AUTO		{ strcpy($$, ""); }
+	| REGISTER	{ strcpy($$, ""); }
 	;
 
 type_specifier
@@ -1125,24 +1028,8 @@ type_specifier
 		 $$ = (char*) malloc(9);
 		 strcpy($$, "unsigned");
 	}
-	| BOOL
-	{
-		 $$ = (char*) malloc(9);
-		 strcpy($$, "bool");
-	}
-	| COMPLEX
-	{
-		 $$ = (char*) malloc(9);
-		 strcpy($$, "complex");
-	}
-	| IMAGINARY	  	/* non-mandated extension */
-	{
-		 $$ = (char*) malloc(9);
-		 strcpy($$, "imaginary");
-	}
-	| atomic_type_specifier
 	| struct_or_union_specifier
-		{
+	{
 		$$ = (char*) malloc(strlen($1) + 1);
 		strcpy($$, $1);
 		free($1);
@@ -1153,7 +1040,7 @@ type_specifier
 		strcpy($$, $1);
 		free($1);
 	}
-	| TYPEDEF_NAME		/* after it has been defined as such */
+	| TYPE_NAME
 	{
 		$$ = (char*) malloc(STRING_LIMIT);
 		add_typedefs(change_typedef($1));// TYPEDEF_FUNCTIONS.H
@@ -1163,16 +1050,7 @@ type_specifier
 	;
 
 struct_or_union_specifier
-	: struct_or_union '{' struct_declaration_list '}'
-	{
-		$$ = (char*) malloc(strlen($1) + 3 + strlen($3) + 1 + 1);
-		strcpy($$, $1);
-		strcat($$, ", [");
-		strcat($$, $3);
-		Pop(); 	// SCOPES.H
-		strcat($$, "]");
-	}
-	| struct_or_union IDENTIFIER '{' struct_declaration_list '}'
+	: struct_or_union IDENTIFIER '{' struct_declaration_list '}'
 	{
 		////////////////////////////////////////////////////
 		// change the structure name.
@@ -1196,6 +1074,15 @@ struct_or_union_specifier
 		Pop(); 	// SCOPES.H
 		strcat($$, "]");
 	}
+	| struct_or_union '{' struct_declaration_list '}'
+	{
+		$$ = (char*) malloc(strlen($1) + 3 + strlen($3) + 1 + 1);
+		strcpy($$, $1);
+		strcat($$, ", [");
+		strcat($$, $3);
+		Pop(); 	// SCOPES.H
+		strcat($$, "]");
+	}
 	| struct_or_union IDENTIFIER
 	{
 		////////////////////////////////////////////////////
@@ -1213,8 +1100,6 @@ struct_or_union_specifier
 		strcpy($$, $1);
 		strcat($$, ", ");
 		strcat($$, struct_name);
-		free($1);
-		free($2);
 	}
 	;
 
@@ -1250,22 +1135,19 @@ struct_declaration_list
 	;
 
 struct_declaration
-	: specifier_qualifier_list ';'	/* for anonymous struct/union */
-	| specifier_qualifier_list struct_declarator_list ';'
-		{
-
+	: specifier_qualifier_list struct_declarator_list ';'
+	{
+		$$ = (char*) malloc(2 + strlen($1) + 3 + strlen($2) + 1 + 1);
 		/////////////////////////////////////////////////////////////////
 		// Many variables declared in $2, they must be separated.
 		if (strstr($2, ",") != NULL)
 		{
-			$$ = (char*) malloc(STRING_LIMIT + 1);
 			strcpy($$, seperate_fields($1, $2)); // STRUCTURES.H
 		}
 		else
 		/////////////////////////////////////////////////////////////////
 		// Build the structure list, removing the 'struct' keyword if present
 		{
-			$$ = (char*) malloc(2 + strlen($2) + 3 + STRING_LIMIT + 1 + 1);
 			strcpy($$, "([");
 			strcat($$, $2);
 			strcat($$, "], ");
@@ -1276,8 +1158,6 @@ struct_declaration
 		free($1);
 		free($2);
 	}
-	;
-	| static_assert_declaration
 	;
 
 specifier_qualifier_list
@@ -1330,7 +1210,13 @@ struct_declarator_list
 	;
 
 struct_declarator
-	: ':' constant_expression
+	: declarator
+	{
+		$$ = (char*) malloc(strlen($1) + 1);
+		strcpy($$, $1);
+		free($1);
+	}
+	| ':' constant_expression
 	{
 		$$ = (char*) malloc(1 + strlen($2) + 1);
 		strcpy($$, ":");
@@ -1346,17 +1232,11 @@ struct_declarator
 		free($1);
 		free($3);
 	}
-	| declarator
-	{
-		$$ = (char*) malloc(strlen($1) + 1);
-		strcpy($$, $1);
-		free($1);
-	}
 	;
 
 enum_specifier
 	: ENUM '{' enumerator_list '}'
-		{ 	////////////////////////////////////////////////////////////////
+	{ 	////////////////////////////////////////////////////////////////
 		// Build enumeration list.
 		// Pop Scope when '}' is parsed and reset enumerations counter
 		$$ = (char*) malloc(7 + 1 + strlen($3) + 1 + 1);
@@ -1368,7 +1248,6 @@ enum_specifier
 		reset_enumcounter(); 	// ENUM_FUNCTIONS.H
 		////////////////////////////////////////////////////////////////
 	}
-	| ENUM '{' enumerator_list ',' '}'
 	| ENUM IDENTIFIER '{' enumerator_list '}'
 	{ 	////////////////////////////////////////////////////////////////
 		// Build enumeration list.
@@ -1399,7 +1278,6 @@ enum_specifier
 		free($4);
 		////////////////////////////////////////////////////////////////
 	}
-	| ENUM IDENTIFIER '{' enumerator_list ',' '}'
 	| ENUM IDENTIFIER
 	{ 	////////////////////////////////////////////////////////////////
 		// Change enum name to Prolog equivalent using change_enum()
@@ -1429,9 +1307,29 @@ enumerator_list
 	}
 	;
 
-/* identifiers must be flagged as ENUMERATION_CONSTANT */
 enumerator
-	: enumeration_constant '=' constant_expression
+	: IDENTIFIER
+	{ 	////////////////////////////////////////////////////////////////
+		/*
+		Process enumeration literals.
+		Change their name to Prolog equivalent using change_enum()
+		Add the name to NAMES file using printnames()
+		Add the literal to Enum linked list using add_enums()
+		*/
+		////////////////////////////////////////////////////////////////
+		char *enum_name;
+		enum_name = (char *) malloc(STRING_LIMIT);
+		strcpy(enum_name, change_enum($1));	// ENUM_FUNCTIONS.H
+
+		$$ = (char*) malloc(STRING_LIMIT);
+		strcpy($$, enum_name);
+		add_enums($1, -1);			// ENUM_FUNCTIONS.H
+
+		free(enum_name);
+		free($1);
+		////////////////////////////////////////////////////////////////
+	}
+	| IDENTIFIER '=' constant_expression
 	{
 		////////////////////////////////////////////////////////////////
 		/*
@@ -1456,31 +1354,6 @@ enumerator
 		free($3);
 		////////////////////////////////////////////////////////////////
 	}
-	| enumeration_constant
-	{ 	////////////////////////////////////////////////////////////////
-		/*
-		Process enumeration literals.
-		Change their name to Prolog equivalent using change_enum()
-		Add the name to NAMES file using printnames()
-		Add the literal to Enum linked list using add_enums()
-		*/
-		////////////////////////////////////////////////////////////////
-		char *enum_name;
-		enum_name = (char *) malloc(STRING_LIMIT);
-		strcpy(enum_name, change_enum($1));	// ENUM_FUNCTIONS.H
-
-		$$ = (char*) malloc(STRING_LIMIT);
-		strcpy($$, enum_name);
-		add_enums($1, -1);			// ENUM_FUNCTIONS.H
-
-		free(enum_name);
-		free($1);
-		////////////////////////////////////////////////////////////////
-	}
-	;
-
-atomic_type_specifier
-	: ATOMIC '(' type_name ')'
 	;
 
 type_qualifier
@@ -1489,31 +1362,11 @@ type_qualifier
 		$$ = (char*) malloc(6);
 		strcpy($$, "const");
 	}
-	| RESTRICT
-	{
-		$$ = (char*) malloc(9);
-		strcpy($$, "restrict");
-	}
 	| VOLATILE
 	{
 		$$ = (char*) malloc(9);
 		strcpy($$, "volatile");
 	}
-	| ATOMIC
-	{
-		$$ = (char*) malloc(9);
-		strcpy($$, "atomic");
-	}
-	;
-
-function_specifier
-	: INLINE
-	| NORETURN
-	;
-
-alignment_specifier
-	: ALIGNAS '(' type_name ')'
-	| ALIGNAS '(' constant_expression ')'
 	;
 
 declarator
@@ -1548,32 +1401,26 @@ direct_declarator
 		strcat($$, ")");
 		free($2);
 	}
+	| direct_declarator '[' constant_expression ']'
+	{
+		$$ = (char*) malloc(strlen($1) + 1 + strlen($3) + 1 + 1);
+		strcpy($$, $1);
+		strcat($$, "[");
+		strcat($$, $3);
+		strcat($$, "]");
+		free($1);
+		free($3);
+	}
 	| direct_declarator '[' ']'
-		{
+	{
 		$$ = (char*) malloc(strlen($1) + 1 + 1 + 1);
 		strcpy($$, $1);
 		strcat($$, "[");
 		strcat($$, "]");
 		free($1);
 	}
-	| direct_declarator '[' '*' ']'
-	{
-		$$ = (char*) malloc(strlen($1) + 1 + 1 + 1 + 1);
-		strcpy($$, $1);
-		strcat($$, "[");
-		strcat($$, "*");
-		strcat($$, "]");
-		free($1);
-	}
-	| direct_declarator '[' STATIC type_qualifier_list assignment_expression ']'
-	| direct_declarator '[' STATIC assignment_expression ']'
-	| direct_declarator '[' type_qualifier_list '*' ']'
-	| direct_declarator '[' type_qualifier_list STATIC assignment_expression ']'
-	| direct_declarator '[' type_qualifier_list assignment_expression ']'
-	| direct_declarator '[' type_qualifier_list ']'
-	| direct_declarator '[' assignment_expression ']'
 	| direct_declarator '(' parameter_type_list ')'
-		{
+	{
 		////////////////////////////////////////////////////////////////
 		/* 	function prototypes and definitions come through this rule.
 			in order to distinguish them later on from variables we
@@ -1596,14 +1443,6 @@ direct_declarator
 		free($1);
 		free($3);
 	}
-	| direct_declarator '(' ')'
-	{
-		$$ = (char*) malloc(strlen($1) + 1 + 1 + 1);
-		strcpy($$, $1);
-		strcat($$, "(");
-		strcat($$, ")");
-		free($1);
-	}
 	| direct_declarator '(' identifier_list ')'
 	{
 		$$ = (char*) malloc(strlen($1) + 1 + strlen($3) + 1 + 1);
@@ -1614,16 +1453,21 @@ direct_declarator
 		free($1);
 		free($3);
 	}
+	| direct_declarator '(' ')'
+	{
+		$$ = (char*) malloc(strlen($1) + 1 + 1 + 1);
+		strcpy($$, $1);
+		strcat($$, "(");
+		strcat($$, ")");
+		free($1);
+	}
 	;
 
 pointer
-	: '*' type_qualifier_list pointer
+	: '*'
 	{
-		$$ = (char*) malloc(1 + strlen($2) + strlen($3) + 1);
+		$$ = (char*) malloc(2);
 		strcpy($$, "*");
-		strcat($$, $2);
-		strcat($$, $3);
-		free($2);
 	}
 	| '*' type_qualifier_list
 	{
@@ -1639,10 +1483,13 @@ pointer
 		strcat($$, $2);
 		free($2);
 	}
-	| '*'
-		{
-		$$ = (char*) malloc(2);
+	| '*' type_qualifier_list pointer
+	{
+		$$ = (char*) malloc(1 + strlen($2) + strlen($3) + 1);
 		strcpy($$, "*");
+		strcat($$, $2);
+		strcat($$, $3);
+		free($2);
 	}
 	;
 
@@ -1663,23 +1510,22 @@ type_qualifier_list
 	}
 	;
 
-
 parameter_type_list
-	: parameter_list ',' ELLIPSIS
-	{
-		$$ = (char*) malloc(strlen($1) + 1 + 3 + 1);
-		strcpy($$, $1);
-		strcat($$, ",");
-		strcat($$, "...");
-		free($1);
-	}
-	| parameter_list
+	: parameter_list
 	{
 		$$ = (char*) malloc(strlen($1) + 1);
 		int lenSS = strlen($1) - 1;
 		if ($1[lenSS] == ',')
 			$1[lenSS] = ' ';
 		strcpy($$, $1);
+		free($1);
+	}
+	| parameter_list ',' ELLIPSIS
+	{
+		$$ = (char*) malloc(strlen($1) + 1 + 3 + 1);
+		strcpy($$, $1);
+		strcat($$, ",");
+		strcat($$, "...");
 		free($1);
 	}
 	;
@@ -1752,24 +1598,13 @@ identifier_list
 	;
 
 type_name
-	: specifier_qualifier_list abstract_declarator
-	{
-		$$ = (char*) malloc(strlen($1) + strlen($2) + 1);
-		strcpy($$, $1);
-		strcat($$, $2);
-		free($1);
-		free($2);
-	}
-	| specifier_qualifier_list
+	: specifier_qualifier_list
 	{
 		$$ = (char*) malloc(strlen($1) + 1);
 		strcpy($$, $1);
 		free($1);
 	}
-	;
-
-abstract_declarator
-	: pointer direct_abstract_declarator
+	| specifier_qualifier_list abstract_declarator
 	{
 		$$ = (char*) malloc(strlen($1) + strlen($2) + 1);
 		strcpy($$, $1);
@@ -1777,7 +1612,10 @@ abstract_declarator
 		free($1);
 		free($2);
 	}
-	| pointer
+	;
+
+abstract_declarator
+	: pointer
 	{
 		$$ = (char*) malloc(strlen($1) + 1);
 		strcpy($$, $1);
@@ -1788,6 +1626,14 @@ abstract_declarator
 		$$ = (char*) malloc(strlen($1) + 1);
 		strcpy($$, $1);
 		free($1);
+	}
+	| pointer direct_abstract_declarator
+	{
+		$$ = (char*) malloc(strlen($1) + strlen($2) + 1);
+		strcpy($$, $1);
+		strcat($$, $2);
+		free($1);
+		free($2);
 	}
 	;
 
@@ -1806,19 +1652,13 @@ direct_abstract_declarator
 		strcpy($$, "[");
 		strcat($$, "]");
 	}
-	| '[' '*' ']'
+	| '[' constant_expression ']'
 	{
-		$$ = (char*) malloc(1 + 1 + 1 + 1);
 		strcpy($$, "[");
-		strcat($$, "*");
+		strcat($$, $2);
 		strcat($$, "]");
+		free($2);
 	}
-	| '[' STATIC type_qualifier_list assignment_expression ']'
-	| '[' STATIC assignment_expression ']'
-	| '[' type_qualifier_list STATIC assignment_expression ']'
-	| '[' type_qualifier_list assignment_expression ']'
-	| '[' type_qualifier_list ']'
-	| '[' assignment_expression ']'
 	| direct_abstract_declarator '[' ']'
 	{
 		$$ = (char*) malloc(strlen($1) + 1 + 1 + 1);
@@ -1827,21 +1667,16 @@ direct_abstract_declarator
 		strcat($$, "]");
 		free($1);
 	}
-	| direct_abstract_declarator '[' '*' ']'
+	| direct_abstract_declarator '[' constant_expression ']'
 	{
-		$$ = (char*) malloc(strlen($1) + 1 + 1 + 1 + 1);
+		$$ = (char*) malloc(strlen($1) + 1 + strlen($3) + 1 + 1);
 		strcpy($$, $1);
 		strcat($$, "[");
-		strcat($$, "*");
+		strcat($$, $3);
 		strcat($$, "]");
 		free($1);
+		free($3);
 	}
-	| direct_abstract_declarator '[' STATIC type_qualifier_list assignment_expression ']'
-	| direct_abstract_declarator '[' STATIC assignment_expression ']'
-	| direct_abstract_declarator '[' type_qualifier_list assignment_expression ']'
-	| direct_abstract_declarator '[' type_qualifier_list STATIC assignment_expression ']'
-	| direct_abstract_declarator '[' type_qualifier_list ']'
-	| direct_abstract_declarator '[' assignment_expression ']'
 	| '(' ')'
 	{
 		$$ = (char*) malloc(1 + 1 + 1);
@@ -1877,7 +1712,13 @@ direct_abstract_declarator
 	;
 
 initializer
-	: '{' initializer_list '}'
+	: assignment_expression
+	{
+		$$ = (char*) malloc(strlen($1) + 1);
+		strcpy($$, $1);
+		free($1);
+	}
+	| '{' initializer_list '}'
 	{
 		$$ = (char*) malloc(1 + strlen($2) + 1 + 1);
 		strcpy($$, "[");
@@ -1895,82 +1736,24 @@ initializer
 		strcat($$, "}");
 		free($2);
 	}
-	| assignment_expression
-	{
-		$$ = (char*) malloc(strlen($1) + 1);
-		strcpy($$, $1);
-		free($1);
-	}
 	;
 
 initializer_list
-	: designation initializer
+	: initializer
 	{
-		$$ = (char*) malloc(strlen($1) + 1 + strlen($2) + 1);
+		$$ = (char*) malloc(strlen($1) + 1);
+		strcpy($$, $1);
+		free($1);
+	}
+	| initializer_list ',' initializer
+	{
+		$$ = (char*) malloc(strlen($1) + 1 + strlen($3) + 1);
 		strcpy($$, $1);
 		strcat($$, ",");
-		strcat($$, $2);
+		strcat($$, $3);
 		free($1);
-		free($2);
+		free($3);
 	}
-	| initializer
-	{
-		$$ = (char*) malloc(strlen($1) + 1);
-		strcpy($$, $1);
-		free($1);
-	}
-	| initializer_list ',' designation initializer
-	| initializer_list ',' initializer
-	;
-
-designation
-	: designator_list '='
-	{
-		$$ = (char*) malloc(strlen($1) + 1 + 1);
-		strcpy($$, $1);
-		strcat($$, "=");
-		free($1);
-	}
-	;
-
-designator_list
-	: designator
-	{
-		$$ = (char*) malloc(strlen($1) + 1);
-		strcpy($$, $1);
-		free($1);
-	}
-	| designator_list designator
-	{
-		$$ = (char*) malloc(strlen($1) + strlen($2) + 1);
-		strcpy($$, $1);
-		strcat($$, $2);
-		free($1);
-		free($2);
-	}
-	;
-
-designator
-	: '[' constant_expression ']'
-	{
-		$$ = (char*) malloc(1 + strlen($2) + 1 + 1);
-		strcpy($$, "[");
-		strcat($$, $2);
-		strcat($$, "]");
-		free($2);
-	}
-	| '.' IDENTIFIER
-	{
-		$$ = (char*) malloc(7 + strlen($2) + 1 + 1);
-		strcpy($$, "access(");
-		strcat($$, $2);
-		strcat($$, ")");
-		free($2);
-	}
-	;
-
-static_assert_declaration
-	: STATIC_ASSERT '(' constant_expression ',' STRING_LITERAL ')' ';'
 	;
 
 statement
@@ -2044,57 +1827,71 @@ compound_statement
 		Pop(); 	// SCOPES.H
 		strcat($$, "]");
 	}
-	| '{'  block_item_list '}'
+	| '{' statement_list '}'
 	{
 		$$ = (char*) malloc(1 + strlen($2) + 1 + 1);
 		strcpy($$, "[");
 		strcat($$, $2);
 		Pop();  	// SCOPES.H
-
-		int lenSS = strlen($$) - 1;
-		if ($$[lenSS] == ',')
-			$$[lenSS] = ']';
-		else
-			strcat($$, "]");
+		strcat($$, "]");
+	}
+	| '{' declaration_list '}'
+	{
+		$$ = (char*) malloc(1 + strlen($2) + 3 + 1);
+		int lenS2 = strlen($2) - 1;
+		if ($2[lenS2] == ',')
+			$2[lenS2] = ' ';
+		strcpy($$, "[");
+		strcat($$, $2);
+		Pop(); 	 // SCOPES.H
+		strcat($$, "\n]");
 		free($2);
+	}
+	| '{' declaration_list statement_list '}'
+	{
+		$$ = (char*) malloc(1 + strlen($2) + 1 + strlen($3) + 3 + 1);
+		strcpy($$, "[");
+		strcat($$, $2);
+		strcat($$, $3);
+		Pop(); 	 // SCOPES.H
+		strcat($$, "\n]");
+		free($2);
+		free($3);
 	}
 	;
 
-block_item_list
-	: block_item
+declaration_list
+	: declaration
 	{
 		$$ = (char*) malloc(strlen($1) + 1);
 		strcpy($$, $1);
 		free($1);
 	}
-	| block_item_list block_item
+	| declaration_list declaration
 	{
-		$$ = (char*) malloc(strlen($1) + 1 + strlen($2) + 1);
+		$$ = (char*) malloc(strlen($1) + strlen($2) + 1);
 		strcpy($$, $1);
-
-		int lenSS = strlen($$) - 1;
-		if ($$[lenSS] != ',')
-			strcat($$, ",");
-
 		strcat($$, $2);
 		free($1);
 		free($2);
 	}
 	;
 
-block_item
-	: declaration
+statement_list
+	: statement
 	{
-
 		$$ = (char*) malloc(strlen($1) + 1);
 		strcpy($$, $1);
 		free($1);
 	}
-	| statement
+	| statement_list statement
 	{
-		$$ = (char*) malloc(strlen($1) + 1);
+		$$ = (char*) malloc(strlen($1) + 2 + strlen($2) + 1);
 		strcpy($$, $1);
+		strcat($$, ", ");
+		strcat($$, $2);
 		free($1);
+		free($2);
 	}
 	;
 
@@ -2115,20 +1912,20 @@ expression_statement
 	;
 
 selection_statement
-	: IF '(' expression ')' statement ELSE statement
+	: IF '(' expression ')' statement
+	{
+		$$ = (char*) malloc(STRING_LIMIT);
+		strcpy($$, if_statement($3, $5)); 	  // IF_FUNCTIONS.H
+		free($3);
+		free($5);
+	}
+	| IF '(' expression ')' statement ELSE statement
 	{
 		$$ = (char*) malloc(STRING_LIMIT);
 		strcpy($$, ifelse_statement($3, $5, $7)); // IF_FUNCTIONS.H
 		free($3);
 		free($5);
 		free($7);
-	}
-	| IF '(' expression ')' statement
-	{
-		$$ = (char*) malloc(STRING_LIMIT);
-		strcpy($$, if_statement($3, $5)); 	  // IF_FUNCTIONS.H
-		free($3);
-		free($5);
 	}
 	| SWITCH '(' expression ')' statement
 	{
@@ -2171,8 +1968,6 @@ iteration_statement
 		free($5);
 		free($7);
 	}
-	| FOR '(' declaration expression_statement ')' statement
-	| FOR '(' declaration expression_statement expression ')' statement
 	;
 
 jump_statement
@@ -2275,25 +2070,27 @@ function_definition
 		free($2);
 		free($3);
 	}
-	;
-
-declaration_list
-	: declaration
+	| declarator declaration_list compound_statement
 	{
-		$$ = (char*) malloc(strlen($1) + 1);
-		strcpy($$, $1);
-		free($1);
-	}
-	| declaration_list declaration
-	{
-		$$ = (char*) malloc(strlen($1) + strlen($2) + 1);
+		$$ = (char*) malloc(strlen($1) + strlen($2) + strlen($3) + 1);
 		strcpy($$, $1);
 		strcat($$, $2);
+		strcat($$, $3);
+		free($1);
+		free($2);
+		free($3);
+	}
+	| declarator compound_statement
+	{
+		////////////////////////////////////////////////////////////////
+		// Function Prototypes
+		////////////////////////////////////////////////////////////////
+		$$ = (char*) malloc(STRING_LIMIT);
+		strcpy($$, process_prototypes($1, $2));	// DECL_FUNCTIONS.H
 		free($1);
 		free($2);
 	}
 	;
 
 %%
-#include <stdio.h>
-#include "lex.yy.c"
+#include "lex.yy.c"		// include the lexical analyser file

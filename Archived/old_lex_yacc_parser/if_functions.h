@@ -1,3 +1,8 @@
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+// *** HEADER FILE -- IF_FUNCTIONS.H
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
 /* 
 The functions in this header file are called from the following 
 places in Grammar.y:
@@ -49,32 +54,47 @@ a '[' and ']', this must be done in the functions defined in this header file.
 
 */
 
-
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+// *** FUNCTION PROTOTYPES
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
 char * if_statement(char expression[], char statement[]);
 char * ifelse_statement(char expression[], char if_stmt[], char else_stmt[]);
 
-
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+// *** FUNCTION DEFINITIONS
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
 
 char * if_statement(char expression[], char statement[])
+////////////////////////////////////////////////////////////////
+/* 
+The if statement in C is parsed to its equivalent in Prolog 
+terms. This function is called when the following grammar rule in
+grammar.y is matched.
+	IF 	'(' 	expression 	')' 	statement
+This is the if function which does NOT have a corresponding else.
+Therefore, the Else Stmts of this if statement are written as '[]].
+*/
+////////////////////////////////////////////////////////////////
 {
-	/* 
-		The if statement in C is parsed to its equivalent in Prolog 
-		terms. This function is called when the following grammar rule in
-		grammar.y is matched.
-			IF 	'(' 	expression 	')' 	statement
-		This is the if function which does NOT have a corresponding else.
-		Therefore, the Else Stmts of this if statement are written as '[]].
-	*/
+	/////////////////////////////////////////////////////////////////
+	// variable declarations
 	unsigned int counter;		// for loop counter
 	int blank = 0;				// variable to test if statement is empty
 	int lenstring;				// length of statement
 	char * returnstr;			// return string of the function
+	/////////////////////////////////////////////////////////////////
 	// allocate space to the string variables used
 	returnstr 	 = (char *) malloc(STRING_LIMIT);
 
-
+	/////////////////////////////////////////////////////////////////
+	// PREDICATE
 	strcpy(returnstr, "\nif_statement(");
 
+	/////////////////////////////////////////////////////////////////
 	// LINENUMBER
 	IfEnded--;	
 	if ( (CountList(If) > IfEnded) && (yychar == IF_TOKEN) ) 
@@ -88,11 +108,13 @@ char * if_statement(char expression[], char statement[])
 	}
 	strcat(returnstr, ", ");
 
+	/////////////////////////////////////////////////////////////////
 	// EXPRESSION(CONDITION)
 	strcat(returnstr, "expression("); 
 	strcat(returnstr, expression);
 	strcat(returnstr, "), ");
 
+	/////////////////////////////////////////////////////////////////
 	// IF STMTS
 	lenstring = strlen(statement) - 1; // less one for the NULL character
 	for (counter = 0; counter < strlen(statement); counter++)
@@ -115,12 +137,16 @@ char * if_statement(char expression[], char statement[])
 		strcat(returnstr, "[]");
 	}
 	
+	////////////////////////////////////////////////////////////////
 	// ELSE STMTS
 	strcat(returnstr, ", [])");		
 	
+	////////////////////////////////////////////////////////////////
 	// successfully leaving the if_statement() function
 	return returnstr;
 }
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
 
 char * ifelse_statement(char expression[], char if_stmt[], char else_stmt[])
 ////////////////////////////////////////////////////////////////
@@ -131,16 +157,22 @@ grammar.y is matched.
 	IF '(' expression ')' statement ELSE statement
 This is the if function which does have a corresponding else.
 */
+////////////////////////////////////////////////////////////////
 {
+	/////////////////////////////////////////////////////////////////
+	// variable declarations
 	int lenstringif;			// length of if_stmt
 	int lenstringelse;			// length of else_stmt
 	char * returnstr;			// return string of the function
+	/////////////////////////////////////////////////////////////////
 	// allocate space to the string variables used
 	returnstr 	 = (char *) malloc(STRING_LIMIT);
 
+	/////////////////////////////////////////////////////////////////
 	// PREDICATE
 	strcpy(returnstr, "\nif_statement(");
 	
+	/////////////////////////////////////////////////////////////////
 	// LINENUMBER
 	IfEnded--;	
 	if ( (CountList(If) > IfEnded) && (CountList(If) != 2) )
@@ -154,11 +186,13 @@ This is the if function which does have a corresponding else.
 	}
 	strcat(returnstr, ", ");
 
+	/////////////////////////////////////////////////////////////////
 	// EXPRESSION(CONDITION)
 	strcat(returnstr, "expression("); 
 	strcat(returnstr, expression);
 	strcat(returnstr, "), ");
 	
+	/////////////////////////////////////////////////////////////////
 	// IF STMTS
 	lenstringif = strlen(if_stmt) - 1; // less one for the NULL character
 	if (if_stmt[0] != '[')
@@ -167,6 +201,7 @@ This is the if function which does have a corresponding else.
 	if (if_stmt[lenstringif] != ']')
 		strcat(returnstr, "]");		
 	strcat(returnstr, ", ");
+	/////////////////////////////////////////////////////////////////
 	// ELSE STMTS	
 	lenstringelse = strlen(else_stmt) - 1; // less one for the NULL character
 	if (else_stmt[0] != '[')
@@ -175,5 +210,12 @@ This is the if function which does have a corresponding else.
 	if (else_stmt[lenstringelse] != ']')
 		strcat(returnstr, "]");		
 	strcat(returnstr, ")");
+	////////////////////////////////////////////////////////////////
+	// successfully leaving the ifelse_statement() function
 	return returnstr;
 }
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+// *** END HEADER FILE -- IF_FUNCTIONS.H
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
