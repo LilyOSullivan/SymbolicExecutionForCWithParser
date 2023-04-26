@@ -1,9 +1,25 @@
 :- lib(ptc_solver).
 :- lib(regex).
+
+% :- import atom_concat/3 from iso_light.
+
 % From Eileen's Code
 utils__get_all_array_inputs([], []).
 utils__get_all_array_inputs([(_, Value) | Rest], [Value | Rest2]) :-
 	utils__get_all_array_inputs(Rest, Rest2).
+
+
+is_static_declaration(declaration(Functor, _Args)) :-
+    sub_atom(Functor, 0, _, _, 'static_').
+
+find_static_declarations([], []).
+find_static_declarations([H|T], Static_declarations) :-
+    ( is_static_declaration(H) ->
+        Static_declarations = [H|Rest]
+    ;
+        Static_declarations = Rest
+    ),
+    find_static_declarations(T, Rest).
 
 %% Removes the line number suffix from a string, output by the parser (Eg: "_183").
 %% Parameters:

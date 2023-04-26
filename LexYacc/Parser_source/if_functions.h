@@ -70,7 +70,7 @@ char * if_statement(char expression[], char statement[])
 	int lenstring;				// length of statement
 	char * returnstr;			// return string of the function
 	// allocate space to the string variables used
-	returnstr 	 = (char *) malloc(STRING_LIMIT);
+	returnstr = (char*)malloc(STRING_LIMIT);
 
 
 	strcpy(returnstr, "\nif_statement(");
@@ -136,7 +136,7 @@ This is the if function which does have a corresponding else.
 	int lenstringelse;			// length of else_stmt
 	char * returnstr;			// return string of the function
 	// allocate space to the string variables used
-	returnstr 	 = (char *) malloc(STRING_LIMIT);
+	returnstr = (char*)malloc(STRING_LIMIT);
 
 	// PREDICATE
 	strcpy(returnstr, "\nif_statement(");

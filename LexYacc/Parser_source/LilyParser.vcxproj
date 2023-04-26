@@ -207,7 +207,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <StackReserveSize>100000000</StackReserveSize>
+      <StackReserveSize>
+      </StackReserveSize>
     </Link>
     <PreBuildEvent>
       <Command>CALL preBuild.bat</Command>

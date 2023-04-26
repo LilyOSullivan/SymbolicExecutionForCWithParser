@@ -53,6 +53,7 @@ char* identifier_function(char identifier[]);
 char* process_cast_unary_rule(char unary_op[], char cast_exp[]);
 char* process_functions(char S1[], char S2[], char S3[]);
 char* process_prototypes(char S1[], char S2[]);
+char* process_typedef(char base_type[], char identifier[]);
 
 
 void addvariables(char* declarator, int Param)
@@ -1199,4 +1200,27 @@ char* process_prototypes(char S1[], char S2[])
 	}
 
 	return returnstr;
+}
+
+char* process_typedef(char base_type[], char* identifier) {
+	char* base_name = (char*)malloc(strlen(base_type) + 7 + 1);
+	strcpy(base_name, base_type);
+	if (strstr(identifier, "*") != NULL) {
+		strcat(base_name, "pointer");
+		identifier++;
+	}
+
+	char* identifier_processed = change_typedef(identifier);
+	char* return_str = (char*)malloc(22 + strlen(base_name) + 2 + strlen(identifier_processed) + 2 + 1);
+
+	strcpy(return_str, "\ntypedef_declaration(");
+	strcat(return_str, base_name);
+	strcat(return_str, ", ");
+	strcat(return_str, identifier_processed);
+	strcat(return_str, "),");
+
+	free(identifier_processed);
+	free(base_name);
+
+	return return_str;
 }

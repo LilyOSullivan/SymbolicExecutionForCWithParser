@@ -104,7 +104,7 @@ int traverse_types(char typedefname[])
 	char* temp = upper(typedefname);
 	param_string = (char*)malloc(strlen(temp) + 1);
 	strcpy(param_string, temp);
-	
+	free(temp);
 	// Traverse the linked list and compare the typedefs therein with 'typedefname'.
 	typenode = typestart.typenext;
 	while (typenode && (result == NO))
@@ -136,7 +136,7 @@ void set_typedef_flag(void)
 }
 
 
-char * change_typedef(char * typedefname)
+char * change_typedef(char* typedefname)
 {
 	/*
 		If the string 's' passed as parameter begins with a lowercase letter, 
@@ -152,13 +152,19 @@ char * change_typedef(char * typedefname)
 	*/
 	
 	char* returnstr = (char*)malloc(3 + strlen(typedefname) + 1);
+
+	int index = find_first_non_star(typedefname);
+
+	char* typename = copystring(typedefname, index, strlen(typedefname));
 	
 	// Precede the return string by "lc_" or "uc_"
-	if (islower(typedefname[0]))
+	if (islower(typedefname[index]))
 		strcpy(returnstr, "lc_");
 	else
 		strcpy(returnstr, "uc_");
-	strcat(returnstr, typedefname);
-	
+
+	strcat(returnstr, typename);
+	free(typename);
 	return returnstr;
 }
+

@@ -44,12 +44,16 @@ main(Function_name) :-
 %% Path_to_C_file: The folder-path to the C file to be symbolically executed.
 %%                          This should be a string.
 %%                 Eg: "C:\\Users\\user\\Desktop"
+%% Override_globals: A boolean option if global variables should be overridden
+%%                          This should be either the atoms true or false.
+%%                 Eg: true
 main(Filename_without_extension, Function_name, Path_to_C_file, Override_globals) :-
     util__error_if_false(string(Filename_without_extension), "Filename must be a string"),
     util__error_if_false(not string_contains(Filename_without_extension, "."), "Filename should not contain an extension"),
     util__error_if_false(atom(Function_name), "Function name must be an atom"),
     util__error_if_false(string(Path_to_C_file), "Path to C file must be a string"),
     util__error_if_false(get_file_info(Path_to_C_file, type, directory), "Path to C file is not a valid directory-path"),
+    util__error_if_false(is_boolean(Override_globals), "Override globals option must be a boolean"),
     ptc_solver__clean_up,
     ptc_solver__default_declarations,
     ptc_solver__type(char, integer, range_bounds(33, 126)),
@@ -186,3 +190,6 @@ declare_functions([function_definition(Function_info, Params, Body, Return_type)
     declare_functions(More_terms).
 declare_functions([_ | More_terms]) :-
     declare_functions(More_terms).
+
+is_boolean(true).
+is_boolean(false).

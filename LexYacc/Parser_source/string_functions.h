@@ -13,6 +13,7 @@ int mystrstrcount(char* string, char substring);
 int strstrcount(char* string, char* substring);
 char* initialisestring(char string[], int limit);
 char* copystring(char* source, int begin, int howmany);
+int find_first_non_star(char* string);
 
 char * upper(char string[])
 {
@@ -207,4 +208,18 @@ char* copystring(char * source, int begin, int howmany)
 	strcpy(returnstr, holdstr);
 	free(holdstr);
 	return returnstr;
+}
+
+int find_first_non_star(char* str) {
+	int index = 0;
+
+	while (str[index] != '\0') {
+		if (str[index] != '*') {
+			return index;
+		}
+		index++;
+	}
+
+	// If all characters are '*', or the string is empty, return -1.
+	return -1;
 }

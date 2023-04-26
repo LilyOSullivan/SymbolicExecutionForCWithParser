@@ -38,12 +38,15 @@
 %token	TYPEDEF EXTERN STATIC AUTO REGISTER INLINE
 %token	CONST RESTRICT VOLATILE
 %token	BOOL CHAR SHORT INT LONG SIGNED UNSIGNED FLOAT DOUBLE VOID
+%token  __INT8 __INT16 __INT32 __INT64
 %token	COMPLEX IMAGINARY
 %token	STRUCT UNION ENUM ELLIPSIS
 
 %token	CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
 
 %token	ALIGNAS ALIGNOF ATOMIC GENERIC NORETURN STATIC_ASSERT THREAD_LOCAL
+
+%token  __CDECL __CLRCALL __STDCALL __FASTCALL __THISCALL __VECTORCALL
 
 
 %type <id> primary_expression
@@ -115,6 +118,7 @@
 %type <id> designation
 %type <id> designator
 %type <id> designator_list
+%type <id> vc_specific_modifier
 
 
 %start translation_unit
@@ -153,7 +157,7 @@ primary_expression
 
 constant
 	: I_CONSTANT		/* includes character_constant */
-		{
+	{
         $$ = (char*) malloc(strlen($1) + 1);
         strcpy($$, $1);
         free($1);
@@ -933,21 +937,33 @@ declaration
 	: declaration_specifiers ';'
 	{
 		$$ = (char*) malloc(STRING_LIMIT);
-		strcpy($$, struct_declaration($1));	// STRUCTURES.H
+		char* declaration = struct_declaration($1);
+		strcpy($$, declaration);	// STRUCTURES.H
+		free(declaration);
 		free($1);
+		if(typedef_flag == YES) {
+			typedef_flag = NO;
+		}
 	}
 	| declaration_specifiers init_declarator_list ';'
 	{
-		////////////////////////////////////////////////////////////////
-		// Process declarations
-		////////////////////////////////////////////////////////////////
-		$$ = (char*) malloc(STRING_LIMIT);
-		int lenSS;
-		strcpy($$, findvariabledetails($1));	// DECL_FUNCTIONS.H
-		lenSS = strlen($$) - 1;
+		if(typedef_flag == YES) {
+			typedef_flag = NO;
+			char* declaration = process_typedef($1, $2);
+			$$ = (char*) malloc(strlen(declaration) + 1);
+			strcpy($$, declaration);	// STRUCTURES.H
+			free(declaration);
+		}
+		else
+		{
+			$$ = (char*) malloc(STRING_LIMIT);
+			int lenSS;
+			strcpy($$, findvariabledetails($1));	// DECL_FUNCTIONS.H
+			lenSS = strlen($$) - 1;
 
-		if ($$[lenSS] != ',')
-			strcat($$, ",");
+			if ($$[lenSS] != ',')
+				strcat($$, ",");
+		}
 		free($1);
 		free($2);
 	}
@@ -970,7 +986,7 @@ declaration_specifiers
 		free($1);
 	}
 	| type_specifier declaration_specifiers
-{
+	{
 		////////////////////////////////////////////////////////////////
 		// Only append comma if not a type such as "unsigned int"
 		////////////////////////////////////////////////////////////////
@@ -1044,7 +1060,18 @@ init_declarator
 	{
 		$$ = (char*) malloc(strlen($1) + 1);
 		strcpy($$, $1);
-		addvariables($1, NO);	// DECL_FUNCTIONS.H
+		if(typedef_flag == YES)
+		{
+			add_typedefs(change_typedef($1)); // TYPEDEF_FUNCTIONS.H
+		}
+		else
+		{
+			// addvariables modifies the passed parameter. Reassigning to temp
+			char* temp = (char*) malloc(STRING_LIMIT);
+			strcpy(temp, $1);
+			addvariables(temp, NO);	// DECL_FUNCTIONS.H
+			free(temp);
+		}
 		free($1);
 	}
 	;
@@ -1058,8 +1085,8 @@ storage_class_specifier
 	}
 	| EXTERN
 	{
-		$$ = (char*) malloc(1);
-		strcpy($$, "");
+		$$ = (char*) malloc(6 + 1);
+		strcpy($$, "extern");
 	}
 	| STATIC
 	{
@@ -1142,7 +1169,7 @@ type_specifier
 	}
 	| atomic_type_specifier
 	| struct_or_union_specifier
-		{
+	{
 		$$ = (char*) malloc(strlen($1) + 1);
 		strcpy($$, $1);
 		free($1);
@@ -1156,9 +1183,30 @@ type_specifier
 	| TYPEDEF_NAME		/* after it has been defined as such */
 	{
 		$$ = (char*) malloc(STRING_LIMIT);
-		add_typedefs(change_typedef($1));// TYPEDEF_FUNCTIONS.H
-		strcpy($$, change_typedef($1));	 // TYPEDEF_FUNCTIONS.H
+		char* name = change_typedef($1);
+		strcpy($$, name);	 // TYPEDEF_FUNCTIONS.H
+		free(name);
 		free($1);
+	}
+	| __INT8
+	{
+		$$ = (char*) malloc(6 + 1);
+		strcpy($$, "__int8");
+	}
+	| __INT16
+	{
+		$$ = (char*) malloc(7 + 1);
+		strcpy($$, "__int16");
+	}
+	| __INT32
+	{
+		$$ = (char*) malloc(7 + 1);
+		strcpy($$, "__int32");
+	}
+	| __INT64
+	{
+		$$ = (char*) malloc(7 + 1);
+		strcpy($$, "__int64");
 	}
 	;
 
@@ -1573,7 +1621,7 @@ direct_declarator
 	| direct_declarator '[' type_qualifier_list ']'
 	| direct_declarator '[' assignment_expression ']'
 	| direct_declarator '(' parameter_type_list ')'
-		{
+	{
 		////////////////////////////////////////////////////////////////
 		/* 	function prototypes and definitions come through this rule.
 			in order to distinguish them later on from variables we
@@ -1614,7 +1662,56 @@ direct_declarator
 		free($1);
 		free($3);
 	}
+	| vc_specific_modifier IDENTIFIER
+	{
+		// Visual C extension
+		$$ = (char*) malloc(strlen($2) + 1);
+		strcpy($$, $2);
+		free($1);
+		free($2);
+	}
+	| '(' vc_specific_modifier IDENTIFIER ')'
+	{
+		// Visual C extension
+		$$ = (char*) malloc(strlen($3) + 1);
+		strcpy($$, $3);
+		free($3);
+		free($2);
+	}
 	;
+
+vc_specific_modifier
+    : __CDECL
+	{
+		$$ = (char*) malloc(1);
+		strcpy($$, "");
+	}
+    | __CLRCALL
+	{
+		$$ = (char*) malloc(1);
+		strcpy($$, "");
+	}
+    | __STDCALL
+	{
+		$$ = (char*) malloc(1);
+		strcpy($$, "");
+	}
+    | __FASTCALL
+	{
+		$$ = (char*) malloc(1);
+		strcpy($$, "");
+	}
+    | __THISCALL
+	{
+		$$ = (char*) malloc(1);
+		strcpy($$, "");
+	}
+    | __VECTORCALL
+	{
+		$$ = (char*) malloc(1);
+		strcpy($$, "");
+	}
+    ;
 
 pointer
 	: '*' type_qualifier_list pointer
@@ -1640,7 +1737,7 @@ pointer
 		free($2);
 	}
 	| '*'
-		{
+	{
 		$$ = (char*) malloc(2);
 		strcpy($$, "*");
 	}
@@ -2142,30 +2239,38 @@ selection_statement
 iteration_statement
 	: WHILE '(' expression ')' statement
 	{
-		$$ = (char*) malloc(STRING_LIMIT);
-		strcpy($$, while_statement($3, $5));	 // ITERATION_FUNCTIONS.H
+		char* while_statement_definition = while_statement($3, $5); // ITERATION_FUNCTIONS.H
+		$$ = (char*) malloc(strlen(while_statement_definition) + 1);
+		strcpy($$, while_statement_definition);
+		free(while_statement_definition);
 		free($3);
 		free($5);
 	}
 	| DO statement WHILE '(' expression ')' ';'
 	{
-		$$ = (char*) malloc(STRING_LIMIT);
-		strcpy($$, do_statement($2, $5));	 // ITERATION_FUNCTIONS.H
+		char* do_statement_definition = do_statement($2, $5); // ITERATION_FUNCTIONS.H
+		$$ = (char*) malloc(strlen(do_statement_definition) + 1);
+		strcpy($$, do_statement_definition);
+		free(do_statement_definition);
 		free($2);
 		free($5);
 	}
 	| FOR '(' expression_statement expression_statement ')' statement
 	{
-		$$ = (char*) malloc(STRING_LIMIT);
-		strcpy($$, for2_statement($3, $4, $6));	 // ITERATION_FUNCTIONS.H
+		char* for_statement_definition = for2_statement($3, $4, $6); // ITERATION_FUNCTIONS.H
+		$$ = (char*) malloc(strlen(for_statement_definition) + 1);
+		strcpy($$, for_statement_definition);
+		free(for_statement_definition);
 		free($3);
 		free($4);
 		free($6);
 	}
 	| FOR '(' expression_statement expression_statement expression ')' statement
 	{
-		$$ = (char*) malloc(STRING_LIMIT);
-		strcpy($$, for_statement($3, $4, $5, $7));// ITERATION_FUNCTIONS.H
+		char* for_statement_definition = for_statement($3, $4, $5, $7); // ITERATION_FUNCTIONS.H
+		$$ = (char*) malloc(strlen(for_statement_definition) + 1);
+		strcpy($$, for_statement_definition);
+		free(for_statement_definition);
 		free($3);
 		free($4);
 		free($5);
@@ -2269,8 +2374,10 @@ function_definition
 		////////////////////////////////////////////////////////////////
 		// Function Defintions
 		////////////////////////////////////////////////////////////////
-		$$ = (char*) malloc(STRING_LIMIT);
-		strcpy($$, process_functions($1, $2, $3));	// DECL_FUNCTIONS.H
+		char* function = process_functions($1, $2, $3);
+		$$ = (char*) malloc(strlen(function) + 1);
+		strcpy($$, function);	// DECL_FUNCTIONS.H
+		free(function);
 		free($1);
 		free($2);
 		free($3);

@@ -108,6 +108,16 @@ int check_type(char var[]);
                         }
 "inline"				{ count(); return(INLINE); }
 "int"					{ count(); return(INT); }
+"__int8"					{ count(); return(__INT8); }
+"__int16"					{ count(); return(__INT16); }
+"__int32"					{ count(); return(__INT32); }
+"__int64"					{ count(); return(__INT64); }
+"__cdecl"         { count();return (__CDECL); }
+"__clrcall"       { count();return (__CLRCALL); }
+"__stdcall"       { count();return (__STDCALL); }
+"__fastcall"      { count();return (__FASTCALL); }
+"__thiscall"      { count();return (__THISCALL); }
+"__vectorcall"    { count();return (__VECTORCALL); }
 "long"					{ count(); return(LONG); }
 "register"				{ count(); return(REGISTER); }
 "restrict"				{ count(); return(RESTRICT); }
@@ -353,10 +363,9 @@ void count(void)
 
 }
 
-static int check_type(char var[])
+int check_type(char var[])
 {
     char * typename;
-	/* allocate space to the string variables used */
 	typename = (char *) malloc(STRING_LIMIT);
 	/* Change var to its typename equivalent */
 	if (isupper(var[0]))
@@ -370,10 +379,8 @@ static int check_type(char var[])
 	   If 'typename' is present, return the TYPE_NAME token,
 	   Otherwise, return the IDENTIFIER token.
 	*/
-	if ( (typedef_flag == YES) || (traverse_types(typename) == YES) )
+	if (traverse_types(typename) == YES)
 	{
-		if (typedef_flag == YES)
-			typedef_flag = NO;
 		yylval.id = malloc(strlen(yytext)+1);
 		strcpy(yylval.id, yytext);
 		return TYPEDEF_NAME;
@@ -384,17 +391,4 @@ static int check_type(char var[])
 		strcpy(yylval.id, yytext);
 		return IDENTIFIER;
 	}
-
-
-    /*
-    switch (sym_type(yytext))
-    {
-    case TYPEDEF_NAME:                // previously defined
-        return TYPEDEF_NAME;
-    case ENUMERATION_CONSTANT:        // previously defined
-        return ENUMERATION_CONSTANT;
-    default:                          // includes undefined
-        return IDENTIFIER;
-    }
-    */
 }
