@@ -59,139 +59,139 @@ char* process_typedef(char base_type[], char identifier[]);
 void addvariables(char* declarator, int Param)
 {
 	/*
-	This function is called from :
-		init_declarator
-			: declarator			--- call addvariables()
-			| declarator '=' initializer
+		This function is called from :
+			init_declarator
+				: declarator			--- call addvariables()
+				| declarator '=' initializer
+				;
+		AND
+			parameter_declaration
+			: declaration_specifiers declarator 	--- call addvariables()
+			| declaration_specifiers abstract_declarator
+			| declaration_specifiers
 			;
-	AND
-		parameter_declaration
-		: declaration_specifiers declarator 	--- call addvariables()
-		| declaration_specifiers abstract_declarator
-		| declaration_specifiers
-		;
 
-	where a variable is declared like follows:
-			char ch;
-			int x, *y;
-			short myarray[100], studentarray[35];
-			int arr[3][2];
-	It takes as parameter the variable name i.e. declarator & examines it.
-	It takes in Param - this is 0 (if not parameter variable), otherwise is 1
+		where a variable is declared like follows:
+				char ch;
+				int x, *y;
+				short myarray[100], studentarray[35];
+				int arr[3][2];
+		It takes as parameter the variable name i.e. declarator & examines it.
+		It takes in Param - this is 0 (if not parameter variable), otherwise is 1
 
-	Function Prototype
-	*******************
-	If declarator is a function prototype, variable details collected are
-	released - no action is taken.
+		Function Prototype
+		*******************
+		If declarator is a function prototype, variable details collected are
+		released - no action is taken.
 
-	Pointer
-	*******
-	If the name contains a "*" then a pointer variable is being declared.
-	Before any processing, declarator is stored into C_name.
+		Pointer
+		*******
+		If the name contains a "*" then a pointer variable is being declared.
+		Before any processing, declarator is stored into C_name.
 
-	The "*" is removed from the variable name by calling function:
-		char * removestar(char varname[])
-	and the name minus this is stored.
+		The "*" is removed from the variable name by calling function:
+			char * removestar(char varname[])
+		and the name minus this is stored.
 
-	The case of the variable is determined using
-		char * case_name(char  * varname);
-	and either "LC_" or "UC_" is added to start of declarator.
+		The case of the variable is determined using
+			char * case_name(char  * varname);
+		and either "LC_" or "UC_" is added to start of declarator.
 
-	The variable and its Param are pushed onto the Stack
-		void PushVar(char variablename[], int Param) -- SCOPES.H
+		The variable and its Param are pushed onto the Stack
+			void PushVar(char variablename[], int Param) -- SCOPES.H
 
-	The scope of the variable is determined using:
-		char * scope_details(char * varname, int param);
-	and the linenumber scope is appended to declarator if necessary.
+		The scope of the variable is determined using:
+			char * scope_details(char * varname, int param);
+		and the linenumber scope is appended to declarator if necessary.
 
-	Variabledetails is then given the string "pointer"
+		Variabledetails is then given the string "pointer"
 
-	The C and Prolog names are stored using:
-		void printnames(char prolog_str[], char c_str[])
+		The C and Prolog names are stored using:
+			void printnames(char prolog_str[], char c_str[])
 
-	E.g. 	declarator= "*Iptr"
-			varname = "UC_Iptr_X" -- where X is the linenumber
-			Pushed onto Stack = "UC_Iptr"
-			vardetails = "pointer"
-			C_name = "*Iptr"
+		E.g. 	declarator= "*Iptr"
+				varname = "UC_Iptr_X" -- where X is the linenumber
+				Pushed onto Stack = "UC_Iptr"
+				vardetails = "pointer"
+				C_name = "*Iptr"
 
-	Array - (functions detailed in pointer)
-	*****
-	If the name contains a "[" then an array variable is being declared.
-	Before any processing, declarator is stored into C_name.
-	The case of the variable is determined using
-		char * case_name(char  * varname);
-	and either "LC_" or "UC_" is added to start of declarator.
-	The "[" and "]" are removed from the variable name by calling function:
-			char * create_arrayname(char varname[])
-	and this is pushed onto Stack along with Param.
-	The scope of the variable is determined using:
-		char * scope_details(char * varname, int param);
-	and the linenumber scope is appended to declarator if necessary.
-	The C and Prolog names are stored using:
-		void printnames(char prolog_str[], char c_str[])
-	Single
-	******
-	If there is only one pair of [ and ] in the name, then a one dimensional
-	array is being declared:
-	The dimensions for that array are found by calling on:
-			char * create_dimensions(char varname[], char varlist[]);
-	Variabledetails is then given the string "array"
+		Array - (functions detailed in pointer)
+		*****
+		If the name contains a "[" then an array variable is being declared.
+		Before any processing, declarator is stored into C_name.
+		The case of the variable is determined using
+			char * case_name(char  * varname);
+		and either "LC_" or "UC_" is added to start of declarator.
+		The "[" and "]" are removed from the variable name by calling function:
+				char * create_arrayname(char varname[])
+		and this is pushed onto Stack along with Param.
+		The scope of the variable is determined using:
+			char * scope_details(char * varname, int param);
+		and the linenumber scope is appended to declarator if necessary.
+		The C and Prolog names are stored using:
+			void printnames(char prolog_str[], char c_str[])
+		Single
+		******
+		If there is only one pair of [ and ] in the name, then a one dimensional
+		array is being declared:
+		The dimensions for that array are found by calling on:
+				char * create_dimensions(char varname[], char varlist[]);
+		Variabledetails is then given the string "array"
 
-	E.g. 	declarator = "MyArray[10]"
-			varname = "(UC_MyArray_X, 10)"  -- where X is the linenumber
-			Pushed onto Stack = "UC_MyArray"
-			vardetails = "array"
-			C_name = "MyArray[10]"
+		E.g. 	declarator = "MyArray[10]"
+				varname = "(UC_MyArray_X, 10)"  -- where X is the linenumber
+				Pushed onto Stack = "UC_MyArray"
+				vardetails = "array"
+				C_name = "MyArray[10]"
 
-	Multi
-	******
-	Else there are more than one pair of [ and ] in the name, then a multi
-	dimensional array is being declared.
-	The dimensions for the array are found by calling:
-			char * create_multidims(char dimensions[])
-	Variabledetails is then given the string "multi"
+		Multi
+		******
+		Else there are more than one pair of [ and ] in the name, then a multi
+		dimensional array is being declared.
+		The dimensions for the array are found by calling:
+				char * create_multidims(char dimensions[])
+		Variabledetails is then given the string "multi"
 
-	E.g. 	declarator = "MyArray[10][5]"
-			varname = "(UC_MyArray_X, [10, 5])"  -- where X is the linenumber
-			Pushed onto Stack = "UC_MyArray"
-			vardetails = "multi"
-			C_name = "MyArray[10][5]"
+		E.g. 	declarator = "MyArray[10][5]"
+				varname = "(UC_MyArray_X, [10, 5])"  -- where X is the linenumber
+				Pushed onto Stack = "UC_MyArray"
+				vardetails = "multi"
+				C_name = "MyArray[10][5]"
 
-	Simple Variables
-	*****************
-	The case of the variable is determined using
-		char * case_name(char  * varname);
-	and either "LC_" or "UC_" is added to start of declarator.
+		Simple Variables
+		*****************
+		The case of the variable is determined using
+			char * case_name(char  * varname);
+		and either "LC_" or "UC_" is added to start of declarator.
 
-	The variable and its Param are pushed onto the Stack
-		void PushVar(char variablename[], int Param) -- SCOPES.H
+		The variable and its Param are pushed onto the Stack
+			void PushVar(char variablename[], int Param) -- SCOPES.H
 
-	The scope of the variable is determined using:
-		char * scope_details(char * varname, int param);
-	and the linenumber scope is appended to declarator if necessary.
+		The scope of the variable is determined using:
+			char * scope_details(char * varname, int param);
+		and the linenumber scope is appended to declarator if necessary.
 
-	Variabledetails is then given the string "other"
+		Variabledetails is then given the string "other"
 
-	The C and Prolog names are stored using:
-		void printnames(char prolog_str[], char c_str[])
+		The C and Prolog names are stored using:
+			void printnames(char prolog_str[], char c_str[])
 
-	E.g. 	declarator= "counter"
-			varname = "LC_counter_X" -- where X is the linenumber
-			Pushed onto Stack = "LC_counter"
-			vardetails = "other"
-			C_name = "counter"
+		E.g. 	declarator= "counter"
+				varname = "LC_counter_X" -- where X is the linenumber
+				Pushed onto Stack = "LC_counter"
+				vardetails = "other"
+				C_name = "counter"
 
-	Scope
-	*****
-	Scope is determined by calling function int ScopeLineNumber(void) (SCOPE.H)
-	If number returned == GLOBAL_SCOPE_NUMBER, varscope is 'global' else 'local'
+		Scope
+		*****
+		Scope is determined by calling function int ScopeLineNumber(void) (SCOPE.H)
+		If number returned == GLOBAL_SCOPE_NUMBER, varscope is 'global' else 'local'
 
-	Finally
-	*******
-	void addvariablestolist(char varname[], char vardetails[], char varassign[])
-	is then called to store the name (declarator), vardetails (pointer, other, etc)
-	and the assignmentstring (none given in this function) into the linked list ListOfVars
+		Finally
+		*******
+		void addvariablestolist(char varname[], char vardetails[], char varassign[])
+		is then called to store the name (declarator), vardetails (pointer, other, etc)
+		and the assignmentstring (none given in this function) into the linked list ListOfVars
 	*/
 
 	char varname[STRING_LIMIT];	// holds the varname that is to be saved
@@ -207,7 +207,7 @@ void addvariables(char* declarator, int Param)
 	strcpy(varassign, initialisestring(varassign, STRING_LIMIT));
 	strcpy(varscope, initialisestring(varscope, STRING_LIMIT));
 
-	
+
 	if (strstr(declarator, "function_prototype(") != NULL)
 	{
 		// FUNCTION_PROTOTYPES
@@ -345,168 +345,164 @@ void addvariablestolist(char varname[], char vardetails[], char varassign[], cha
 void addvariabledetails(char varname[], char varconstant[])
 {
 	/*
-	This function is called from :
-		init_declarator
-			: declarator
-			| declarator '=' initializer	--- call  addvariabledetails() here!!!
-			;
-	where a variable is declared and initialised like follows:
-			int x, y = 90;
-			short x = 78;, y, z = 45;
+		This function is called from :
+			init_declarator
+				: declarator
+				| declarator '=' initializer	--- call  addvariabledetails() here!!!
+				;
+		where a variable is declared and initialised like follows:
+				int x, y = 90;
+				short x = 78;, y, z = 45;
+				int arry[10];
+				struct point maxpoint = {45, 90};
+
+		It takes as parameter the variable name and the value being assigned to it.
+
+		It examines the variable name.
+
+		Pointer
+		*******
+		If the name contains a "*" then a pointer variable is being declared.
+
+		The "*" is removed from the variable name by calling function:
+			char * removestar(char varname[])
+		and the name minus this is stored.
+
+		The case of the variable is determined using
+			char * case_name(char  * varname);
+		and either "LC_" or "UC_" is added to start of varname.
+
+		The variable and its Param (NO) are pushed onto the Stack
+			void PushVar(char variablename[], int Param) -- SCOPES.H
+		NO - indicates this is not parameter variable.
+
+		The scope of the variable is determined using:
+			char * scope_details(char * varname, int param);
+		and the linenumber scope is appended to varname if necessary.
+
+		Variabledetails is then given the string "pointer"
+
+		The C and Prolog names are stored using:
+			void printnames(char prolog_str[], char c_str[])
+
+		The assignstring is built and stored
+
+		E.g. 	varname = "*Iptr"	varconstant = "34"
+				varname = "UC_Iptr_X" -- where X is the linenumber
+				Pushed onto Stack = "UC_Iptr"
+				vardetails = "pointer"
+				assigndetails = "assignment(Iptr, 34).
+
+		Array
+		*****
+		If the name contains a "[" then an array variable is being declared.
+		Arrays can be single dimensional or multi-dimensional.
+
+		The "[" and "]" are removed from the variable name by calling function:
+				char * create_arrayname(char varname[])
+		and the result is stored in arrayname.
+
+		The case of the variable is determined using
+			char * case_name(char  * varname);
+		and either "LC_" or "UC_" is added to start of arrayname.
+
+		arrayname is pushed onto Stack along with NO
+		- indicates this is not parameter variable.
+
+		The scope of the variable is determined using:
+			char * scope_details(char * varname, int param);
+		and the linenumber scope is appended to arrayname if necessary.
+
+		The C and Prolog names are stored using:
+			void printnames(char prolog_str[], char c_str[])
+
+		Next, start to build finalvarname ...
+
+		Single Dimensions
+		*****************
+		Arrays can be declared in a number of ways:
+
 			int arry[10];
-			struct point maxpoint = {45, 90};
+			int arry[] = {0,0,0,0,0};
+			int arry[10] = {3,3,3}; 	//elements [0],[1],[2] set to 3, rest set to 0
 
-	It takes as parameter the variable name and the value being assigned to it.
+		The dimensions for the single dimensional array are found by calling on:
+			char * create_dimensions(char varname[], char varlist[]);
 
-	It examines the variable name.
+		The single_array() function is called which builds the initialisation list for that
+		array and returns it so it can be appended to assigndetails
 
-	Pointer
-	*******
-	If the name contains a "*" then a pointer variable is being declared.
-	Before any processing, varname is stored into C_name.
+		vardetails is then given the string "array"
 
-	The "*" is removed from the variable name by calling function:
-		char * removestar(char varname[])
-	and the name minus this is stored.
+		E.G.
+			varname = "MyArray[10]"  and varconstant = [3,3,3]
+			arrayname = "(UC_MyArray_X, 10)"  -- where X is the linenumber
+			Pushed onto Stack = "UC_MyArray"
+			vardetails = "array"
+			assigndetails = init_array(UC_MyArray_X, [3,3,3,0,0,0,0,0,0,0]),
 
-	The case of the variable is determined using
-		char * case_name(char  * varname);
-	and either "LC_" or "UC_" is added to start of varname.
+		Multi Dimensions
+		*****************
+		Arrays can be declared in a number of ways:
 
-	The variable and its Param (NO) are pushed onto the Stack
-		void PushVar(char variablename[], int Param) -- SCOPES.H
-	NO - indicates this is not parameter variable.
-
-	The scope of the variable is determined using:
-		char * scope_details(char * varname, int param);
-	and the linenumber scope is appended to varname if necessary.
-
-	Variabledetails is then given the string "pointer"
-
-	The C and Prolog names are stored using:
-		void printnames(char prolog_str[], char c_str[])
-
-	The assignstring is built and stored
-
-	E.g. 	varname = "*Iptr"	varconstant = "34"
-			varname = "UC_Iptr_X" -- where X is the linenumber
-			Pushed onto Stack = "UC_Iptr"
-			vardetails = "pointer"
-			C_name = "*Iptr"
-			assigndetails = "assignment(Iptr, 34).
-
-	Array
-	*****
-	If the name contains a "[" then an array variable is being declared.
-	Arrays can be single dimensional or multi-dimensional.
-
-	Before any processing, varname is stored into C_name.
-	The "[" and "]" are removed from the variable name by calling function:
-			char * create_arrayname(char varname[])
-	and the result is stored in arrayname.
-
-	The case of the variable is determined using
-		char * case_name(char  * varname);
-	and either "LC_" or "UC_" is added to start of arrayname.
-
-	arrayname is pushed onto Stack along with NO
-	- indicates this is not parameter variable.
-
-	The scope of the variable is determined using:
-		char * scope_details(char * varname, int param);
-	and the linenumber scope is appended to arrayname if necessary.
-
-	The C and Prolog names are stored using:
-		void printnames(char prolog_str[], char c_str[])
-
-	Next, start to build finalvarname ...
-
-	Single Dimensions
-	*****************
-	Arrays can be declared in a number of ways:
-
-		int arry[10];
-		int arry[] = {0,0,0,0,0};
-		int arry[10] = {3,3,3}; 	//elements [0],[1],[2] set to 3, rest set to 0
-
-	The dimensions for the single dimensional array are found by calling on:
-		char * create_dimensions(char varname[], char varlist[]);
-
-	The single_array() function is called which builds the initialisation list for that
-	array and returns it so it can be appended to assigndetails
-
-	vardetails is then given the string "array"
-
-	E.G.
-		varname = "MyArray[10]"  and varconstant = [3,3,3]
-		arrayname = "(UC_MyArray_X, 10)"  -- where X is the linenumber
-		Pushed onto Stack = "UC_MyArray"
-		vardetails = "array"
-		C_name = "MyArray[10]"
-		assigndetails = init_array(UC_MyArray_X, [3,3,3,0,0,0,0,0,0,0]),
-
-	Multi Dimensions
-	*****************
-	Arrays can be declared in a number of ways:
-
-		int arry[4][5];
-		int arry[2][4] = {1,2,3,4};	// elements are initialised as follows:
-									arry[0][0]=1	arry[0][1]=2	arry[0][2]=3	arry[0][3]=4
-									arry[1][0]=0	arry[1][1]=0	arry[1][2]=0	arry[1][3]=0
-									i.e. rest in list are initialised to 0
-
-		int arry[4][2][2] = {{2,3},		// elements are initialised as follows:
-							 {4,5},		arry[0][0][0]=2	arry[0][0][1]=3	arry[0][1][0]=0 arry[0][1][1]=0
-							 {6,7}};	arry[1][0][0]=4	arry[1][0][1]=5	arry[1][1][0]=0 arry[1][1][1]=0
-										arry[2][0][0]=6	arry[2][0][1]=7	arry[2][1][0]=0 arry[2][1][1]=0
-										arry[3][0][0]=0	arry[3][0][1]=0	arry[3][1][0]=0 arry[3][1][1]=0
+			int arry[4][5];
+			int arry[2][4] = {1,2,3,4};	// elements are initialised as follows:
+										arry[0][0]=1	arry[0][1]=2	arry[0][2]=3	arry[0][3]=4
+										arry[1][0]=0	arry[1][1]=0	arry[1][2]=0	arry[1][3]=0
 										i.e. rest in list are initialised to 0
 
-	The dimensions for that array are found by calling on:
-		char * create_multidims(char varname[]);
+			int arry[4][2][2] = {{2,3},		// elements are initialised as follows:
+								{4,5},		arry[0][0][0]=2	arry[0][0][1]=3	arry[0][1][0]=0 arry[0][1][1]=0
+								{6,7}};	arry[1][0][0]=4	arry[1][0][1]=5	arry[1][1][0]=0 arry[1][1][1]=0
+											arry[2][0][0]=6	arry[2][0][1]=7	arry[2][1][0]=0 arry[2][1][1]=0
+											arry[3][0][0]=0	arry[3][0][1]=0	arry[3][1][0]=0 arry[3][1][1]=0
+											i.e. rest in list are initialised to 0
 
-	The multi_array() function is called which builds the initialisation list for that
-	array and returns it so it can be appended to assigndetails
-	e.g.
-		int arry[4][2][2] = {{2,3},		// elements are initialised as follows:
-							 {4,5},		arry[0][0][0]=2	arry[0][0][1]=3	arry[0][1][0]=0 arry[0][1][1]=0
-							 {6,7}};	arry[1][0][0]=4	arry[1][0][1]=5	arry[1][1][0]=0 arry[1][1][1]=0
-										arry[2][0][0]=6	arry[2][0][1]=7	arry[2][1][0]=0 arry[2][1][1]=0
-										arry[3][0][0]=0	arry[3][0][1]=0	arry[3][1][0]=0 arry[3][1][1]=0
-										i.e. rest in list are initialised to 0
-		given as parameter:
-			varconstant = "[[2,3],[4,5],[6,7]]"
-			dimension = "[4,2,2]"
-		it will return the string:
-			"2,3,0,0,4,5,0,0,6,7,0,0,0,0,0,0"
+		The dimensions for that array are found by calling on:
+			char * create_multidims(char varname[]);
 
-	vardetails is then given the string "multi"
+		The multi_array() function is called which builds the initialisation list for that
+		array and returns it so it can be appended to assigndetails
+		e.g.
+			int arry[4][2][2] = {{2,3},		// elements are initialised as follows:
+								{4,5},		arry[0][0][0]=2	arry[0][0][1]=3	arry[0][1][0]=0 arry[0][1][1]=0
+								{6,7}};	arry[1][0][0]=4	arry[1][0][1]=5	arry[1][1][0]=0 arry[1][1][1]=0
+											arry[2][0][0]=6	arry[2][0][1]=7	arry[2][1][0]=0 arry[2][1][1]=0
+											arry[3][0][0]=0	arry[3][0][1]=0	arry[3][1][0]=0 arry[3][1][1]=0
+											i.e. rest in list are initialised to 0
+			given as parameter:
+				varconstant = "[[2,3],[4,5],[6,7]]"
+				dimension = "[4,2,2]"
+			it will return the string:
+				"2,3,0,0,4,5,0,0,6,7,0,0,0,0,0,0"
 
-	Structure
-	*********
-	The varconstant is checked to see does it belong to a struct.
-	If is does the assignstring is built
-	e.g.
-		struct point Maxpt = {3,4};
-		gives the assignstring
-		init_record(Maxpt, [3,4])
+		vardetails is then given the string "multi"
 
-	Else
-	****
-	The variable name does not have to be processed.
-	E.g. 	varname = "Counter"	 varconstant = "20"
-			var = "Counter" vardetails = "other"
-			assigndetails = "assignment(Counter, 20).
-	Scope
-	*****
-	Scope is determined by calling function int ScopeLineNumber(void) (SCOPE.H)
-	If number returned == GLOBAL_SCOPE_NUMBER, varscope is 'global' else 'local'
+		Structure
+		*********
+		The varconstant is checked to see does it belong to a struct.
+		If is does the assignstring is built
+		e.g.
+			struct point Maxpt = {3,4};
+			gives the assignstring
+			init_record(Maxpt, [3,4])
 
-	Finally
-	*******
-	void addvariablestolist(char varname[], char vardetails[], char varassign[])
-	is then called to store the name (declarator), vardetails (pointer, other, etc)
-	and the assignmentstring (none given in this function) into the linked list ListOfVars
+		Else
+		****
+		The variable name does not have to be processed.
+		E.g. 	varname = "Counter"	 varconstant = "20"
+				var = "Counter" vardetails = "other"
+				assigndetails = "assignment(Counter, 20).
+		Scope
+		*****
+		Scope is determined by calling function int ScopeLineNumber(void) (SCOPE.H)
+		If number returned == GLOBAL_SCOPE_NUMBER, varscope is 'global' else 'local'
+
+		Finally
+		*******
+		void addvariablestolist(char varname[], char vardetails[], char varassign[])
+		is then called to store the name (declarator), vardetails (pointer, other, etc)
+		and the assignmentstring (none given in this function) into the linked list ListOfVars
 	*/
 
 	char assigndetails[STRING_LIMIT]; 	// holds assignment string
@@ -515,9 +511,10 @@ void addvariabledetails(char varname[], char varconstant[])
 	char vardetails[STRING_LIMIT];		// holds variable details e.g.pointer, array..
 	char dimension[STRING_LIMIT];		// holds dimension if varname is an array
 	char varscope[STRING_LIMIT];		// scope that varname belongs to
-	char* C_name;							// name of the variable in C
 
-	C_name = (char*)malloc(STRING_LIMIT);
+	char* variable_name = (char*)malloc(STRING_LIMIT);
+	strcpy(variable_name, varname);	// Prevents modification to parameter
+
 	strcpy(assigndetails, initialisestring(assigndetails, STRING_LIMIT));
 	strcpy(arrayname, initialisestring(arrayname, STRING_LIMIT));
 	strcpy(finalvarname, initialisestring(finalvarname, STRING_LIMIT));
@@ -525,49 +522,46 @@ void addvariabledetails(char varname[], char varconstant[])
 	strcpy(dimension, initialisestring(dimension, STRING_LIMIT));
 
 	// POINTER TYPES
-	if (strstr(varname, "*") != NULL)
+	if (strstr(variable_name, "*") != NULL)
 	{
-		strcpy(C_name, varname);				// store the C name for the variable
-		strcpy(varname, removestar(varname));	// remove the '*' from varname
-		strcpy(varname, case_name(varname));	// add prolog terms "LC_" or "UC_" - OUTPUT_FUNCTIONS.H
-		PushVar(varname, NO);					// Push onto Stack, not a parameter variable (NO)
+		strcpy(variable_name, removestar(variable_name));	// remove the '*' from varname
+		strcpy(variable_name, case_name(variable_name));	// add prolog terms "LC_" or "UC_" - OUTPUT_FUNCTIONS.H
+		PushVar(variable_name, NO);	// Push onto Stack, not a parameter variable (NO)
 		// from SCOPES.H
-		strcpy(varname, scope_details(varname, NO));// append scope number if applicable - OUTPUT_FUNCTIONS.H
+		strcpy(variable_name, scope_details(variable_name, NO));// append scope number if applicable - OUTPUT_FUNCTIONS.H
 		strcpy(vardetails, "pointer");			// store details
 		strcpy(assigndetails, "\nassignment(");	// build assignment string
-		strcat(assigndetails, varname);
+		strcat(assigndetails, variable_name);
 		strcat(assigndetails, " , ");
 		strcat(assigndetails, varconstant);
 		strcat(assigndetails, "),");
 	}
-	else if (strstr(varname, "[") != NULL)
+	else if (strstr(variable_name, "[") != NULL)
 	{
 		// ARRAY TYPES
-		int numdims;								// number of '[' in varname -single Vs multi array
+		int numdims; // number of '[' in varname -single Vs multi array
 
-		strcpy(arrayname, create_arrayname(varname));// isolate array name from dimensions - ARRAY_FUNCTIONS.H
+		strcpy(arrayname, create_arrayname(variable_name));// isolate array name from dimensions - ARRAY_FUNCTIONS.H
 		// store in arrayname
-		strcpy(C_name, arrayname);					// store the C name of the array
 		strcpy(arrayname, case_name(arrayname));	// find prolog version "LC_" or "UC_" - OUTPUT_FUNCTIONS.H
 		PushVar(arrayname, NO);						// Push onto Stack, not a parameter variable (NO)
 		// from SCOPES.H
-		strcpy(arrayname, scope_details(arrayname, NO));// append scope if applicable - OUTPUT_FUNCTIONS.H
+		strcpy(arrayname, scope_details(arrayname, NO)); // append scope if applicable - OUTPUT_FUNCTIONS.H
 		strcpy(finalvarname, "(");					// build final array name - "("
 		strcat(finalvarname, arrayname);			// array name
 		strcat(finalvarname, ", ");					// comma -- dimensions follow
 
-		numdims = strstrcount(varname, "[");		// find number of '[' to determine
+		numdims = strstrcount(variable_name, "[");		// find number of '[' to determine
 		// if array is single or multi dimensional
 
 		// SINGLE DIMENSIONAL ARRAY
 		if (numdims == 1)
 		{
 			// find dimensions and finish finalvarname
-			strcpy(dimension, create_dimensions(varname, varconstant)); // ARRAY_FUNCTIONS.H
+			strcpy(dimension, create_dimensions(variable_name, varconstant)); // ARRAY_FUNCTIONS.H
 			strcat(finalvarname, dimension);
 			strcat(finalvarname, ")");
-			// copy back into varname
-			strcpy(varname, finalvarname);
+			strcpy(variable_name, finalvarname);
 
 			// build assigndetails as init_array/2
 			strcpy(assigndetails, "\ninit_array(");
@@ -583,11 +577,11 @@ void addvariabledetails(char varname[], char varconstant[])
 		{
 			// MULTI DIMENSIONAL ARRAY
 			// find dimensions and finish finalvarname
-			strcpy(dimension, create_multidims(varname));	// ARRAY_FUNCTIONS.H
+			strcpy(dimension, create_multidims(variable_name));	// ARRAY_FUNCTIONS.H
 			strcat(finalvarname, dimension);
 			strcat(finalvarname, ")");
 			// copy back into varname
-			strcpy(varname, finalvarname);
+			strcpy(variable_name, finalvarname);
 
 			// build assigndetails as init_array/2
 			strcpy(assigndetails, "\ninit_array(");
@@ -603,20 +597,19 @@ void addvariabledetails(char varname[], char varconstant[])
 	else
 	{
 		// OTHER VARIABLE DECLARATIONS
-		
+
 
 		// STRUCT DECLARATION
 		if (strstrcount(varconstant, ",") >= 1)
 		{
-			strcpy(C_name, varname);				// store C name
-			strcpy(varname, case_name(varname));	// apply prolog case rules "LC_" or "UC_" - OUTPUT_FUNCTIONS.H
-			PushVar(varname, NO);					// Push onto Stack, not a parameter variable (NO)
+			strcpy(variable_name, case_name(variable_name));	// apply prolog case rules "LC_" or "UC_" - OUTPUT_FUNCTIONS.H
+			PushVar(variable_name, NO);					// Push onto Stack, not a parameter variable (NO)
 			// from SCOPES.H
-			strcpy(varname, scope_details(varname, NO));// append scope if applicable - OUTPUT_FUNCTIONS.H
+			strcpy(variable_name, scope_details(variable_name, NO));// append scope if applicable - OUTPUT_FUNCTIONS.H
 			strcpy(vardetails, "struct");				// store vardetails
 
 			strcpy(assigndetails, "\ninit_record(");	// begin assigndetails init_record/2
-			strcat(assigndetails, varname);
+			strcat(assigndetails, variable_name);
 			strcat(assigndetails, " , ");
 			strcat(assigndetails, varconstant);
 			strcat(assigndetails, "),");
@@ -624,15 +617,14 @@ void addvariabledetails(char varname[], char varconstant[])
 		else
 		{
 			// 'NORMAL' VARIABLE DECLARATION
-			strcpy(C_name, varname);			// store C name
-			strcpy(varname, case_name(varname));// apply prolog case rules "LC_" or "UC_" - OUTPUT_FUNCTIONS.H
-			PushVar(varname, NO);				// Push onto Stack, not a parameter variable (NO)
+			strcpy(variable_name, case_name(variable_name));// apply prolog case rules "LC_" or "UC_" - OUTPUT_FUNCTIONS.H
+			PushVar(variable_name, NO);				// Push onto Stack, not a parameter variable (NO)
 			// from SCOPES.H
-			strcpy(varname, scope_details(varname, NO));// append scope if applicable - OUTPUT_FUNCTIONS.H
+			strcpy(variable_name, scope_details(variable_name, NO));// append scope if applicable - OUTPUT_FUNCTIONS.H
 			strcpy(vardetails, "other");				// store vardetails
 
 			strcpy(assigndetails, "\nassignment(");		// build assigndetails
-			strcat(assigndetails, varname);
+			strcat(assigndetails, variable_name);
 			strcat(assigndetails, " , ");
 			strcat(assigndetails, varconstant);
 			strcat(assigndetails, "),");
@@ -646,7 +638,7 @@ void addvariabledetails(char varname[], char varconstant[])
 		strcpy(varscope, "local");
 
 	// For all variables - add the variables just declared to the linked list
-	addvariablestolist(varname, vardetails, assigndetails, varscope);
+	addvariablestolist(variable_name, vardetails, assigndetails, varscope);
 }
 
 
@@ -831,17 +823,17 @@ char* findvariabledetails(char vartype[])
 char* removestar(char varname[])
 {
 	/*
-	This function, used in this Header File, will take in a variable
-	of the form "*Varname" and will return the Varname minus the *.
-	E.G. 	input value: *Iptr
-			return value: Iptr
+		This function, used in this Header File, will take in a variable
+		of the form "*Varname" and will return the Varname minus the *.
+		E.G. 	input value: *Iptr
+				return value: Iptr
 
-	This function is called from:
-		void addvariables(char declarator[])
-		void addvariabledetails(char varname[], char varconstant[])
+		This function is called from:
+			void addvariables(char declarator[])
+			void addvariabledetails(char varname[], char varconstant[])
 	*/
 
-	char* holdstr = (char*) malloc(strlen(varname) + 1);	// temporary holding string
+	char* holdstr = (char*)malloc(strlen(varname) + 1);	// temporary holding string
 	unsigned int i = 0, j = 0;			// variables for while loops
 
 	// allocate space to the string variables used
@@ -863,7 +855,6 @@ char* removestar(char varname[])
 		}
 	}
 
-	// successfully leaving the function
 	char* returnstr = (char*)malloc(strlen(holdstr) + 1);
 	strcpy(returnstr, holdstr);
 	free(holdstr);
@@ -1022,15 +1013,15 @@ char* process_cast_unary_rule(char unary_op[], char cast_exp[])
 			}
 			strcat(new_cast_exp, ")");
 
-			strcat(returnstr, "("); 
-			strcat(returnstr, new_cast_exp); 
+			strcat(returnstr, "(");
+			strcat(returnstr, new_cast_exp);
 			strcat(returnstr, ")");
 		}
 		else
 		{
 			// Surround cast_exp with brackets
-			strcat(returnstr, "("); 
-			strcat(returnstr, cast_exp); 
+			strcat(returnstr, "(");
+			strcat(returnstr, cast_exp);
 			strcat(returnstr, ")");
 		}
 
@@ -1038,8 +1029,8 @@ char* process_cast_unary_rule(char unary_op[], char cast_exp[])
 	else
 	{
 		// Surround cast_exp with brackets
-		strcat(returnstr, "("); 
-		strcat(returnstr, cast_exp); 
+		strcat(returnstr, "(");
+		strcat(returnstr, cast_exp);
 		strcat(returnstr, ")");
 	}
 
@@ -1072,7 +1063,7 @@ char* process_functions(char S1[], char S2[], char S3[])
 	and this will need to be removed.
 	*/
 
-		// variable declarations
+	// variable declarations
 	char* returnstr;
 	const len_start_prototypestr = 19;	// string "function_prototype(" is 19 chars
 	const len_end_prototypestr = 3;		// string ")." is 2 chars + one for NULL char

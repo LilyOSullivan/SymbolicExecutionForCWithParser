@@ -39,15 +39,14 @@ static void comment(void);
 
 void count(void);
 void AddToScopeList(void);
-void cplus_comment(void);
 void discard(void);
-void my_include(void);
 int check_type(char var[]);
 %}
 
 %%
-"/*"                                    { comment(); }
-"//".*                                    { cplus_comment(); }
+"/*"                    { comment(); }
+"//".*                  { discard(); }
+"__pragma".*            { discard(); }
 
 "auto"					{ count(); return(AUTO); }
 "break"					{ count(); return(BREAK); }
@@ -107,17 +106,19 @@ int check_type(char var[]);
                             return(IF);
                         }
 "inline"				{ count(); return(INLINE); }
+"__inline__"			{ count(); return(INLINE); }
+"__declspec"			{ count(); return(DECLSPEC); }
 "int"					{ count(); return(INT); }
-"__int8"					{ count(); return(__INT8); }
-"__int16"					{ count(); return(__INT16); }
-"__int32"					{ count(); return(__INT32); }
-"__int64"					{ count(); return(__INT64); }
-"__cdecl"         { count();return (__CDECL); }
-"__clrcall"       { count();return (__CLRCALL); }
-"__stdcall"       { count();return (__STDCALL); }
-"__fastcall"      { count();return (__FASTCALL); }
-"__thiscall"      { count();return (__THISCALL); }
-"__vectorcall"    { count();return (__VECTORCALL); }
+"__int8"				{ count(); return(__INT8); }
+"__int16"				{ count(); return(__INT16); }
+"__int32"				{ count(); return(__INT32); }
+"__int64"				{ count(); return(__INT64); }
+"__cdecl"               { count(); return (__CDECL); }
+"__clrcall"             { count(); return (__CLRCALL); }
+"__stdcall"             { count(); return (__STDCALL); }
+"__fastcall"            { count(); return (__FASTCALL); }
+"__thiscall"            { count(); return (__THISCALL); }
+"__vectorcall"          { count(); return (__VECTORCALL); }
 "long"					{ count(); return(LONG); }
 "register"				{ count(); return(REGISTER); }
 "restrict"				{ count(); return(RESTRICT); }
@@ -150,17 +151,17 @@ int check_type(char var[]);
                             PushList(yylineno, While);	// LINKEDLISTS.H
                             return(WHILE);
                         }
-"_Alignas"                              { count(); return ALIGNAS; }
-"_Alignof"                              { count(); return ALIGNOF; }
-"_Atomic"                               { count(); return ATOMIC; }
-"_Bool"                                 { count(); return BOOL; }
-"_Complex"                              { count(); return COMPLEX; }
-"_Generic"                              { count(); return GENERIC; }
-"_Imaginary"                            { count(); return IMAGINARY; }
-"_Noreturn"                             { count(); return NORETURN; }
-"_Static_assert"                        { count(); return STATIC_ASSERT; }
-"_Thread_local"                         { count(); return THREAD_LOCAL; }
-"__func__"                              { count(); return FUNC_NAME; }
+"_Alignas"              { count(); return ALIGNAS; }
+"_Alignof"              { count(); return ALIGNOF; }
+"_Atomic"               { count(); return ATOMIC; }
+"_Bool"                 { count(); return BOOL; }
+"_Complex"              { count(); return COMPLEX; }
+"_Generic"              { count(); return GENERIC; }
+"_Imaginary"            { count(); return IMAGINARY; }
+"_Noreturn"             { count(); return NORETURN; }
+"_Static_assert"        { count(); return STATIC_ASSERT; }
+"_Thread_local"         { count(); return THREAD_LOCAL; }
+"__func__"              { count(); return FUNC_NAME; }
 
 {L}{A}*					{ count(); return check_type(yytext); }
 
@@ -178,8 +179,8 @@ int check_type(char var[]);
 
 ({SP}?\"([^"\\\n]|{ES})*\"{WS}*)+	{ count(); yylval.id = malloc(strlen(yytext)+1); strcpy(yylval.id, yytext); return STRING_LITERAL; }
 
-"#"			{ count(); discard(); 	 }
-"#include"		{ my_include();  }
+"#"			            { count(); discard(); 	 }
+"#include"		        { discard();  }
 
 "..."					{ count(); return ELLIPSIS; }
 ">>="					{ count(); return RIGHT_ASSIGN; }
@@ -203,34 +204,34 @@ int check_type(char var[]);
 ">="					{ count(); return GE_OP; }
 "=="					{ count(); return EQ_OP; }
 "!="					{ count(); return NE_OP; }
-";"					{ count(); return ';'; }
+";"					    { count(); return ';'; }
 ("{"|"<%")				{ count();
                             Push(yylineno);	// SCOPES.H
                             AddToScopeList();	// GRAMMAR.L
                             return('{');
                         }
 ("}"|"%>")				{ count(); return '}'; }
-","					{ count(); return ','; }
-":"					{ count(); return ':'; }
-"="					{ count(); return '='; }
-"("					{ count(); return '('; }
-")"					{ count(); return ')'; }
+","					    { count(); return ','; }
+":"					    { count(); return ':'; }
+"="					    { count(); return '='; }
+"("					    { count(); return '('; }
+")"					    { count(); return ')'; }
 ("["|"<:")				{ count(); return '['; }
 ("]"|":>")				{ count(); return ']'; }
-"."					{ count(); return '.'; }
-"&"					{ count(); return '&'; }
-"!"					{ count(); return '!'; }
-"~"					{ count(); return '~'; }
-"-"					{ count(); return '-'; }
-"+"					{ count(); return '+'; }
-"*"					{ count(); return '*'; }
-"/"					{ count(); return '/'; }
-"%"					{ count(); return '%'; }
-"<"					{ count(); return '<'; }
-">"					{ count(); return '>'; }
-"^"					{ count(); return '^'; }
-"|"					{ count(); return '|'; }
-"?"					{ count(); return '?'; }
+"."					    { count(); return '.'; }
+"&"					    { count(); return '&'; }
+"!"					    { count(); return '!'; }
+"~"					    { count(); return '~'; }
+"-"					    { count(); return '-'; }
+"+"					    { count(); return '+'; }
+"*"					    { count(); return '*'; }
+"/"					    { count(); return '/'; }
+"%"					    { count(); return '%'; }
+"<"					    { count(); return '<'; }
+">"					    { count(); return '>'; }
+"^"					    { count(); return '^'; }
+"|"					    { count(); return '|'; }
+"?"					    { count(); return '?'; }
 
 {WS}+					{ count(); }
 .					{ /* discard bad characters */ }
@@ -259,18 +260,6 @@ static void comment(void)
                 break;
         }
     yyerror("unterminated comment");
-}
-
-void cplus_comment(void)
-{
-/*
- Cplus_comment Function.
- This file removes any code provided as user C++ comments in the
- underlying C code file, and writes it to standard output.
- It is not analysed.
-*/
-	char c;
-	while ((c = (char)(input())) != '\n' && c != 0)	;
 }
 
 void AddToScopeList(void)
@@ -322,21 +311,6 @@ void discard(void)
  from the underlying C code file. Lines beginning with '#' may
  denote preprocessor #line directives, or comments, which do
  not have to be analysed.
-*/
-	char c;
-	while ((c = (char)(input())) != '\n' && c != 0)	;
-}
-
-void my_include(void)
-{
-/*
- My_include Function.
- This file removes any lines beginning with the character '#include'
- from the underlying C code file. Lines beginning with '#include'
- denote files that are being included into the underlying C code.
- These should be removed during preprocessing. However, if they
- could not be, for example if the header file does not exist,
- they are removed here and not analysed further.
 */
 	char c;
 	while ((c = (char)(input())) != '\n' && c != 0)	;

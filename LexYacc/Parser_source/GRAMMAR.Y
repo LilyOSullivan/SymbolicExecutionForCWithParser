@@ -42,6 +42,8 @@
 %token	COMPLEX IMAGINARY
 %token	STRUCT UNION ENUM ELLIPSIS
 
+%token DECLSPEC
+
 %token	CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
 
 %token	ALIGNAS ALIGNOF ATOMIC GENERIC NORETURN STATIC_ASSERT THREAD_LOCAL
@@ -127,8 +129,10 @@
 primary_expression
 	: IDENTIFIER
 	{
-        $$ = (char*) malloc(STRING_LIMIT);
-        strcpy($$, identifier_function($1)); // DECL_FUNCTIONS.H
+		char* identifier = identifier_function($1); // DEFINITIONS.H
+        $$ = (char*) malloc(strlen(identifier) + 1);
+        strcpy($$, identifier);
+		free(identifier);
         free($1);
 	}
 	| constant
@@ -140,7 +144,7 @@ primary_expression
 	}
 	| string
 	{
-        $$ = (char*) malloc(strlen($1));
+        $$ = (char*) malloc(strlen($1) + 1);
 		strcpy($$, $1);
         free($1);
 	}
@@ -225,33 +229,31 @@ postfix_expression
 	}
 	| postfix_expression '[' expression ']'
 	{
-        $$ = (char*) malloc(STRING_LIMIT);
 		if (strstr($1, "[") != NULL)
 		{
-			strcpy($$, process_arrays($1, $3)); // ARRAY_FUNCTIONS.H
-            free($1);
-            free($3);
+			char* array = process_arrays($1, $3); // ARRAY_FUNCTIONS.H
+			$$ = (char*) malloc(strlen(array) + 1);
+			strcpy($$, array);
+			free(array);
 		}
 		else
 		{
+			$$ = (char*) malloc(strlen($1) + 1 + strlen($3) + 1 + 1);
 			strcpy($$, $1);
             strcat($$, "[");
             strcat($$, $3);
             strcat($$, "]");
-            free($1);
-            free($3);
 		}
+		free($1);
+		free($3);
 
 	}
 	| postfix_expression '(' ')'
 	{
-		////////////////////////////////////////////////////////////////
 		// Process function calls (without arguments)
 		// Function calls are parsed with "LC_" or "UC_" in their name
 		// Remove this and process as function call
-		////////////////////////////////////////////////////////////////
-		char *func_name;
-		func_name = (char *) malloc(STRING_LIMIT);
+		char *func_name = (char *) malloc(STRING_LIMIT);
 		strcpy(func_name, copystring($1, 3, strlen($1)));
         $$ = (char*) malloc(16 + 3 + STRING_LIMIT + 3 + 1 + 1 + 1);
 		strcpy($$, "\nfunction_call(");
@@ -269,13 +271,10 @@ postfix_expression
 	}
 	| postfix_expression '(' argument_expression_list ')'
 	{
-		////////////////////////////////////////////////////////////////
 		// Process function calls (with arguments)
 		// Function calls are parsed with "LC_" or "UC_" in their name
 		// Remove this and process as function call
-		////////////////////////////////////////////////////////////////
-		char *func_name;
-		func_name = (char *) malloc(STRING_LIMIT);
+		char *func_name = (char*) malloc(STRING_LIMIT);
 		strcpy(func_name, copystring($1, 3, strlen($1)-3));
         $$ = (char*) malloc(16+ 3 + STRING_LIMIT + 3 + strlen($3) + 1 + 1 + 1);
 		strcpy($$, "\nfunction_call(");
@@ -294,20 +293,18 @@ postfix_expression
         free($3);
 	}
 	| postfix_expression '.' IDENTIFIER
-		{
-		////////////////////////////////////////////////////////////////
+	{
 		// Process records/structures
-		////////////////////////////////////////////////////////////////
-        $$ = (char*) malloc(STRING_LIMIT);
-		strcpy($$, process_records($1, $3));	// STRUCTURES.H
+		char* record = process_records($1, $3); // STRUCTURES.H
+        $$ = (char*) malloc(strlen(record) + 1);
+		strcpy($$, record);
+		free(record);
 		free($1);
 		free($3);
 	}
 	| postfix_expression PTR_OP IDENTIFIER
 	{
-		////////////////////////////////////////////////////////////////
 		// Process linked list statements
-		////////////////////////////////////////////////////////////////
         $$ = (char*) malloc(11 + strlen($1) + 2 + strlen($3) + 1 + 1);
 		$3[0] = convert_tolower($3[0]);
         strcpy($$, "linkedlist(");
@@ -320,9 +317,7 @@ postfix_expression
 	}
 	| postfix_expression INC_OP
 		{
-		////////////////////////////////////////////////////////////////
 		// Process statements such as i++;
-		////////////////////////////////////////////////////////////////
         $$ = (char*) malloc(25+(2*strlen($1))+1);
         // 17 + 1 + 3 + 1 + strlen($1)+3 = 25 + strlen($1)
         // 17 + strlen($1) + 3 + strlen($1) + 3 = 23 + 2*strlen($1)
@@ -349,9 +344,7 @@ postfix_expression
 	}
 	| postfix_expression DEC_OP
 	{
-		////////////////////////////////////////////////////////////////
 		// Process statements such as i--;
-		////////////////////////////////////////////////////////////////
         $$ = (char*) malloc(17+strlen($1)+3+strlen($1)+3+1);
 		strcpy($$, "\npost_decrement(");
         strcat($$, $1);
@@ -391,9 +384,7 @@ unary_expression
     }
 	| INC_OP unary_expression
 	{
-		////////////////////////////////////////////////////////////////
 		// Process statements such as ++i;
-		////////////////////////////////////////////////////////////////
         $$ = (char*) malloc(16 + strlen($2) + 3 + strlen($2) + 3 + 1);
 		strcpy($$, "\npre_increment(");
         strcat($$, $2);
@@ -404,9 +395,7 @@ unary_expression
 	}
 	| DEC_OP unary_expression
 	{
-		////////////////////////////////////////////////////////////////
 		// Process statements such as --i;
-		////////////////////////////////////////////////////////////////
         $$ = (char*) malloc(16 + strlen($2) + 3 + strlen($2) + 3 + 1);
 		strcpy($$, "\npre_decrement(");
         strcat($$, $2);
@@ -416,24 +405,24 @@ unary_expression
 	}
 	| unary_operator cast_expression
 	{
-		////////////////////////////////////////////////////////////////
+		char* unary_cast = process_cast_unary_rule($1, $2);
 		// Process casting expressions
-		////////////////////////////////////////////////////////////////
-        $$ = (char*) malloc(STRING_LIMIT);
-		strcpy($$, process_cast_unary_rule($1, $2));	// DECL_FUNCTIONS.H
+        $$ = (char*) malloc(strlen(unary_cast) + 1);
+		strcpy($$, unary_cast);	// DECL_FUNCTIONS.H
+		free(unary_cast);
         free($1);
         free($2);
 	}
 	| SIZEOF unary_expression
 	{
-		////////////////////////////////////////////////////////////////
 		// Process sizeof statements
-		////////////////////////////////////////////////////////////////
 		$$ = (char*) malloc(6+1+strlen($2)+1+1);
 		strcpy($$, "sizeof");
 		if ($2[0] != '(')
 		{
-			strcat($$, "("); strcat($$, $2); strcat($$, ")");
+			strcat($$, "(");
+			strcat($$, $2);
+			strcat($$, ")");
 		}
 		else
 		{
@@ -443,14 +432,14 @@ unary_expression
 	}
 	| SIZEOF '(' type_name ')'
 	{
-		////////////////////////////////////////////////////////////////
 		// Process sizeof(type) statements
-		////////////////////////////////////////////////////////////////
-		$$ = (char*) malloc(6 + 1 + STRING_LIMIT + 1 + 1);
+		char* type_processed = change_asterisk($3);
+		$$ = (char*) malloc(6 + 1 + strlen(type_processed) + 1 + 1);
 		strcpy($$, "sizeof");
 		strcat($$, "(");
-		strcat($$, change_asterisk($3)); 	// DECL_FUNCTIONS.H
+		strcat($$, type_processed); 	// DECL_FUNCTIONS.H
 		strcat($$, ")");
+		free(type_processed);
 		free($3);
 	}
 	| ALIGNOF '(' type_name ')'
@@ -494,9 +483,7 @@ unary_operator
 cast_expression
 	: unary_expression
 	{
-		////////////////////////////////////////////////////////////////
 		// Surround negative numbers with ( and )
-		////////////////////////////////////////////////////////////////
 		$$ = (char*) malloc(1 + strlen($1) + 1 + 1);
 		if ($1[0] == '-')
 		{
@@ -512,15 +499,15 @@ cast_expression
 	}
 	| '(' type_name ')' cast_expression
 	{
-		////////////////////////////////////////////////////////////////
 		// Process cast expressions
-		////////////////////////////////////////////////////////////////
-		$$ = (char*) malloc(STRING_LIMIT);
+		char* typename = change_asterisk($2); // DECL_FUNCTIONS.H
+		$$ = (char*) malloc(6 + strlen(typename) + 3 + strlen($4) + 1 + 1);
 		strcpy($$, "cast((");
-		strcat($$, change_asterisk($2)); // DECL_FUNCTIONS.H
+		strcat($$, typename);
 		strcat($$, "), ");
 		strcat($$, $4);
 		strcat($$, ")");
+		free(typename);
 		free($2);
 		free($4);
 	}
@@ -535,10 +522,8 @@ multiplicative_expression
 	}
 	| multiplicative_expression '*' cast_expression
 	{
-		////////////////////////////////////////////////////////////////
 		// Process * - change '*' to multiply to avoid confusion with
 		// the pointer dereference '*'
-		////////////////////////////////////////////////////////////////
 		$$ = (char*) malloc(9 + strlen($1) + 2 + strlen($3) + 1 + 1);
 		strcpy($$, "multiply(");
 		strcat($$, $1);
@@ -559,10 +544,8 @@ multiplicative_expression
 	}
 	| multiplicative_expression '%' cast_expression
 	{
-		////////////////////////////////////////////////////////////////
 		// Process % - change '%' to modulo to avoid confusion with
 		// the Prolog comments operator '%'
-		////////////////////////////////////////////////////////////////
 		$$ = (char*) malloc(4 + strlen($1) + 3 + strlen($3) + 1 + 1);
 		strcpy($$, "mod(");
 		strcat($$, $1);
@@ -573,7 +556,6 @@ multiplicative_expression
 		free($3);
 	}
 	;
-
 
 additive_expression
 	: multiplicative_expression
@@ -805,9 +787,7 @@ conditional_expression
 	}
 	| logical_or_expression '?' expression ':' conditional_expression
 	{
-		////////////////////////////////////////////////////////////////
 		// Process ternary expressions from C to Prolog
-		////////////////////////////////////////////////////////////////
 		$$ = (char*) malloc(8 + 11 + strlen($1) + 2 + 1 + strlen($3) + 1 + 2 + 1 + strlen($5) + 1 + 1 + 1);
 		strcpy($$, "ternary(");
 		strcat($$, "expression(");
@@ -936,8 +916,8 @@ constant_expression
 declaration
 	: declaration_specifiers ';'
 	{
-		$$ = (char*) malloc(STRING_LIMIT);
 		char* declaration = struct_declaration($1);
+		$$ = (char*) malloc(strlen(declaration) + 1);
 		strcpy($$, declaration);	// STRUCTURES.H
 		free(declaration);
 		free($1);
@@ -956,9 +936,11 @@ declaration
 		}
 		else
 		{
-			$$ = (char*) malloc(STRING_LIMIT);
 			int lenSS;
-			strcpy($$, findvariabledetails($1));	// DECL_FUNCTIONS.H
+			char* declaration_string = findvariabledetails($1); // DECL_FUNCTIONS.H
+			$$ = (char*) malloc(strlen(declaration_string) + 1 + 1);
+			strcpy($$, declaration_string);
+			free(declaration_string);
 			lenSS = strlen($$) - 1;
 
 			if ($$[lenSS] != ',')
@@ -987,9 +969,7 @@ declaration_specifiers
 	}
 	| type_specifier declaration_specifiers
 	{
-		////////////////////////////////////////////////////////////////
 		// Only append comma if not a type such as "unsigned int"
-		////////////////////////////////////////////////////////////////
 		$$ = (char*) malloc(strlen($1) + 2 + strlen($2) + 1);
 
 		strcpy($$, $1);
@@ -1054,7 +1034,9 @@ init_declarator
 	{
 		$$ = (char*) malloc(strlen($1) + 1);
 		strcpy($$, $1);
-		addvariabledetails($1, $3);// DECL_FUNCTIONS.H
+		addvariabledetails($1, $3); // DECL_FUNCTIONS.H
+		free($1);
+		free($3);
 	}
 	| declarator
 	{
@@ -1062,7 +1044,9 @@ init_declarator
 		strcpy($$, $1);
 		if(typedef_flag == YES)
 		{
-			add_typedefs(change_typedef($1)); // TYPEDEF_FUNCTIONS.H
+			char* declaration_cleaned = change_typedef($1); // TYPEDEF_FUNCTIONS.H
+			add_typedefs(declaration_cleaned); // TYPEDEF_FUNCTIONS.H
+			free(declaration_cleaned);
 		}
 		else
 		{
@@ -1109,62 +1093,62 @@ storage_class_specifier
 type_specifier
 	: VOID
 	{
-		$$ = (char*) malloc(5);
+		$$ = (char*) malloc(4 + 1);
 		strcpy($$, "void");
 	}
 	| CHAR
 	{
-		$$ = (char*) malloc(5);
+		$$ = (char*) malloc(4 + 1);
 		strcpy($$, "char");
 	}
 	| SHORT
 	{
-		$$ = (char*) malloc(6);
+		$$ = (char*) malloc(5 + 1);
 		strcpy($$, "short");
 	}
 	| INT
 	{
-		$$ = (char*) malloc(4);
+		$$ = (char*) malloc(3 + 1);
 		strcpy($$, "int");
 	}
 	| LONG
 	{
-		$$ = (char*) malloc(5);
+		$$ = (char*) malloc(4 + 1);
 		strcpy($$, "long");
 	}
 	| FLOAT
 	{
-		 $$ = (char*) malloc(6);
+		 $$ = (char*) malloc(5 + 1);
 		 strcpy($$, "float");
 	}
 	| DOUBLE
 	{
-		$$ = (char*) malloc(7);
+		$$ = (char*) malloc(6 + 1);
 		strcpy($$, "double");
 	}
 	| SIGNED
 	{
-		$$ = (char*) malloc(7);
+		$$ = (char*) malloc(6 + 1);
 		strcpy($$, "signed");
 	}
 	| UNSIGNED
 	{
-		 $$ = (char*) malloc(9);
+		 $$ = (char*) malloc(8 + 1);
 		 strcpy($$, "unsigned");
 	}
 	| BOOL
 	{
-		 $$ = (char*) malloc(9);
+		 $$ = (char*) malloc(4 + 1);
 		 strcpy($$, "bool");
 	}
 	| COMPLEX
 	{
-		 $$ = (char*) malloc(9);
+		 $$ = (char*) malloc(7 + 1);
 		 strcpy($$, "complex");
 	}
 	| IMAGINARY	  	/* non-mandated extension */
 	{
-		 $$ = (char*) malloc(9);
+		 $$ = (char*) malloc(9 + 1);
 		 strcpy($$, "imaginary");
 	}
 	| atomic_type_specifier
@@ -1182,8 +1166,8 @@ type_specifier
 	}
 	| TYPEDEF_NAME		/* after it has been defined as such */
 	{
-		$$ = (char*) malloc(STRING_LIMIT);
 		char* name = change_typedef($1);
+		$$ = (char*) malloc(strlen(name) + 1);
 		strcpy($$, name);	 // TYPEDEF_FUNCTIONS.H
 		free(name);
 		free($1);
@@ -1222,17 +1206,13 @@ struct_or_union_specifier
 	}
 	| struct_or_union IDENTIFIER '{' struct_declaration_list '}'
 	{
-		////////////////////////////////////////////////////
 		// change the structure name.
-		char * struct_name;
-		struct_name = (char *) malloc(STRING_LIMIT);
+		char * struct_name = (char *) malloc(3 + strlen($2) + 1);
 		if (islower($2[0]))
 			strcpy(struct_name, "lc_");
 		else
 			strcpy(struct_name, "uc_");
 		strcat(struct_name, $2);
-
-		////////////////////////////////////////////////////
 
 		$$ = (char*) malloc(strlen($1) + 2 + strlen(struct_name) + 2 + 1 + strlen($4) + 1 + 1);
 		strcpy($$, $1);
@@ -1243,38 +1223,41 @@ struct_or_union_specifier
 		strcat($$, $4);
 		Pop(); 	// SCOPES.H
 		strcat($$, "]");
+
+		free(struct_name);
+		free($1);
+		free($2);
+		free($4);
 	}
 	| struct_or_union IDENTIFIER
 	{
-		////////////////////////////////////////////////////
 		// change the structure name.
-		char * struct_name;
-		struct_name = (char *) malloc(STRING_LIMIT);
+		char * struct_name = (char *) malloc(3 + strlen($2) + 1);
 		if (islower($2[0]))
 			strcpy(struct_name, "lc_");
 		else
 			strcpy(struct_name, "uc_");
 		strcat(struct_name, $2);
 
-		////////////////////////////////////////////////////
 		$$ = (char*) malloc(strlen($1) + 2 + strlen(struct_name) + 1);
 		strcpy($$, $1);
 		strcat($$, ", ");
 		strcat($$, struct_name);
 		free($1);
 		free($2);
+		free(struct_name);
 	}
 	;
 
 struct_or_union
 	: STRUCT
 	{
-		$$ = (char*) malloc(8);
+		$$ = (char*) malloc(7 + 1);
 		strcpy($$, "struct ");
 	}
 	| UNION
 	{
-		$$ = (char*) malloc(7);
+		$$ = (char*) malloc(6 + 1);
 		strcpy($$, "union ");
 	}
 	;
@@ -1300,26 +1283,28 @@ struct_declaration_list
 struct_declaration
 	: specifier_qualifier_list ';'	/* for anonymous struct/union */
 	| specifier_qualifier_list struct_declarator_list ';'
-		{
-
-		/////////////////////////////////////////////////////////////////
+	{
 		// Many variables declared in $2, they must be separated.
 		if (strstr($2, ",") != NULL)
 		{
-			$$ = (char*) malloc(STRING_LIMIT + 1);
-			strcpy($$, seperate_fields($1, $2)); // STRUCTURES.H
+			char* struct_definition_string = seperate_fields($1, $2); // STRUCTURES.H
+			$$ = (char*) malloc(strlen(struct_definition_string) + 1);
+			strcpy($$, struct_definition_string);
+			free(struct_definition_string);
 		}
 		else
-		/////////////////////////////////////////////////////////////////
 		// Build the structure list, removing the 'struct' keyword if present
 		{
-			$$ = (char*) malloc(2 + strlen($2) + 3 + STRING_LIMIT + 1 + 1);
+			char* struct_definition_string = strip_struct($1); // STRUCTURES.H
+			$$ = (char*) malloc(2 + strlen($2) + 3 + strlen(struct_definition_string) + 1 + 1);
 			strcpy($$, "([");
 			strcat($$, $2);
 			strcat($$, "], ");
-			strcpy($1, strip_struct($1));// STRUCTURES.H
+			strcpy($1, struct_definition_string);
 			strcat($$, $1);
 			strcat($$, ")");
+
+			free(struct_definition_string);
 		}
 		free($1);
 		free($2);
@@ -1404,7 +1389,7 @@ struct_declarator
 
 enum_specifier
 	: ENUM '{' enumerator_list '}'
-		{ 	////////////////////////////////////////////////////////////////
+		{
 		// Build enumeration list.
 		// Pop Scope when '}' is parsed and reset enumerations counter
 		$$ = (char*) malloc(7 + 1 + strlen($3) + 1 + 1);
@@ -1414,20 +1399,18 @@ enum_specifier
 		Pop(); 			// SCOPES.H
 		strcat($$, "]");
 		reset_enumcounter(); 	// ENUM_FUNCTIONS.H
-		////////////////////////////////////////////////////////////////
+		free($3);
 	}
 	| ENUM '{' enumerator_list ',' '}'
 	| ENUM IDENTIFIER '{' enumerator_list '}'
-	{ 	////////////////////////////////////////////////////////////////
+	{
 		// Build enumeration list.
 		// Change their name to Prolog equivalent using change_enum()
 		// Add the name to NAMES file using printnames()
 		// Add the literal to Enum linked list using add_enums()
 		// Pop Scope when '}' is parsed and reset enumerations counter
 
-		char *enum_name;
-		enum_name = (char *) malloc(STRING_LIMIT);
-		strcpy(enum_name, change_enum($2));	// ENUM_FUNCTIONS.H
+		char* enum_name = change_enum($2); // ENUM_FUNCTIONS.H
 
 		$$ = (char*) malloc(7 + 1 + strlen(enum_name) + 1 + 2 + 1 + strlen($4) + 1 + 1);
 
@@ -1438,24 +1421,24 @@ enum_specifier
 		strcat($$, ", ");
 		strcat($$, "[");
 		strcat($$, $4);
-		Pop(); 					// SCOPES.H
+		Pop(); 	// SCOPES.H
 		strcat($$, "]");
-		reset_enumcounter(); 			// ENUM_FUNCTIONS.H
+		reset_enumcounter(); // ENUM_FUNCTIONS.H
 
 		free(enum_name);
 		free($2);
 		free($4);
-		////////////////////////////////////////////////////////////////
 	}
 	| ENUM IDENTIFIER '{' enumerator_list ',' '}'
 	| ENUM IDENTIFIER
-	{ 	////////////////////////////////////////////////////////////////
+	{
 		// Change enum name to Prolog equivalent using change_enum()
-		$$ = (char*) malloc(STRING_LIMIT);
+		char* enum_name = change_enum($2); // ENUM_FUNCTIONS.H
+		$$ = (char*) malloc(7 + strlen(enum_name) + 1);
 		strcpy($$, "enum , ");
-		strcat($$, change_enum($2));	// ENUM_FUNCTIONS.H
+		strcat($$, enum_name);
 		free($2);
-		////////////////////////////////////////////////////////////////
+		free(enum_name);
 	}
 	;
 
@@ -1481,49 +1464,41 @@ enumerator_list
 enumerator
 	: enumeration_constant '=' constant_expression
 	{
-		////////////////////////////////////////////////////////////////
 		/*
-	 	Process enumeration literals with initializations:
-		e.g. enum daYs {mon, tues, wed = 20, thurs, fri = 7};
-		Change the enum name to Prolog equivalent using change_enum()
-		Add the name to NAMES file using printnames()
-		Add the literal to Enum linked list using add_enums(), with its enum value.
+			Process enumeration literals with initializations:
+			e.g. enum daYs {mon, tues, wed = 20, thurs, fri = 7};
+			Change the enum name to Prolog equivalent using change_enum()
+			Add the name to NAMES file using printnames()
+			Add the literal to Enum linked list using add_enums(), with its enum value.
 		*/
-		////////////////////////////////////////////////////////////////
-		char *enum_name;
-		int i;
-		enum_name = (char *) malloc(STRING_LIMIT);
-		strcpy(enum_name, change_enum($1));	// ENUM_FUNCTIONS.H
-		$$ = (char*) malloc(STRING_LIMIT);
+		char *enum_name = change_enum($1); // ENUM_FUNCTIONS.H
+
+		int i = atoi($3); // change string to integer
+
+		$$ = (char*) malloc(strlen(enum_name) + 1);
 		strcpy($$, enum_name);
-		i = atoi($3);				// change string to integer
 		add_enums($1, i); 			// ENUM_FUNCTIONS.H
 
 		free(enum_name);
 		free($1);
 		free($3);
-		////////////////////////////////////////////////////////////////
 	}
 	| enumeration_constant
-	{ 	////////////////////////////////////////////////////////////////
+	{
 		/*
-		Process enumeration literals.
-		Change their name to Prolog equivalent using change_enum()
-		Add the name to NAMES file using printnames()
-		Add the literal to Enum linked list using add_enums()
+			Process enumeration literals.
+			Change their name to Prolog equivalent using change_enum()
+			Add the name to NAMES file using printnames()
+			Add the literal to Enum linked list using add_enums()
 		*/
-		////////////////////////////////////////////////////////////////
-		char *enum_name;
-		enum_name = (char *) malloc(STRING_LIMIT);
-		strcpy(enum_name, change_enum($1));	// ENUM_FUNCTIONS.H
+		char *enum_name = change_enum($1); // ENUM_FUNCTIONS.H
 
-		$$ = (char*) malloc(STRING_LIMIT);
+		$$ = (char*) malloc(strlen(enum_name) + 1);
 		strcpy($$, enum_name);
 		add_enums($1, -1);			// ENUM_FUNCTIONS.H
 
 		free(enum_name);
 		free($1);
-		////////////////////////////////////////////////////////////////
 	}
 	;
 
@@ -1534,22 +1509,22 @@ atomic_type_specifier
 type_qualifier
 	: CONST
 	{
-		$$ = (char*) malloc(6);
+		$$ = (char*) malloc(5 + 1);
 		strcpy($$, "const");
 	}
 	| RESTRICT
 	{
-		$$ = (char*) malloc(9);
+		$$ = (char*) malloc(8 + 1);
 		strcpy($$, "restrict");
 	}
 	| VOLATILE
 	{
-		$$ = (char*) malloc(9);
+		$$ = (char*) malloc(8 + 1);
 		strcpy($$, "volatile");
 	}
 	| ATOMIC
 	{
-		$$ = (char*) malloc(9);
+		$$ = (char*) malloc(6 + 1);
 		strcpy($$, "atomic");
 	}
 	;
@@ -1557,6 +1532,7 @@ type_qualifier
 function_specifier
 	: INLINE
 	| NORETURN
+	| DECLSPEC '(' IDENTIFIER ')'
 	;
 
 alignment_specifier
@@ -1597,7 +1573,7 @@ direct_declarator
 		free($2);
 	}
 	| direct_declarator '[' ']'
-		{
+	{
 		$$ = (char*) malloc(strlen($1) + 1 + 1 + 1);
 		strcpy($$, $1);
 		strcat($$, "[");
@@ -1622,14 +1598,12 @@ direct_declarator
 	| direct_declarator '[' assignment_expression ']'
 	| direct_declarator '(' parameter_type_list ')'
 	{
-		////////////////////////////////////////////////////////////////
 		/* 	function prototypes and definitions come through this rule.
 			in order to distinguish them later on from variables we
 			add the string "function_prototype" to $$
 			if this is the function defintion this will have to be stripped later.
 			if it is the function prototype it is left as it is.
 		*/
-		////////////////////////////////////////////////////////////////
 		$$ = (char*) malloc(19 + strlen($1) + 2 + 1 + strlen($3) + 1 + 2 + 2 + 1);
 
 		$1[0] = convert_tolower($1[0]);
@@ -1675,8 +1649,8 @@ direct_declarator
 		// Visual C extension
 		$$ = (char*) malloc(strlen($3) + 1);
 		strcpy($$, $3);
-		free($3);
 		free($2);
+		free($3);
 	}
 	;
 
@@ -1809,8 +1783,10 @@ parameter_declaration
 		PushPList($2, P);		// PARAMETERS.H
 		Push(yylineno);	// SCOPES.H
 		addvariables($2, YES);			// DECL_FUNCTIONS.H
-		$$ = (char*) malloc(STRING_LIMIT);
-		strcpy($$, findvariabledetails($1));	// DECL_FUNCTIONS.H
+		char* declaration_string = findvariabledetails($1); // DECL_FUNCTIONS.H
+		$$ = (char*) malloc(strlen(declaration_string) + 1);
+		strcpy($$, declaration_string);
+		free(declaration_string);
 		free($1);
 		free($2);
 	}
@@ -1981,6 +1957,8 @@ initializer
 		strcat($$, $2);
 		Pop(); 	// SCOPES.H
 		strcat($$, "]");
+
+		free($2);
 	}
 	| '{' initializer_list ',' '}'
 	{
@@ -1990,6 +1968,7 @@ initializer
 		strcat($$, ",");
 		Pop(); 	// SCOPES.H
 		strcat($$, "}");
+
 		free($2);
 	}
 	| assignment_expression
@@ -2120,15 +2099,19 @@ labeled_statement
 	}
 	| CASE constant_expression ':' statement
 	{
-		$$ = (char*) malloc(STRING_LIMIT);
-		strcpy($$, case_statement($2, $4));	// SWITCH_FUNCTIONS.H
+		char* case_string = case_statement($2, $4); // SWITCH_FUNCTIONS.H
+		$$ = (char*) malloc(strlen(case_string) + 1);
+		strcpy($$, case_string);
+		free(case_string);
 		free($2);
 		free($4);
 	}
 	| DEFAULT ':' statement
 	{
-		$$ = (char*) malloc(STRING_LIMIT);
-		strcpy($$, default_statement($3));  	// SWITCH_FUNCTIONS.H
+		char* default_string = default_statement($3); // SWITCH_FUNCTIONS.H
+		$$ = (char*) malloc(strlen(default_string) + 1);
+		strcpy($$, default_string);
+		free(default_string);
 		free($3);
 	}
 	;
@@ -2214,23 +2197,29 @@ expression_statement
 selection_statement
 	: IF '(' expression ')' statement ELSE statement
 	{
-		$$ = (char*) malloc(STRING_LIMIT);
-		strcpy($$, ifelse_statement($3, $5, $7)); // IF_FUNCTIONS.H
+		char* if_else_statement_definition = ifelse_statement($3, $5, $7); // IF_FUNCTIONS.H
+		$$ = (char*) malloc(strlen(if_else_statement_definition) + 1);
+		strcpy($$, if_else_statement_definition);
+		free(if_else_statement_definition);
 		free($3);
 		free($5);
 		free($7);
 	}
 	| IF '(' expression ')' statement
 	{
-		$$ = (char*) malloc(STRING_LIMIT);
-		strcpy($$, if_statement($3, $5)); 	  // IF_FUNCTIONS.H
+		char* if_statement_definition = if_statement($3, $5); // IF_FUNCTIONS.H
+		$$ = (char*) malloc(strlen(if_statement_definition) + 1);
+		strcpy($$, if_statement_definition);
+		free(if_statement_definition);
 		free($3);
 		free($5);
 	}
 	| SWITCH '(' expression ')' statement
 	{
-		$$ = (char*) malloc(STRING_LIMIT);
-		strcpy($$, switch_statement($3, $5));	  // SWITCH_FUNCTIONS.H
+		char* switch_statement_definition = switch_statement($3, $5); // SWITCH_FUNCTIONS.H
+		$$ = (char*) malloc(strlen(switch_statement_definition) + 1);
+		strcpy($$, switch_statement_definition);
+		free(switch_statement_definition);
 		free($3);
 		free($5);
 	}
@@ -2291,17 +2280,17 @@ jump_statement
 	}
 	| CONTINUE ';'
 	{
-		$$ = (char*) malloc(9);
+		$$ = (char*) malloc(8 + 1);
 		strcpy($$, "continue");
 	}
 	| BREAK ';'
 	{
-		$$ = (char*) malloc(6);
+		$$ = (char*) malloc(5 + 1);
 		strcpy($$, "break");
 	}
 	| RETURN ';'
 	{
-		$$ = (char*) malloc(7);
+		$$ = (char*) malloc(6 + 1);
 		strcpy($$, "return");
 	}
 	| RETURN expression ';'
@@ -2340,9 +2329,8 @@ external_declaration
 		free($1);
 	}
 	| declaration
-	{	////////////////////////////////////////////////////////////////
+	{
 		// Global Variable declarations
-		////////////////////////////////////////////////////////////////
 		int lenS1 = strlen($1) - 1;
 		$$ = (char*) malloc(20 + strlen($1) + 11 + 1);
 		strcpy($$, "\nglobal_variables([");
@@ -2371,9 +2359,7 @@ function_definition
 	}
 	| declaration_specifiers declarator compound_statement
 	{
-		////////////////////////////////////////////////////////////////
 		// Function Defintions
-		////////////////////////////////////////////////////////////////
 		char* function = process_functions($1, $2, $3);
 		$$ = (char*) malloc(strlen(function) + 1);
 		strcpy($$, function);	// DECL_FUNCTIONS.H

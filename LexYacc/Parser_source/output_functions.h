@@ -93,6 +93,6 @@ void printfunction(char inputstring[])
 	// Open file and append to
 	file_ptr = fopen(PLFile, "a");
 	fprintf(file_ptr, "%s\n", Prologterms);
-
+	free(Prologterms);
 	fclose(file_ptr);
 }

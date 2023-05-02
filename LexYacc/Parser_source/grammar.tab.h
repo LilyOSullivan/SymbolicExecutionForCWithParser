@@ -112,31 +112,32 @@ extern int yydebug;
     UNION = 313,                   /* UNION  */
     ENUM = 314,                    /* ENUM  */
     ELLIPSIS = 315,                /* ELLIPSIS  */
-    CASE = 316,                    /* CASE  */
-    DEFAULT = 317,                 /* DEFAULT  */
-    IF = 318,                      /* IF  */
-    ELSE = 319,                    /* ELSE  */
-    SWITCH = 320,                  /* SWITCH  */
-    WHILE = 321,                   /* WHILE  */
-    DO = 322,                      /* DO  */
-    FOR = 323,                     /* FOR  */
-    GOTO = 324,                    /* GOTO  */
-    CONTINUE = 325,                /* CONTINUE  */
-    BREAK = 326,                   /* BREAK  */
-    RETURN = 327,                  /* RETURN  */
-    ALIGNAS = 328,                 /* ALIGNAS  */
-    ALIGNOF = 329,                 /* ALIGNOF  */
-    ATOMIC = 330,                  /* ATOMIC  */
-    GENERIC = 331,                 /* GENERIC  */
-    NORETURN = 332,                /* NORETURN  */
-    STATIC_ASSERT = 333,           /* STATIC_ASSERT  */
-    THREAD_LOCAL = 334,            /* THREAD_LOCAL  */
-    __CDECL = 335,                 /* __CDECL  */
-    __CLRCALL = 336,               /* __CLRCALL  */
-    __STDCALL = 337,               /* __STDCALL  */
-    __FASTCALL = 338,              /* __FASTCALL  */
-    __THISCALL = 339,              /* __THISCALL  */
-    __VECTORCALL = 340             /* __VECTORCALL  */
+    DECLSPEC = 316,                /* DECLSPEC  */
+    CASE = 317,                    /* CASE  */
+    DEFAULT = 318,                 /* DEFAULT  */
+    IF = 319,                      /* IF  */
+    ELSE = 320,                    /* ELSE  */
+    SWITCH = 321,                  /* SWITCH  */
+    WHILE = 322,                   /* WHILE  */
+    DO = 323,                      /* DO  */
+    FOR = 324,                     /* FOR  */
+    GOTO = 325,                    /* GOTO  */
+    CONTINUE = 326,                /* CONTINUE  */
+    BREAK = 327,                   /* BREAK  */
+    RETURN = 328,                  /* RETURN  */
+    ALIGNAS = 329,                 /* ALIGNAS  */
+    ALIGNOF = 330,                 /* ALIGNOF  */
+    ATOMIC = 331,                  /* ATOMIC  */
+    GENERIC = 332,                 /* GENERIC  */
+    NORETURN = 333,                /* NORETURN  */
+    STATIC_ASSERT = 334,           /* STATIC_ASSERT  */
+    THREAD_LOCAL = 335,            /* THREAD_LOCAL  */
+    __CDECL = 336,                 /* __CDECL  */
+    __CLRCALL = 337,               /* __CLRCALL  */
+    __STDCALL = 338,               /* __STDCALL  */
+    __FASTCALL = 339,              /* __FASTCALL  */
+    __THISCALL = 340,              /* __THISCALL  */
+    __VECTORCALL = 341             /* __VECTORCALL  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -149,7 +150,7 @@ union YYSTYPE
 
 	char *id;
 
-#line 153 "grammar.tab.h"
+#line 154 "grammar.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

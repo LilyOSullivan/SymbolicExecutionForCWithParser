@@ -1,28 +1,28 @@
 /*
-This header file contains the functions which set up the linked
-list of parameter variables, when they are parsed.
-The functions in this file are called from the following places
-in the grammar files:
+	This header file contains the functions which set up the linked
+	list of parameter variables, when they are parsed.
+	The functions in this file are called from the following places
+	in the grammar files:
 
-GRAMMAR.L
----------
-("{"|"<%")		{ AddToScopeList(); }
-The AddToScopeList() function uses several of the functions in
-this header file. When a '{' is parsed, any parameter variables
-that are in the parameters linked list are popped from it one by
-one and added to the Scopes linked list, with the appropriate 
-scoping details.
+	GRAMMAR.L
+	---------
+	("{"|"<%")		{ AddToScopeList(); }
+	The AddToScopeList() function uses several of the functions in
+	this header file. When a '{' is parsed, any parameter variables
+	that are in the parameters linked list are popped from it one by
+	one and added to the Scopes linked list, with the appropriate 
+	scoping details.
 
-GRAMMAR.Y
----------
-parameter_declaration
-	: declaration_specifiers declarator	 -- called here
-	| declaration_specifiers abstract_declarator	
-	| declaration_specifiers		
-	;
-When parameter variables are declared, they are added to the parameters
-linked list, one at a time. If the parameters linked list is empty or
-has not been created, it is created in this grammar rule also.
+	GRAMMAR.Y
+	---------
+	parameter_declaration
+		: declaration_specifiers declarator	 -- called here
+		| declaration_specifiers abstract_declarator	
+		| declaration_specifiers		
+		;
+	When parameter variables are declared, they are added to the parameters
+	linked list, one at a time. If the parameters linked list is empty or
+	has not been created, it is created in this grammar rule also.
 */
 
 struct PNode;
@@ -31,7 +31,7 @@ typedef PtrToPNode PList;
 
 struct PNode
 {
-	char * Element;		// Parameter Variable Name
+	char* Element;		// Parameter Variable Name
 	PtrToPNode PNext;	// Pointer to next node in parameters linked list
 };
 
@@ -40,14 +40,14 @@ int PListFirstUse = NO; // Indicates if Parameter Linked List is in Use
 PList P; 				// Linked List of Parameter Variable Names
 
 
-extern char * case_name(char  * varname);
+extern char* case_name(char* varname);
 	// Extern the function which converts variable names to their Prolog equivalent.
 int IsEmptyPList(PList P);
 PList CreatePList(void);
 void MakeEmptyP(PList P);
 void DisposePList(PList P);
 void PushPList(char X[], PList P);
-char * PopPList(PList P);
+char* PopPList(PList P);
 
 int IsEmptyPList(PList P)
 {
@@ -90,10 +90,9 @@ PList CreatePList(void)
 	*/
 
 	// Create Parameters Linked List
-	PList P;
-	P = malloc( sizeof( struct PNode ) );
-	if(P == NULL)
-		printf( "ERROR: PARAMETERS LINKED LIST CAN NOT BE CREATED");
+	PList P = malloc(sizeof(struct PNode));
+	if (P == NULL)
+		printf("ERROR: PARAMETERS LINKED LIST CAN NOT BE CREATED");
 	P->PNext = NULL;
 	MakeEmptyP(P);
 	
@@ -160,13 +159,12 @@ void PushPList(char X[], PList P)
 	{
 		// Add the details of the Parameter Variable to the Parameters Linked List
 		// Use the case_name() function to convert X to its Prolog Name equivalent.
-		char* Xstr = (char*)malloc(3+strlen(X)+1); // LC_/UC_ + strlen(X) + String terminator (\0)
-		TmpCell->Element = (char*)malloc(strlen(Xstr) + 1);
-		strcpy(Xstr, X);
-		strcpy(Xstr, case_name(Xstr));
-		strcpy(TmpCell->Element, Xstr);
+		char* X_with_lc_uc = case_name(X);
+		TmpCell->Element = (char*)malloc(3 + strlen(X_with_lc_uc) + 1);
+		strcpy(TmpCell->Element, X_with_lc_uc);
 		TmpCell->PNext = P->PNext;
 		P->PNext = TmpCell;
+		free(X_with_lc_uc);
 	}
 }
 
@@ -212,6 +210,7 @@ char * PopPList(PList P)
 		elem_str = (char*)malloc(strlen(FirstCell->Element) + 1);
 		strcpy(elem_str, FirstCell->Element);
 		P->PNext = P->PNext->PNext;
+		free(FirstCell->Element);
 		free(FirstCell);
 	}
 	return elem_str;
