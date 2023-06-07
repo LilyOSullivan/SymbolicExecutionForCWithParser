@@ -37,7 +37,6 @@ extern int sym_type(const char *);  /* returns type from symbol table */
 static void comment(void);
 // static int check_type(void);
 
-void count(void);
 void AddToScopeList(void);
 void discard(void);
 int check_type(char var[]);
@@ -48,9 +47,9 @@ int check_type(char var[]);
 "//".*                  { discard(); }
 "__pragma".*            { discard(); }
 
-"auto"					{ count(); return(AUTO); }
-"break"					{ count(); return(BREAK); }
-"case"					{   count();
+"auto"					{  return(AUTO); }
+"break"					{  return(BREAK); }
+"case"					{
                             if (CaseListUsed == NO)
                             {
                                 Case = CreateList();	// LINKEDLISTS.H
@@ -59,10 +58,11 @@ int check_type(char var[]);
                             PushList(yylineno, Case);	// LINKEDLISTS.H
                             return(CASE);
                         }
-"char"					{ count(); return(CHAR); }
-"const"					{ count(); return(CONST); }
-"continue"				{ count(); return(CONTINUE); }
-"default"				{   count();
+"char"					{  return(CHAR); }
+"wchar_t"				{  return(WCHAR_T); }
+"const"					{  return(CONST); }
+"continue"				{  return(CONTINUE); }
+"default"				{
                             if (DefaultListUsed == NO)
                             {
                                 Default = CreateList();	// LINKEDLISTS.H
@@ -71,7 +71,7 @@ int check_type(char var[]);
                             PushList(yylineno, Default);	// LINKEDLISTS.H
                             return(DEFAULT);
                         }
-"do"			        {   count();
+"do"			        {
                             if (DoListUsed == NO)
                             {
                                 Do = CreateList();	// LINKEDLISTS.H
@@ -80,12 +80,12 @@ int check_type(char var[]);
                             PushList(yylineno, Do);	// LINKEDLISTS.H
                             return(DO);
                         }
-"double"				{ count(); return(DOUBLE); }
-"else"					{ count(); return(ELSE); }
-"enum"					{ count(); return(ENUM); }
-"extern"				{ count(); return(EXTERN); }
-"float"					{ count(); return(FLOAT); }
-"for"			        {   count();
+"double"				{  return(DOUBLE); }
+"else"					{  return(ELSE); }
+"enum"					{  return(ENUM); }
+"extern"				{  return(EXTERN); }
+"float"					{  return(FLOAT); }
+"for"			        {
                             if (ForListUsed == NO)
                             {
                                 For = CreateList();	// LINKEDLISTS.H
@@ -94,8 +94,8 @@ int check_type(char var[]);
                             PushList(yylineno, For);	// LINKEDLISTS.H
                             return(FOR);
                         }
-"goto"					{ count(); return(GOTO); }
-"if"			        {   count();
+"goto"					{  return(GOTO); }
+"if"			        {
                             if (IfListUsed == NO)
                             {
                                 If = CreateList();	// LINKEDLISTS.H
@@ -105,30 +105,34 @@ int check_type(char var[]);
                             PushList(yylineno, If);	// LINKEDLISTS.H
                             return(IF);
                         }
-"inline"				{ count(); return(INLINE); }
-"__inline__"			{ count(); return(INLINE); }
-"__declspec"			{ count(); return(DECLSPEC); }
-"int"					{ count(); return(INT); }
-"__int8"				{ count(); return(__INT8); }
-"__int16"				{ count(); return(__INT16); }
-"__int32"				{ count(); return(__INT32); }
-"__int64"				{ count(); return(__INT64); }
-"__cdecl"               { count(); return (__CDECL); }
-"__clrcall"             { count(); return (__CLRCALL); }
-"__stdcall"             { count(); return (__STDCALL); }
-"__fastcall"            { count(); return (__FASTCALL); }
-"__thiscall"            { count(); return (__THISCALL); }
-"__vectorcall"          { count(); return (__VECTORCALL); }
-"long"					{ count(); return(LONG); }
-"register"				{ count(); return(REGISTER); }
-"restrict"				{ count(); return(RESTRICT); }
-"return"				{ count(); return(RETURN); }
-"short"					{ count(); return(SHORT); }
-"signed"				{ count(); return(SIGNED); }
-"sizeof"				{ count(); return(SIZEOF); }
-"static"				{ count(); return(STATIC); }
-"struct"				{ count(); return(STRUCT); }
-"switch"		        {   count();
+"inline"				{  return(INLINE); }
+"__forceinline"			{  return(FORCEINLINE); }
+"__inline"				{  return(INLINE); }
+"__inline__"			{  return(INLINE); }
+"__declspec"			{  return(DECLSPEC); }
+"int"					{  return(INT); }
+"__int8"				{  return(__INT8); }
+"__int16"				{  return(__INT16); }
+"__int32"				{  return(__INT32); }
+"__int64"				{  return(__INT64); }
+"__ptr32"               {  return(__PTR32); }
+"__ptr64"               {  return(__PTR64); }
+"__cdecl"               {  return (__CDECL); }
+"__clrcall"             {  return (__CLRCALL); }
+"__stdcall"             {  return (__STDCALL); }
+"__fastcall"            {  return (__FASTCALL); }
+"__thiscall"            {  return (__THISCALL); }
+"__vectorcall"          {  return (__VECTORCALL); }
+"long"					{  return(LONG); }
+"register"				{  return(REGISTER); }
+"restrict"				{  return(RESTRICT); }
+"return"				{  return(RETURN); }
+"short"					{  return(SHORT); }
+"signed"				{  return(SIGNED); }
+"sizeof"				{  return(SIZEOF); }
+"static"				{  return(STATIC); }
+"struct"				{  struct_flag = YES; return(STRUCT); }
+"switch"		        {
                             if (SwitchListUsed == NO)
                             {
                                 Switch = CreateList();	// LINKEDLISTS.H
@@ -137,12 +141,12 @@ int check_type(char var[]);
                             PushList(yylineno, Switch);	// LINKEDLISTS.H
                             return(SWITCH);
                         }
-"typedef"				{ count(); return(TYPEDEF); }
-"union"					{ count(); return(UNION); }
-"unsigned"				{ count(); return(UNSIGNED); }
-"void"					{ count(); return(VOID); }
-"volatile"				{ count(); return(VOLATILE); }
-"while"			        {   count();
+"typedef"				{  return(TYPEDEF); }
+"union"					{  return(UNION); }
+"unsigned"				{  return(UNSIGNED); }
+"void"					{  return(VOID); }
+"volatile"				{  return(VOLATILE); }
+"while"			        {
                             if (WhileListUsed == NO)
                             {
                                 While = CreateList();	// LINKEDLISTS.H
@@ -151,89 +155,93 @@ int check_type(char var[]);
                             PushList(yylineno, While);	// LINKEDLISTS.H
                             return(WHILE);
                         }
-"_Alignas"              { count(); return ALIGNAS; }
-"_Alignof"              { count(); return ALIGNOF; }
-"_Atomic"               { count(); return ATOMIC; }
-"_Bool"                 { count(); return BOOL; }
-"_Complex"              { count(); return COMPLEX; }
-"_Generic"              { count(); return GENERIC; }
-"_Imaginary"            { count(); return IMAGINARY; }
-"_Noreturn"             { count(); return NORETURN; }
-"_Static_assert"        { count(); return STATIC_ASSERT; }
-"_Thread_local"         { count(); return THREAD_LOCAL; }
-"__func__"              { count(); return FUNC_NAME; }
+"align"                 {  return ALIGN; }
+"_Alignas"              {  return ALIGNAS; }
+"_Alignof"              {  return ALIGNOF; }
+"__alignof"             {  return ALIGNOF; }
+"__unaligned"           {  return __UNALIGNED; }
+"_Atomic"               {  return ATOMIC; }
+"_Bool"                 {  return BOOL; }
+"_Complex"              {  return COMPLEX; }
+"_Generic"              {  return GENERIC; }
+"_Imaginary"            {  return IMAGINARY; }
+"_Noreturn"             {  return NORETURN; }
+"_Static_assert"        {  return STATIC_ASSERT; }
+"_Thread_local"         {  return THREAD_LOCAL; }
+"__func__"              {  return FUNC_NAME; }
 
-{L}{A}*					{ count(); return check_type(yytext); }
+{L}{A}*					{  return check_type(yytext); }
 
-{HP}{H}+{IS}?				{ count(); yylval.id = malloc(strlen(yytext)+1); strcpy(yylval.id, yytext); return I_CONSTANT; }
-{NZ}{D}*{IS}?				{ count(); yylval.id = malloc(strlen(yytext)+1); strcpy(yylval.id, yytext); return I_CONSTANT; }
-"0"{O}*{IS}?				{ count(); yylval.id = malloc(strlen(yytext)+1); strcpy(yylval.id, yytext); return I_CONSTANT; }
-{CP}?"'"([^'\\\n]|{ES})+"'"		{ count(); yylval.id = malloc(strlen(yytext)+1); strcpy(yylval.id, yytext); return I_CONSTANT; }
+{HP}{H}+{IS}?				{  yylval.id = malloc(strlen(yytext)+1); strcpy(yylval.id, yytext); return I_CONSTANT; }
+{NZ}{D}*{IS}?				{  yylval.id = malloc(strlen(yytext)+1); strcpy(yylval.id, yytext); return I_CONSTANT; }
+"0"{O}*{IS}?				{  yylval.id = malloc(strlen(yytext)+1); strcpy(yylval.id, yytext); return I_CONSTANT; }
+{CP}?"'"([^'\\\n]|{ES})+"'"		{  yylval.id = malloc(strlen(yytext)+1); strcpy(yylval.id, yytext); return I_CONSTANT; }
 
-{D}+{E}{FS}?				{ count(); yylval.id = malloc(strlen(yytext)+1); strcpy(yylval.id, yytext); return F_CONSTANT; }
-{D}*"."{D}+{E}?{FS}?			{ count(); yylval.id = malloc(strlen(yytext)+1); strcpy(yylval.id, yytext); return F_CONSTANT; }
-{D}+"."{E}?{FS}?			{ count(); yylval.id = malloc(strlen(yytext)+1); strcpy(yylval.id, yytext); return F_CONSTANT; }
-{HP}{H}+{P}{FS}?			{ count(); yylval.id = malloc(strlen(yytext)+1); strcpy(yylval.id, yytext); return F_CONSTANT; }
-{HP}{H}*"."{H}+{P}{FS}?			{ count(); yylval.id = malloc(strlen(yytext)+1); strcpy(yylval.id, yytext); return F_CONSTANT; }
-{HP}{H}+"."{P}{FS}?			{ count(); yylval.id = malloc(strlen(yytext)+1); strcpy(yylval.id, yytext); return F_CONSTANT; }
+{D}+{E}{FS}?				{  yylval.id = malloc(strlen(yytext)+1); strcpy(yylval.id, yytext); return F_CONSTANT; }
+{D}*"."{D}+{E}?{FS}?			{  yylval.id = malloc(strlen(yytext)+1); strcpy(yylval.id, yytext); return F_CONSTANT; }
+{D}+"."{E}?{FS}?			{  yylval.id = malloc(strlen(yytext)+1); strcpy(yylval.id, yytext); return F_CONSTANT; }
+{HP}{H}+{P}{FS}?			{  yylval.id = malloc(strlen(yytext)+1); strcpy(yylval.id, yytext); return F_CONSTANT; }
+{HP}{H}*"."{H}+{P}{FS}?			{  yylval.id = malloc(strlen(yytext)+1); strcpy(yylval.id, yytext); return F_CONSTANT; }
+{HP}{H}+"."{P}{FS}?			{  yylval.id = malloc(strlen(yytext)+1); strcpy(yylval.id, yytext); return F_CONSTANT; }
 
-({SP}?\"([^"\\\n]|{ES})*\"{WS}*)+	{ count(); yylval.id = malloc(strlen(yytext)+1); strcpy(yylval.id, yytext); return STRING_LITERAL; }
+({SP}?\"([^"\\\n]|{ES})*\"{WS}*)+	{  yylval.id = malloc(strlen(yytext)+1); strcpy(yylval.id, yytext); return STRING_LITERAL; }
 
-"#"			            { count(); discard(); 	 }
+"#"			            {  discard(); 	 }
 "#include"		        { discard();  }
 
-"..."					{ count(); return ELLIPSIS; }
-">>="					{ count(); return RIGHT_ASSIGN; }
-"<<="					{ count(); return LEFT_ASSIGN; }
-"+="					{ count(); return ADD_ASSIGN; }
-"-="					{ count(); return SUB_ASSIGN; }
-"*="					{ count(); return MUL_ASSIGN; }
-"/="					{ count(); return DIV_ASSIGN; }
-"%="					{ count(); return MOD_ASSIGN; }
-"&="					{ count(); return AND_ASSIGN; }
-"^="					{ count(); return XOR_ASSIGN; }
-"|="					{ count(); return OR_ASSIGN; }
-">>"					{ count(); return RIGHT_OP; }
-"<<"					{ count(); return LEFT_OP; }
-"++"					{ count(); return INC_OP; }
-"--"					{ count(); return DEC_OP; }
-"->"					{ count(); return PTR_OP; }
-"&&"					{ count(); return AND_OP; }
-"||"					{ count(); return OR_OP; }
-"<="					{ count(); return LE_OP; }
-">="					{ count(); return GE_OP; }
-"=="					{ count(); return EQ_OP; }
-"!="					{ count(); return NE_OP; }
-";"					    { count(); return ';'; }
-("{"|"<%")				{ count();
+"..."					{  return ELLIPSIS; }
+">>="					{  return RIGHT_ASSIGN; }
+"<<="					{  return LEFT_ASSIGN; }
+"+="					{  return ADD_ASSIGN; }
+"-="					{  return SUB_ASSIGN; }
+"*="					{  return MUL_ASSIGN; }
+"/="					{  return DIV_ASSIGN; }
+"%="					{  return MOD_ASSIGN; }
+"&="					{  return AND_ASSIGN; }
+"^="					{  return XOR_ASSIGN; }
+"|="					{  return OR_ASSIGN; }
+">>"					{  return RIGHT_OP; }
+"<<"					{  return LEFT_OP; }
+"++"					{  return INC_OP; }
+"--"					{  return DEC_OP; }
+"->"					{  return PTR_OP; }
+"&&"					{  return AND_OP; }
+"||"					{  return OR_OP; }
+"<="					{  return LE_OP; }
+">="					{  return GE_OP; }
+"=="					{  return EQ_OP; }
+"!="					{  return NE_OP; }
+";"					    {  return ';'; }
+("{"|"<%")				{
+                            struct_flag = NO;
                             Push(yylineno);	// SCOPES.H
                             AddToScopeList();	// GRAMMAR.L
                             return('{');
                         }
-("}"|"%>")				{ count(); return '}'; }
-","					    { count(); return ','; }
-":"					    { count(); return ':'; }
-"="					    { count(); return '='; }
-"("					    { count(); return '('; }
-")"					    { count(); return ')'; }
-("["|"<:")				{ count(); return '['; }
-("]"|":>")				{ count(); return ']'; }
-"."					    { count(); return '.'; }
-"&"					    { count(); return '&'; }
-"!"					    { count(); return '!'; }
-"~"					    { count(); return '~'; }
-"-"					    { count(); return '-'; }
-"+"					    { count(); return '+'; }
-"*"					    { count(); return '*'; }
-"/"					    { count(); return '/'; }
-"%"					    { count(); return '%'; }
-"<"					    { count(); return '<'; }
-">"					    { count(); return '>'; }
-"^"					    { count(); return '^'; }
-"|"					    { count(); return '|'; }
-"?"					    { count(); return '?'; }
+("}"|"%>")				{  return '}'; }
+","					    {  return ','; }
+":"					    {  return ':'; }
+"="					    {  return '='; }
+"("					    {  return '('; }
+")"					    {  return ')'; }
+("["|"<:")				{  return '['; }
+("]"|":>")				{  return ']'; }
+"."					    {  return '.'; }
+"&"					    {  return '&'; }
+"!"					    {  return '!'; }
+"~"					    {  return '~'; }
+"-"					    {  return '-'; }
+"+"					    {  return '+'; }
+"*"					    {  return '*'; }
+"/"					    {  return '/'; }
+"%"					    {  return '%'; }
+"<"					    {  return '<'; }
+">"					    {  return '>'; }
+"^"					    {  return '^'; }
+"|"					    {  return '|'; }
+"?"					    {  return '?'; }
 
-{WS}+					{ count(); }
+{WS}+					{  }
 .					{ /* discard bad characters */ }
 
 %%
@@ -264,29 +272,26 @@ static void comment(void)
 
 void AddToScopeList(void)
 {
-/*
-This function is user-defined & not available in original grammar file.
-This function is called when '{' is parsed.
-A new linked list for scopes is created and then this function is called.
-If enteries have been added to the Parameters linked list these need to be
-added to the new Scopes linked list just created and the parameter linked
-list must be freed. This is to ensure that parameters are added to the
-correct scope in the linked list.
-*/
+    /*
+        This function is user-defined & not available in original grammar file.
+        This function is called when '{' is parsed.
+        A new linked list for scopes is created and then this function is called.
+        If enteries have been added to the Parameters linked list these need to be
+        added to the new Scopes linked list just created and the parameter linked
+        list must be freed. This is to ensure that parameters are added to the
+        correct scope in the linked list.
+    */
 
-	/* variable declarations */
-	char * varname;	// name of the variable
 	int linenumber;	// find the line number 'varname' is in
 	int param;	// is varname a parameter variable
 
 	/* allocate space to the string variables used */
-	varname = (char *) malloc(STRING_LIMIT);
 
 	if (PListFirstUse == YES)		   // PARAMETERS.H
 	{
 		while( !IsEmptyPList(P) )	   // PARAMETERS.H
 		{
-			strcpy(varname, PopPList(P));	// PARAMETERS.H
+            char* varname = PopPList(P); // PARAMETERS.H
 
 			/* search for varname in Stack - if already there + param is YES */
 			/* amend it at this scope to avoid it being confused for the same */
@@ -297,6 +302,7 @@ correct scope in the linked list.
 			if(linenumber == 0 && param == 1)
 				AmendVar(varname, param);	/* SCOPES.H */
 			PushVar(varname, YES);			/* SCOPES.H */
+            free(varname);
 		}
 		DisposePList(P);		   /* PARAMETERS.H */
 		PListFirstUse = NO;		   /* PARAMETERS.H */
@@ -305,42 +311,20 @@ correct scope in the linked list.
 
 void discard(void)
 {
-/*
-  Discard Function.
- This file removes any lines beginning with the character '#'
- from the underlying C code file. Lines beginning with '#' may
- denote preprocessor #line directives, or comments, which do
- not have to be analysed.
-*/
+    /*
+        This removes any lines beginning with the character '#'
+        from the underlying C code file. Lines beginning with '#' may
+        denote preprocessor #line directives, or comments, which do
+        not have to be analysed.
+    */
+
 	char c;
 	while ((c = (char)(input())) != '\n' && c != 0)	;
 }
 
-int column = 0;
-
-void count(void)
-{
-/*
- Count Function - defined in original grammar file
- Unchanged here.
- This file maintains the tabs and spacing set in the underlying
- C code being analysed.
-*/
-	int i;
-	for (i = 0; yytext[i] != '\0'; i++)
-		if (yytext[i] == '\n')
-			column = 0;
-		else if (yytext[i] == '\t')
-			column += 8 - (column % 8);
-		else
-			column++;
-
-}
-
 int check_type(char var[])
 {
-    char * typename;
-	typename = (char *) malloc(STRING_LIMIT);
+    char* typename = (char *) malloc(3 + strlen(var) + 1);
 	/* Change var to its typename equivalent */
 	if (isupper(var[0]))
 		strcpy(typename, "uc_");
@@ -348,21 +332,31 @@ int check_type(char var[])
 		strcpy(typename, "lc_");
 	strcat(typename, var);
 
-	/* Search the Typedef Linked list for instance of 'typename'
-	   using functions defined in TYPEDEF_FUNCTIONS.H
-	   If 'typename' is present, return the TYPE_NAME token,
-	   Otherwise, return the IDENTIFIER token.
+    yylval.id = (char*) malloc(strlen(yytext)+1);
+	strcpy(yylval.id, yytext);
+
+	/*
+        Search the Typedef Linked list for instance of 'typename'
+	    using functions defined in TYPEDEF_FUNCTIONS.H
+	    If 'typename' is present, return the TYPE_NAME token,
+	    Otherwise, return the IDENTIFIER token.
 	*/
+
+
 	if (traverse_types(typename) == YES)
 	{
-		yylval.id = malloc(strlen(yytext)+1);
-		strcpy(yylval.id, yytext);
+        if(struct_flag == YES) {
+            struct_flag = NO;
+            free(typename);
+        	return IDENTIFIER;
+        }
+   
+        free(typename);
 		return TYPEDEF_NAME;
 	}
 	else
 	{
-		yylval.id = malloc(strlen(yytext)+1);
-		strcpy(yylval.id, yytext);
+        free(typename);
 		return IDENTIFIER;
 	}
 }

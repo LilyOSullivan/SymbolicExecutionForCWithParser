@@ -7,18 +7,20 @@
 % declaration(_, []).
 
 %% Declare an integer variable
-declaration(int, [C_variable]) :-
+declaration(int, [C_variable], Assignment) :-
     declaration__get_variable_name(C_variable, C_name),
     ptc_solver__variable([In], integer),
     c_var__create(int, integer, In, local, C_name, C_variable),
-    !.
+    !,
+    handle(Assignment, _).
 
 %% Declare a char variable
-declaration(char, [C_variable]) :-
+declaration(char, [C_variable], Assignment) :-
     declaration__get_variable_name(C_variable, C_name),
     ptc_solver__variable([In], char),
     c_var__create(char, char, In, local, C_name, C_variable),
-    !.
+    !,
+    handle(Assignment, _).
 
 %% Declare an integer array
 declaration(intpointer, [C_variable]) :-

@@ -64,8 +64,6 @@ char* process_arrays(char postfix_expression[], char expression[])
 
 	closebracketstr = (char*)malloc(strlen(postfix_expression) + 1);
 	firstbracketstr = (char*)malloc(strlen(postfix_expression) + 1);
-	arrayname = (char*)malloc(strlen(postfix_expression) + 1);
-	dimension = (char*)malloc(strlen(postfix_expression) + 1);
 	finalstring = (char*)malloc(strlen(postfix_expression) * 2 + strlen(expression) + 1);
 
 	// MULTI (> 2) DIMENSIONAL ARRAY
@@ -75,25 +73,31 @@ char* process_arrays(char postfix_expression[], char expression[])
 		strcpy(firstbracketstr, strstr(postfix_expression, "["));
 		difference = strlen(postfix_expression) - strlen(firstbracketstr) - 1;
 		// Copy from beginning of postfix_expression to this point
-		strcat(finalstring, copystring(postfix_expression, 0, difference));
+		char* substring = copystring(postfix_expression, 0, difference);
+		strcat(finalstring, substring);
+		free(substring);
 		strcat(finalstring, "[");
 		// Find the string beginning at the LAST closing bracket	
 		strcpy(closebracketstr, last_strstr(firstbracketstr, "]")); 
 		difference = strlen(firstbracketstr) - strlen(closebracketstr) - 1;
 		// Copy from beginning of firstbracketstr to this point		
-		strcat(finalstring, copystring(firstbracketstr, 0, difference));
+		substring = copystring(firstbracketstr, 0, difference);
+		strcat(finalstring, substring);
+		free(substring);
 	}
 	else 
 	{
 		// TWO DIMENSIONAL ARRAY	
 		// Isolate the array name	
-		strcpy(arrayname, create_arrayname(postfix_expression));
+		char* arrayname = create_arrayname(postfix_expression);
 		// Isolate the array dimensions			
-		strcpy(dimension, create_dimensions(postfix_expression, ""));
+		char* dimension = create_dimensions(postfix_expression, "");
 		// Build final string		
 		strcpy(finalstring, arrayname);
 		strcat(finalstring, "[[");
 		strcat(finalstring, dimension);
+		free(arrayname);
+		free(dimension);
 	}
 
 	strcat(finalstring, ", ");
@@ -108,8 +112,6 @@ char* process_arrays(char postfix_expression[], char expression[])
 	strcpy(returnstr, finalstring);	
 	free(closebracketstr);
 	free(firstbracketstr);
-	free(arrayname);
-	free(dimension);
 	free(finalstring);
 	return returnstr;
 }
@@ -256,7 +258,9 @@ char * create_multidims(char dimensions[])
 			closeb++;
 
 		// copy into singledim from position of just past the first [ to the first ]
-		strcpy(singledim, copystring(dimensions, openb, ((closeb-openb)-1)));
+		char* array_indexing_expression = copystring(dimensions, openb, ((closeb - openb) - 1));
+		strcpy(singledim, array_indexing_expression);
+		free(array_indexing_expression);
 		// add the isolated dimension to the finaldims string
 		strcat(finaldims, singledim);
 
@@ -269,7 +273,9 @@ char * create_multidims(char dimensions[])
 			// This new string will be less the first '[dimension]' format in dimension
 			strcpy(singledim, initialisestring(singledim, STRING_LIMIT));
 			closeb = closeb + 1;
-			strcpy(singledim, copystring(dimensions, closeb, strlen(dimensions)));
+			char* substring = copystring(dimensions, closeb, strlen(dimensions));
+			strcpy(singledim, substring);
+			free(substring);
 			strcpy(dimensions, initialisestring(dimensions, STRING_LIMIT));
 			strcpy(dimensions, singledim);
 		}
@@ -368,8 +374,10 @@ int subtotal_dims(char * dimlist)
 	singledim = (char*)malloc(STRING_LIMIT);
 
 	// remove the opening and closing [ and ] and append a comma
-	strcpy(dimstr, copystring(dimlist, 1, (strlen(dimlist) - 3)));
+	char* substring = copystring(dimlist, 1, (strlen(dimlist) - 3));
+	strcpy(dimstr, substring);
 	strcat(dimstr, ",");
+	free(substring);
 
 	while (dimstr[index] != ',')
 		// pass the first comma without any processing
@@ -387,13 +395,16 @@ int subtotal_dims(char * dimlist)
 			index++;
 		if (dimstr[index] == ',')
 		{
-			strcpy(singledim, copystring(dimstr, prev, index));
+			char* substring = copystring(dimstr, prev, index);
+			strcpy(singledim, substring);
+			free(substring);
 			numdim = atoi(singledim);
 			total = total * numdim;
 		}
 		index++;
 	}
-
+	free(dimstr);
+	free(singledim);
 	return total;	// return total of the dimensions
 }
 
@@ -439,13 +450,16 @@ int total_dims(char * dimlist)
 			index++;
 		if (dimstr[index] == ',')
 		{
-			strcpy(singledim, copystring(dimstr, prev, index));
+			char* substring = copystring(dimstr, prev, index);
+			strcpy(singledim, substring);
+			free(substring);
 			numdim = atoi(singledim);
 			total = total * numdim;
 		}
 		index++;
 	}
-
+	free(dimstr);
+	free(singledim);
 	return total;	// return total of the dimensions
 }
 
@@ -517,7 +531,9 @@ char * initarray(char * initstr, int rows)
    	// remove the leading [ and finishing ] from initstr and store result into elemstr
    	// 3 is taken from the length of initstr as we avoid the null character at the end and
    	// one character each for the [ and ] we want removed
-	strcpy(elemstr, copystring(initstr, 1, strlen(initstr) - 3));
+	char* substring = copystring(initstr, 1, strlen(initstr) - 3);
+	strcpy(elemstr, substring);
+	free(substring);
 	// append a comma
 	strcat(elemstr, ",");
 
@@ -550,9 +566,13 @@ char * initarray(char * initstr, int rows)
 		}
 
 		// rowstr -- isolate from first '[' to its corresponding closing ']'
-		strcpy(rowstr,  copystring(elemstr, 0, index));
+		char* first_dimension_expression = copystring(elemstr, 0, index);
+		strcpy(rowstr, first_dimension_expression);
+		free(first_dimension_expression);
 		// reststr -- rest of string from index + 1 to end
-		strcpy(reststr, copystring(elemstr, index + 1, strlen(elemstr)));
+		char* rest = copystring(elemstr, index + 1, strlen(elemstr));
+		strcpy(reststr, rest);
+		free(rest);
 
 		// find the number of elements in rowstr,
 		// pad if necessary
@@ -587,8 +607,13 @@ char * initarray(char * initstr, int rows)
 			}
 		}
 		// end set up variables for next iteration of outer while
+
+		free(rowstr);
+		free(reststr);
 	}
 	// end outer while - string is empty
+
+	free(elemstr);
 
 	return returnstr;
 }
@@ -636,7 +661,7 @@ char * multi_array(char varlist[], char dimensions[])
 	int subdimension;		// product of all but first dimensions of array
 
 	// allocate space for string used
-	returnstr= (char *) malloc(STRING_LIMIT);
+	returnstr = (char*)malloc(STRING_LIMIT);
 	// get the product of the dimensions by calling total_dims() in ARRAY_FUNCTIONS.H
 	numdimension = total_dims(dimensions);
 	// get the product of (all but the first) dimensions by calling subtotal_dims() in ARRAY_FUNCTIONS.H

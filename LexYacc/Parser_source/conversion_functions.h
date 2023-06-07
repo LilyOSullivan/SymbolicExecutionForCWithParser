@@ -194,19 +194,15 @@ char * convert_to_decimal(char string[], int base)
 							// the reverse of string parameter	
 	int numdigits;			// number of letters in revstring	
 	int i;					// control variable for for loop & used in pow()
-	char * singlechar;		// single letter of revstring 				
 	int num;				// this is numerical equivalent of singlechar	
 	unsigned long newnum;	// newnum is num * base^i			
-	char * numstr;			// string equivalent of the number totalnum		
+	char* numstr = (char*)malloc(STRING_LIMIT);		// string equivalent of the number totalnum		
 	unsigned long totalnum = 0;	
 							// the total of the decimal number		
 
 	// allocate space to the string variables used
 	strcpy(revstring, initialisestring(revstring, STRING_LIMIT));
   		
-	numstr = (char*)malloc(STRING_LIMIT);
-	singlechar = (char*)malloc(STRING_LIMIT);
-
 	// Reverse the parameter string
 	// Processing is achieved on reverse string
 	index = strlen(string) - 1;
@@ -227,12 +223,13 @@ char * convert_to_decimal(char string[], int base)
 	numdigits = strlen(revstring);
 	for (i = 0; i < numdigits; i++)
 	{
-		strcpy(singlechar, copystring(revstring, i, 0));
+		char* singlechar = copystring(revstring, i, 0);
 		num = atoi(singlechar);
 		if (num == 0)
 			num = convert_letter(revstring[i]);
 		newnum = (unsigned long)(num * pow(base, i));
 		totalnum = totalnum + newnum;
+		free(singlechar);
 	}
 
 	// Convert the number to a string using the ultoa() C function
@@ -240,6 +237,7 @@ char * convert_to_decimal(char string[], int base)
 
 	returnstr = (char*)malloc(strlen(numstr) + 1);
 	strcpy(returnstr, numstr);	
+	free(numstr);
 	return returnstr;		
 }
 

@@ -9,15 +9,33 @@ utils__get_all_array_inputs([(_, Value) | Rest], [Value | Rest2]) :-
 	utils__get_all_array_inputs(Rest, Rest2).
 
 
-is_static_declaration(declaration(Functor, _Args)) :-
+is_static_declaration(declaration(Functor, [Variable], _)) :-
+    atom(Functor),
+    var(Variable),
     sub_atom(Functor, 0, _, _, 'static_').
 
-find_static_declarations([], []).
-find_static_declarations([H|T], Static_declarations) :-
-    ( is_static_declaration(H) ->
-        Static_declarations = [H|Rest]
+is_static_declared(declaration(Functor, [Variable], _)) :-
+    is_static_declaration(declaration(Functor, [Variable], _)),
+    c_var__is_variable(Variable).
+
+is_static_undeclared(declaration(Functor, [Variable], _)) :-
+    is_static_declaration(declaration(Functor, [Variable], _)),
+    not c_var__is_variable(Variable).
+
+find_static_declarations([]).
+find_static_declarations([H|T]) :-
+    ( is_static_undeclared(H) ->
+        declaration(Type, [Variable], Assignment) = H,
+        % Strip "static_" from the start of the 'Type' string
+        sub_atom(Type, 7, _, 0, Type_without_static),
+        declaration(Type_without_static, [Variable], Assignment),
+        ( Assignment = [] ->
+                utils__assignment(Variable, 0, _)
+            ;
+                true
+        ),
     ;
-        Static_declarations = Rest
+        true
     ),
     find_static_declarations(T, Rest).
 
@@ -105,5 +123,17 @@ util__error_if_false(Goal, Error_message) :-
             abort
     ).
 
+% Base case: If the number is zero, its binary representation is '0'.
+utils__number_to_bin(0, '0') :- !.
+
+% Recursive case: Divide the integer by 2 and convert the rest to binary.
+utils__number_to_bin(N, Bin) :-
+    N > 0,
+    X is N mod 2,  % Get the remainder when N is divided by 2.
+    Y is N // 2,  % Integer division by 2.
+    utils__number_to_bin(Y, Bin1),
+    atom_concat(Bin1, X, Bin).
+
 %% Convert a c-type to a ptc-type
-utils__c_to_ptc_type(int, integer).
+utils__c_to_ptc_type(int, integer) :- !.
+utils__c_to_ptc_type(Type, Type) :- !.

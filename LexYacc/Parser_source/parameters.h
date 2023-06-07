@@ -110,11 +110,11 @@ void MakeEmptyP(PList P)
 			char * PopPList(PList P)
 		to pop each node found.
 	*/
-	if( P == NULL )
-		printf( "ERROR: MUST USE CREATEPLIST FIRST" );
+	if (P == NULL)
+		printf("ERROR: MUST USE CREATEPLIST FIRST\n");
 	else
 		while( !IsEmptyPList(P) )
-			PopPList(P);
+			free(PopPList(P));
 }
 
 void DisposePList(PList P)
@@ -132,7 +132,12 @@ void DisposePList(PList P)
 		to the linked list is freed up.
 	*/
 	MakeEmptyP(P);
-	free(P);
+	if (P != NULL) {
+		// Freeing resets memory address. Needs to be set to NULL
+		// Freeing resets the address to be non-NULL
+		P->PNext = NULL;
+	}
+	//free(P);
 }
 
 void PushPList(char X[], PList P)
@@ -168,7 +173,7 @@ void PushPList(char X[], PList P)
 	}
 }
 
-char * PopPList(PList P)
+char* PopPList(PList P)
 {
 	/*
 		This function is called from the following places:
@@ -194,7 +199,7 @@ char * PopPList(PList P)
 	*/
 
 	PtrToPNode FirstCell;
-	char * elem_str;
+	char* elem_str;
 
 	// If Parameters Linked List is EMPTY, return empty string
 	if( IsEmptyPList(P) )

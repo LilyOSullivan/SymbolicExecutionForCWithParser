@@ -34,11 +34,13 @@
 %token	SUB_ASSIGN LEFT_ASSIGN RIGHT_ASSIGN AND_ASSIGN
 %token	XOR_ASSIGN OR_ASSIGN
 %token	<id> TYPEDEF_NAME ENUMERATION_CONSTANT
+%token  ALIGN
 
-%token	TYPEDEF EXTERN STATIC AUTO REGISTER INLINE
+%token	TYPEDEF EXTERN STATIC AUTO REGISTER INLINE FORCEINLINE
 %token	CONST RESTRICT VOLATILE
 %token	BOOL CHAR SHORT INT LONG SIGNED UNSIGNED FLOAT DOUBLE VOID
-%token  __INT8 __INT16 __INT32 __INT64
+%token	WCHAR_T
+%token  __INT8 __INT16 __INT32 __INT64 __PTR32 __PTR64 __UNALIGNED
 %token	COMPLEX IMAGINARY
 %token	STRUCT UNION ENUM ELLIPSIS
 
@@ -51,6 +53,7 @@
 %token  __CDECL __CLRCALL __STDCALL __FASTCALL __THISCALL __VECTORCALL
 
 
+%type <id> microsoft_native_pointer_extension
 %type <id> primary_expression
 %type <id> constant
 %type <id> expression
@@ -121,6 +124,7 @@
 %type <id> designator
 %type <id> designator_list
 %type <id> vc_specific_modifier
+%type <id> DECLSPEC_specifiers
 
 
 %start translation_unit
@@ -253,9 +257,8 @@ postfix_expression
 		// Process function calls (without arguments)
 		// Function calls are parsed with "LC_" or "UC_" in their name
 		// Remove this and process as function call
-		char *func_name = (char *) malloc(STRING_LIMIT);
-		strcpy(func_name, copystring($1, 3, strlen($1)));
-        $$ = (char*) malloc(16 + 3 + STRING_LIMIT + 3 + 1 + 1 + 1);
+		char* func_name = copystring($1, 3, strlen($1));
+        $$ = (char*) malloc(16 + 3 + strlen(func_name) + 3 + 1 + 1 + 1);
 		strcpy($$, "\nfunction_call(");
 
 		if (isupper(func_name[0]))
@@ -268,15 +271,15 @@ postfix_expression
 		strcat($$, "]");
 		strcat($$, ")");
         free($1);
+		free(func_name);
 	}
 	| postfix_expression '(' argument_expression_list ')'
 	{
 		// Process function calls (with arguments)
 		// Function calls are parsed with "LC_" or "UC_" in their name
 		// Remove this and process as function call
-		char *func_name = (char*) malloc(STRING_LIMIT);
-		strcpy(func_name, copystring($1, 3, strlen($1)-3));
-        $$ = (char*) malloc(16+ 3 + STRING_LIMIT + 3 + strlen($3) + 1 + 1 + 1);
+		char *func_name = copystring($1, 3, strlen($1)-3);
+        $$ = (char*) malloc(16+ 3 + strlen(func_name) + 3 + strlen($3) + 1 + 1 + 1);
 		strcpy($$, "\nfunction_call(");
 
 		if (isupper(func_name[0]))
@@ -289,6 +292,7 @@ postfix_expression
         strcat($$, $3);
         strcat($$, "]");
         strcat($$, ")");
+		free(func_name);
         free($1);
         free($3);
 	}
@@ -405,10 +409,11 @@ unary_expression
 	}
 	| unary_operator cast_expression
 	{
-		char* unary_cast = process_cast_unary_rule($1, $2);
 		// Process casting expressions
+		// DECL_FUNCTIONS.H
+		char* unary_cast = process_cast_unary_rule($1, $2);
         $$ = (char*) malloc(strlen(unary_cast) + 1);
-		strcpy($$, unary_cast);	// DECL_FUNCTIONS.H
+		strcpy($$, unary_cast);
 		free(unary_cast);
         free($1);
         free($2);
@@ -443,6 +448,14 @@ unary_expression
 		free($3);
 	}
 	| ALIGNOF '(' type_name ')'
+	{
+		$$ = (char*) malloc(8 + 1 + strlen($3) + 1 + 1);
+		strcpy($$, "alignof");
+		strcat($$, "(");
+		strcat($$, $3);
+		strcat($$, ")");
+		free($3);
+	}
 	;
 
 unary_operator
@@ -921,9 +934,10 @@ declaration
 		strcpy($$, declaration);	// STRUCTURES.H
 		free(declaration);
 		free($1);
-		if(typedef_flag == YES) {
-			typedef_flag = NO;
-		}
+
+		typedef_flag = NO;
+		struct_flag = NO;
+
 	}
 	| declaration_specifiers init_declarator_list ';'
 	{
@@ -948,6 +962,7 @@ declaration
 		}
 		free($1);
 		free($2);
+		struct_flag = NO;
 	}
 	| static_assert_declaration
 	;
@@ -987,7 +1002,33 @@ declaration_specifiers
 		free($1);
 		free($2);
 	}
+	| type_specifier __UNALIGNED declaration_specifiers
+	{
+		// Only append comma if not a type such as "unsigned int"
+		$$ = (char*) malloc(strlen($1) + 2 + strlen($3) + 1);
+
+		strcpy($$, $1);
+		if ( (strcmp($1, "signed") == 0) || (strcmp($1, "unsigned") == 0) )
+		{
+		}
+		else if ((strcmp($1, "short") == 0) && (strcmp($3, "int") == 0))
+		{
+		}
+		else
+		{
+			strcat($$, ", ");
+		}
+		strcat($$, $3);
+		free($1);
+		free($3);
+	}
 	| type_specifier
+	{
+		$$ = (char*) malloc(strlen($1) + 1);
+		strcpy($$, $1);
+		free($1);
+	}
+	| type_specifier __UNALIGNED
 	{
 		$$ = (char*) malloc(strlen($1) + 1);
 		strcpy($$, $1);
@@ -998,6 +1039,8 @@ declaration_specifiers
 		$$ = (char*) malloc(strlen($1) + strlen($2) + 1);
 		strcpy($$, $1);
 		strcat($$, $2);
+		free($1);
+		free($2);
 	}
 	| type_qualifier
 	{
@@ -1006,10 +1049,29 @@ declaration_specifiers
 		free($1);
 	}
 	| function_specifier declaration_specifiers
+	{
+		$$ = (char*) malloc(strlen($2) + 1);
+		strcpy($$, $2);
+		free($2);
+	}
 	| function_specifier
+	{
+		$$ = (char*) malloc(1 + 1);
+		strcpy($$, "");
+	}
 	| alignment_specifier declaration_specifiers
+	{
+		$$ = (char*) malloc(strlen($2) + 1);
+		strcpy($$, $2);
+		free($2);
+	}
 	| alignment_specifier
+	{
+		$$ = (char*) malloc(1 + 1);
+		strcpy($$, "");
+	}
 	;
+
 
 init_declarator_list
 	: init_declarator
@@ -1075,7 +1137,7 @@ storage_class_specifier
 	| STATIC
 	{
 		$$ = (char*) malloc(7 + 1);
-		strcpy($$, "Static_");
+		strcpy($$, "static_");
 	}
 	| THREAD_LOCAL
 	| AUTO
@@ -1192,6 +1254,11 @@ type_specifier
 		$$ = (char*) malloc(7 + 1);
 		strcpy($$, "__int64");
 	}
+	| WCHAR_T
+	{
+		$$ = (char*) malloc(7 + 1);
+		strcpy($$, "wchar_t");
+	}
 	;
 
 struct_or_union_specifier
@@ -1203,6 +1270,8 @@ struct_or_union_specifier
 		strcat($$, $3);
 		Pop(); 	// SCOPES.H
 		strcat($$, "]");
+		free($1);
+		free($3);
 	}
 	| struct_or_union IDENTIFIER '{' struct_declaration_list '}'
 	{
@@ -1229,6 +1298,32 @@ struct_or_union_specifier
 		free($2);
 		free($4);
 	}
+	| struct_or_union DECLSPEC_specifiers IDENTIFIER '{' struct_declaration_list '}'
+	{
+		// change the structure name.
+		char* struct_name = (char *) malloc(3 + strlen($3) + 1);
+		if (islower($3[0]))
+			strcpy(struct_name, "lc_");
+		else
+			strcpy(struct_name, "uc_");
+		strcat(struct_name, $3);
+
+		$$ = (char*) malloc(strlen($1) + 2 + strlen(struct_name) + 2 + 1 + strlen($5) + 1 + 1);
+		strcpy($$, $1);
+		strcat($$, ", ");
+		strcat($$, struct_name);
+		strcat($$, ", ");
+		strcat($$, "[");
+		strcat($$, $5);
+		Pop(); 	// SCOPES.H
+		strcat($$, "]");
+
+		free(struct_name);
+		free($1);
+		free($2);
+		free($3);
+		free($5);
+	}
 	| struct_or_union IDENTIFIER
 	{
 		// change the structure name.
@@ -1248,6 +1343,45 @@ struct_or_union_specifier
 		free(struct_name);
 	}
 	;
+
+DECLSPEC_specifiers
+	: DECLSPEC '(' extended_decl_modifier_seq ')'
+	{
+		$$ = (char*) malloc(1 + 1);
+		strcpy($$, "");
+	}
+	| DECLSPEC '(' extended_decl_modifier_seq ')' DECLSPEC_specifiers
+	{
+		$$ = (char*) malloc(1 + 1);
+		strcpy($$, "");
+		free($5);
+	}
+	;
+
+extended_decl_modifier_seq
+	: ALIGN '(' I_CONSTANT ')'
+	{
+		free($3);
+	}
+	| ALIGN '(' F_CONSTANT ')'
+	{
+		free($3);
+	}
+	| IDENTIFIER
+	{
+		free($1);
+	}
+	|  type_qualifier
+	{
+		free($1);
+	}
+	| IDENTIFIER '(' primary_expression ')'
+	{
+		free($1);
+		free($3);
+	}
+	;
+
 
 struct_or_union
 	: STRUCT
@@ -1308,6 +1442,7 @@ struct_declaration
 		}
 		free($1);
 		free($2);
+		struct_flag = NO;
 	}
 	;
 	| static_assert_declaration
@@ -1319,6 +1454,8 @@ specifier_qualifier_list
 		$$ = (char*) malloc(strlen($1) + strlen($2) + 1);
 		strcpy($$, $1);
 		strcat($$, $2);
+		free($1);
+		free($2);
 	}
 	| type_specifier
 	{
@@ -1491,7 +1628,7 @@ enumerator
 			Add the name to NAMES file using printnames()
 			Add the literal to Enum linked list using add_enums()
 		*/
-		char *enum_name = change_enum($1); // ENUM_FUNCTIONS.H
+		char* enum_name = change_enum($1); // ENUM_FUNCTIONS.H
 
 		$$ = (char*) malloc(strlen(enum_name) + 1);
 		strcpy($$, enum_name);
@@ -1531,8 +1668,12 @@ type_qualifier
 
 function_specifier
 	: INLINE
+	| FORCEINLINE
 	| NORETURN
-	| DECLSPEC '(' IDENTIFIER ')'
+	| DECLSPEC_specifiers
+	{
+		free($1);
+	}
 	;
 
 alignment_specifier
@@ -1549,11 +1690,33 @@ declarator
 		free($1);
 		free($2);
 	}
+	| pointer microsoft_native_pointer_extension direct_declarator
+	{
+		$$ = (char*) malloc(strlen($1) + strlen($3) + 1);
+		strcpy($$, $1);
+		strcat($$, $3);
+		free($1);
+		free($2);
+		free($3);
+	}
 	| direct_declarator
 	{
 		$$ = (char*) malloc(strlen($1) + 1);
 		strcpy($$, $1);
 		free($1);
+	}
+	;
+
+microsoft_native_pointer_extension
+	: __PTR32 
+	{
+		$$ = (char*) malloc(1 + 1);
+		strcpy($$, "");
+	}
+	| __PTR64
+	{
+		$$ = (char*) malloc(1 + 1);
+		strcpy($$, "");
 	}
 	;
 
@@ -1566,6 +1729,13 @@ direct_declarator
 	}
 	| '(' declarator ')'
 	{
+		if(typedef_flag == YES) {
+			typedef_flag = NO;
+			char* declaration_cleaned = change_typedef($2); // TYPEDEF_FUNCTIONS.H
+			add_typedefs(declaration_cleaned); // TYPEDEF_FUNCTIONS.H
+			free(declaration_cleaned);
+		}
+
 		$$ = (char*) malloc(1 + strlen($2) + 1 + 1);
 		strcpy($$, "(");
 		strcat($$, $2);
@@ -1596,6 +1766,19 @@ direct_declarator
 	| direct_declarator '[' type_qualifier_list assignment_expression ']'
 	| direct_declarator '[' type_qualifier_list ']'
 	| direct_declarator '[' assignment_expression ']'
+	{
+		$$ = (char*) malloc(strlen($1) + 1);
+		strcpy($$, $1);
+		free($1);
+		free($3);
+	}
+	| TYPEDEF_NAME '[' assignment_expression ']' 
+	{
+		$$ = (char*) malloc(strlen($1) + 1);
+		strcpy($$, $1);
+		free($1);
+		free($3);
+	}
 	| direct_declarator '(' parameter_type_list ')'
 	{
 		/* 	function prototypes and definitions come through this rule.
@@ -1605,6 +1788,13 @@ direct_declarator
 			if it is the function prototype it is left as it is.
 		*/
 		$$ = (char*) malloc(19 + strlen($1) + 2 + 1 + strlen($3) + 1 + 2 + 2 + 1);
+
+		if(typedef_flag == YES) {
+			char* declaration_cleaned = change_typedef($1); // TYPEDEF_FUNCTIONS.H
+			add_typedefs(declaration_cleaned); // TYPEDEF_FUNCTIONS.H
+			free(declaration_cleaned);
+			typedef_flag = NO;
+		}
 
 		$1[0] = convert_tolower($1[0]);
 		strcpy($$, "function_prototype(");
@@ -1638,14 +1828,22 @@ direct_declarator
 	}
 	| vc_specific_modifier IDENTIFIER
 	{
+		struct_flag = NO;
+		
 		// Visual C extension
 		$$ = (char*) malloc(strlen($2) + 1);
 		strcpy($$, $2);
 		free($1);
 		free($2);
 	}
-	| '(' vc_specific_modifier IDENTIFIER ')'
+	| '(' vc_specific_modifier declarator ')'
 	{
+		if(typedef_flag == YES) {
+			typedef_flag = NO;
+			char* type_definition = change_typedef($3); // TYPEDEF_FUNCTIONS.H
+			add_typedefs(type_definition); // TYPEDEF_FUNCTIONS.H
+			free(type_definition);
+		}
 		// Visual C extension
 		$$ = (char*) malloc(strlen($3) + 1);
 		strcpy($$, $3);
@@ -1695,6 +1893,7 @@ pointer
 		strcat($$, $2);
 		strcat($$, $3);
 		free($2);
+		free($3);
 	}
 	| '*' type_qualifier_list
 	{
@@ -1712,7 +1911,7 @@ pointer
 	}
 	| '*'
 	{
-		$$ = (char*) malloc(2);
+		$$ = (char*) malloc(1 + 1);
 		strcpy($$, "*");
 	}
 	;
@@ -1761,6 +1960,7 @@ parameter_list
 		$$ = (char*) malloc(strlen($1) + 1);
 		strcpy($$, $1);
 		free($1);
+		struct_flag = NO;
 	}
 	| parameter_list ',' parameter_declaration
 	{
@@ -1769,6 +1969,7 @@ parameter_list
 		strcat($$, $3);
 		free($1);
 		free($3);
+		struct_flag = NO;
 	}
 	;
 
@@ -1791,6 +1992,14 @@ parameter_declaration
 		free($2);
 	}
 	| declaration_specifiers abstract_declarator
+	{
+		$$ = (char*) malloc(strlen($1) + strlen($2) + 1);
+		strcpy($$, $1);
+		strcat($$, $2);
+		free($1);
+		free($2);
+	}
+	| declaration_specifiers vc_specific_modifier abstract_declarator
 	{
 		$$ = (char*) malloc(strlen($1) + strlen($2) + 1);
 		strcpy($$, $1);
@@ -1833,7 +2042,22 @@ type_name
 		free($1);
 		free($2);
 	}
+	| specifier_qualifier_list abstract_declarator microsoft_native_pointer_extension
+	{
+		$$ = (char*) malloc(strlen($1) + strlen($2) + 1);
+		strcpy($$, $1);
+		strcat($$, $2);
+		free($1);
+		free($2);
+		free($3);
+	}
 	| specifier_qualifier_list
+	{
+		$$ = (char*) malloc(strlen($1) + 1);
+		strcpy($$, $1);
+		free($1);
+	}
+	| IDENTIFIER
 	{
 		$$ = (char*) malloc(strlen($1) + 1);
 		strcpy($$, $1);
@@ -1849,6 +2073,15 @@ abstract_declarator
 		strcat($$, $2);
 		free($1);
 		free($2);
+	}
+	| '(' vc_specific_modifier pointer ')' direct_abstract_declarator
+	{
+		$$ = (char*) malloc(strlen($3) + strlen($5) + 1);
+		strcpy($$, $3);
+		strcat($$, $5);
+		free($2);
+		free($3);
+		free($5);
 	}
 	| pointer
 	{
@@ -1867,7 +2100,7 @@ abstract_declarator
 direct_abstract_declarator
 	: '(' abstract_declarator ')'
 	{
-		$$ = (char*) malloc(1 + strlen($2) + 1);
+		$$ = (char*) malloc(1 + strlen($2) + 1 + 1);
 		strcpy($$, "(");
 		strcat($$, $2);
 		strcat($$, ")");
@@ -2096,6 +2329,7 @@ labeled_statement
 		strcat($$, ":");
 		strcat($$, $3);
 		free($1);
+		free($3);
 	}
 	| CASE constant_expression ':' statement
 	{
@@ -2327,6 +2561,7 @@ external_declaration
 		strcpy($$, $1);
 		printfunction($$); 	// OUTPUT_FUNCTIONS.H
 		free($1);
+		struct_flag = NO;
 	}
 	| declaration
 	{

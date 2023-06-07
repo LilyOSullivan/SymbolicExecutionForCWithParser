@@ -152,7 +152,7 @@ create_declaration_section(Declarations, Declaration_section) :-
     concat_string(["\n", All_declarations, "\n"], Declaration_section).
 create_declaration_section([void], "").
 create_declaration_section([], Declaration_accumulator, Declaration_accumulator).
-create_declaration_section([declaration(_, [Variable]) | More_variables], Declaration_accumulator, All_declarations) :-
+create_declaration_section([declaration(_, [Variable], _) | More_variables], Declaration_accumulator, All_declarations) :-
     c_var__create_declaration(Variable, Declaration),
     sprintf(Result, "%s%s", [Declaration_accumulator, Declaration]),
     create_declaration_section(More_variables, Result, All_declarations),
@@ -166,5 +166,6 @@ create_declaration_section([declaration(_, [Variable]) | More_variables], Declar
 create_return(Return_value, int, Return_value_as_string) :-
     term_string(Return_value, Return_value_as_string).
 create_return(Return_value, char, Return_value_as_string) :-
-    string_codes(Value_as_string, [Return_value]),
-    concat_string(["'", Value_as_string, "'"], Return_value_as_string).
+    term_string(Return_value, Return_value_as_string).
+    % string_codes(Value_as_string, [Return_value]),
+    % concat_string(["'", Value_as_string, "'"], Return_value_as_string).

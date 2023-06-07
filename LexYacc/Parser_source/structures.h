@@ -5,6 +5,9 @@ The functions here are called from the grammar specification
 file GRAMMAR.Y
 */
 
+int struct_flag = NO;
+
+
 char * process_records(char postfix_expression[], char identifier[]);
 char * seperate_fields(char vartype[], char varlist[]);
 char * strip_struct(char struct_string[]);
@@ -106,7 +109,6 @@ char * seperate_fields(char vartype[], char varlist[])
 	The list of variables need to be divided into its respective componenets.
 	*/
 
-								// return string
 	char finalstring[STRING_LIMIT];	// build string
 	char tempstring[STRING_LIMIT];	// temporary string
 	char * commastring;							// string beginning at first comma
@@ -115,17 +117,22 @@ char * seperate_fields(char vartype[], char varlist[])
 	unsigned int i;								// for loop control variable
 	unsigned int difference;					// difference in length of two strings
 	
+	char* varlist_copy = (char*)malloc(STRING_LIMIT);
+	strcpy(varlist_copy, varlist);
+
 	strcpy(finalstring, initialisestring(finalstring, STRING_LIMIT));
 	strcpy(tempstring, initialisestring(tempstring, STRING_LIMIT));
+
+
 
 	// varlist is of the form "a,b,c". a comma is added to the end of varlist so that the
 	// number of commas found in varlist will match the number of variables in varlist i.e.
 	// varlist is now "a,b,c,", number of variables = 3 and number commas = 3		
-	strcat(varlist, ",");
+	strcat(varlist_copy, ",");
 
 	// The number of commas in varlist equals the number of variables
 	// to be processed, Find this value.
-	nocommas = strstrcount(varlist, ",");
+	nocommas = strstrcount(varlist_copy, ",")-1;
 
 	// Begin the holding string of the function. This will be appended
 	// to throughout the for loop.
@@ -138,16 +145,16 @@ char * seperate_fields(char vartype[], char varlist[])
 		// varlist = "a,b,c,"	vartype = "int"
 		strcat(finalstring, "([");		
 		// commastring = ",b,c,"
-		commastring = strstr(varlist, ",");	
+		commastring = strstr(varlist_copy, ",");
 		// difference = 6-5 = 1		
-		difference = strlen(varlist) - strlen(commastring);	
+		difference = strlen(varlist_copy) - strlen(commastring);
 		
 		// Copy the first variable into tempstring. tempstring is "a" after
 		// this while loop.
 		index = 0;				
 		while (index < difference)
 		{
-			tempstring[index] = varlist[index];
+			tempstring[index] = varlist_copy[index];
 			index++;
 		}
 	
@@ -168,22 +175,22 @@ char * seperate_fields(char vartype[], char varlist[])
 
 		// Remove the first variable "a" and its associated commma from the
 		// varlist string to give varlist as "b,c," and iterae for loop again
-		newindex = strlen(varlist) - (strlen(commastring) - 1);
+		newindex = strlen(varlist_copy) - (strlen(commastring) - 1);
 		index = 0;
-		while (newindex < strlen(varlist))
+		while (newindex < strlen(varlist_copy))
 		{
-			tempstring[index] = varlist[newindex];
+			tempstring[index] = varlist_copy[newindex];
 			index++;
 			newindex++;
 		}
-		strcpy(varlist, initialisestring(varlist, STRING_LIMIT));
-		strcpy(varlist, tempstring);				
+		strcpy(varlist_copy, initialisestring(varlist_copy, STRING_LIMIT));
+		strcpy(varlist_copy, tempstring);
 		strcpy(tempstring, initialisestring(tempstring, STRING_LIMIT));
 	}
+	free(varlist_copy);
 
 	char* returnstr = (char*)malloc(strlen(finalstring) + 1);
 	strcpy(returnstr, finalstring);
-	free(finalstring);
 	return returnstr;		
 }
 
@@ -211,10 +218,10 @@ char* strip_struct(char struct_string[])
 	if(strstr(struct_string, ",") != NULL)	
 	{
 		commastring = strstr(struct_string, ",");
-		char* temp = copystring(commastring, 1, strlen(commastring));
-		returnstr = (char*)malloc(strlen(temp) + 1);
-		strcpy(returnstr, temp);
-		free(commastring);
+		char* substring = copystring(commastring, 1, strlen(commastring));
+		returnstr = (char*)malloc(strlen(substring) + 1);
+		strcpy(returnstr, substring);
+		free(substring);
 	}
 	else
 	{

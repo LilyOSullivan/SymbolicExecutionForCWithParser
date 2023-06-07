@@ -23,7 +23,7 @@ char * upper(char string[])
 	*/
 		
 	unsigned int i = 0;					// control variable of the while loop
-	char* newstring = (char*)malloc(strlen(string) + 1);	// temporary holding string	
+	char* newstring = (char*)malloc(strlen(string) + 1 + 1);	// temporary holding string	
 
 	strcpy(newstring, initialisestring(newstring, strlen(string) + 1));
 
@@ -39,6 +39,7 @@ char * upper(char string[])
 	
 	char* returnstr = (char*)malloc(strlen(newstring) + 1);
 	strcpy(returnstr, newstring);
+	free(newstring);
    	return returnstr;			
 }
 
@@ -50,7 +51,7 @@ char * lower(char string[])
 	*/
 	
 	unsigned int i = 0;					// control variable of the while loop
-	char* newstring = (char*)malloc(strlen(string) + 1);	// temporary holding string	
+	char* newstring = (char*)malloc(strlen(string) + 1 + 1);	// temporary holding string	
 
   	strcpy(newstring, initialisestring(newstring, strlen(string) + 1));
 	
@@ -67,6 +68,7 @@ char * lower(char string[])
 	
 	char* returnstr = (char*)malloc(strlen(newstring) + 1);
 	strcpy(returnstr, newstring);
+	free(newstring);
    	return returnstr;			
 }
 
@@ -180,7 +182,7 @@ char * initialisestring(char string[], int limit)
 	return string;
 }
 
-char* copystring(char * source, int begin, int howmany)
+char* copystring(char* source, int begin, int howmany)
 {
 	/*	
 		This function takes as parameter a source string. It returns a
@@ -194,7 +196,7 @@ char* copystring(char * source, int begin, int howmany)
 	*/
 	char* holdstr = (char*)malloc(strlen(source) + 1);
 	int index = 0;
-  	strcpy(holdstr, initialisestring(holdstr, strlen(source) + 1));
+  	strcpy(holdstr, initialisestring(holdstr, strlen(source)));
 
 	// Copy the string, beginning at 'begin' for 'howmany' characters
 	while (index <= howmany)
@@ -222,4 +224,22 @@ int find_first_non_star(char* str) {
 
 	// If all characters are '*', or the string is empty, return -1.
 	return -1;
+}
+
+void strip_last_comma(char* str) {
+	size_t length = strlen(str);
+
+	if (length == 0) {
+		return; // Empty string, nothing to strip
+	}
+
+	// Start from the end of the string and find the last comma
+	size_t i = length - 1;
+	while (i > 0 && str[i] != ',') {
+		i--;
+	}
+
+	if (str[i] == ',') {
+		str[i] = '\0'; // Replace the last comma with a null terminator
+	}
 }

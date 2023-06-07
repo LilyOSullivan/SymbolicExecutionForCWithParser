@@ -26,10 +26,10 @@ enteries. This variable is set and reset in the functions:
 
 struct ListOfVars
 {
-	char variablename[STRING_LIMIT];
-	char variabledetails[STRING_LIMIT];
-	char assignstring[STRING_LIMIT];
-	char varscope[STRING_LIMIT];
+	char* variablename;
+	char* variabledetails;
+	char* assignstring;
+	char* varscope;
 	int vardeclared;
 	struct ListOfVars* varnext;
 }varstart, * varnode;
@@ -194,21 +194,16 @@ void addvariables(char* declarator, int Param)
 		and the assignmentstring (none given in this function) into the linked list ListOfVars
 	*/
 
-	char varname[STRING_LIMIT];	// holds the varname that is to be saved
-	char vardetails[STRING_LIMIT]; // holds variable details e.g.pointer, array..
-	char varassign[STRING_LIMIT];	// holds assignment string
-	char varscope[STRING_LIMIT];	// scope of the variable - local or global
-	char* C_name;						// name of the variable in C
+	char* vardetails = (char*)malloc(18 + 1); // holds variable details e.g.pointer, array..
+
+	char* varscope = (char*)malloc(6 + 1);	// scope of the variable - local or global
 
 	// allocate space to strings and initialise to NULL
-	C_name = (char*)malloc(STRING_LIMIT);
-	strcpy(varname, initialisestring(varname, STRING_LIMIT));
-	strcpy(vardetails, initialisestring(vardetails, STRING_LIMIT));
-	strcpy(varassign, initialisestring(varassign, STRING_LIMIT));
-	strcpy(varscope, initialisestring(varscope, STRING_LIMIT));
 
+	char* declarator_copy = (char*)malloc(STRING_LIMIT + strlen(declarator) + 1);
+	strcpy(declarator_copy, declarator);
 
-	if (strstr(declarator, "function_prototype(") != NULL)
+	if (strstr(declarator_copy, "function_prototype(") != NULL)
 	{
 		// FUNCTION_PROTOTYPES
 		// a function prototype has been declared  - release the Parameter Linked List
@@ -217,72 +212,89 @@ void addvariables(char* declarator, int Param)
 		DisposePList(P);
 		PListFirstUse = NO;
 	}
-	else if (strstr(declarator, "*") != NULL)
+	else if (strstr(declarator_copy, "*") != NULL)
 	{
 		// POINTER TYPES
 		strcpy(vardetails, "pointer");				// store variable details
-		strcpy(C_name, declarator);					// store C name before changes made
-		strcpy(declarator, removestar(declarator)); // remove the '*' from declarator
-		strcpy(declarator, case_name(declarator));	// add prolog name details
-		PushVar(declarator, Param);					// push onto stack (scopes.h)
-		strcpy(declarator, scope_details(declarator, Param)); // add prolog scope details
-		// OUTPUT_FUNCTIONS.H
-	}
-	else if (strstr(declarator, "[") != NULL)
-	{
-		// ARRAY TYPES
-		int num_dims;
-		char* array_p_name;			// name of the array in Prolog
-		array_p_name = (char*)malloc(STRING_LIMIT);
-		num_dims = strstrcount(declarator, "[");
+		char* declarator_without_star = removestar(declarator_copy); // remove the '*' from declarator
+		char* declarator_name = case_name(declarator_without_star);
+		PushVar(declarator_name, Param);					// push onto stack (scopes.h)
+		char* declarator_with_scope_details = scope_details(declarator_name, Param); // OUTPUT_FUNCTIONS.H
+		strcpy(declarator_copy, declarator_with_scope_details); // add prolog scope details
 
-		strcpy(C_name, create_arrayname(declarator));	// store name of declarator in C - ARRAY_FUNCTIONS.H
-		strcpy(declarator, case_name(declarator)); 		// add prolog terms to declarator - OUTPUT_FUNCTIONS.H
-		PushVar(create_arrayname(declarator), Param);	// push array onto Stack (SCOPES.H) and ARRAY_FUNCTIONS.H
-		strcpy(array_p_name, create_arrayname(declarator)); // create the name of array	- ARRAY_FUNCTIONS.H
-		strcpy(array_p_name, scope_details(array_p_name, Param)); // add prolog scope details-  OUTPUT_FUNCTIONS.H
+		free(declarator_without_star);
+		free(declarator_name);
+		free(declarator_with_scope_details);
+		
+	}
+	else if (strstr(declarator_copy, "[") != NULL)
+	{
+		char* varname;
+		// ARRAY TYPES
+		int num_dims = strstrcount(declarator_copy, "[");
+
+		strcpy(declarator_copy, case_name(declarator_copy)); 		// add prolog terms to declarator - OUTPUT_FUNCTIONS.H
+		PushVar(create_arrayname(declarator_copy), Param);	// push array onto Stack (SCOPES.H) and ARRAY_FUNCTIONS.H
+		char* array_name = create_arrayname(declarator_copy); // create the name of array	- ARRAY_FUNCTIONS.H
+		char* array_p_name = scope_details(array_name, Param); // add prolog scope details-  OUTPUT_FUNCTIONS.H
+		free(array_name);
 
 		// SINGLE DIMENSIONAL ARRAY
 		if (num_dims == 1)
 		{
-			strcpy(varname, "(");				// start varname
-			strcat(varname, array_p_name);		// add array name in prolog
-			strcat(varname, ", ");
-			if (strcmp(create_dimensions(declarator, ""), "") != 0) // ARRAY_FUNCTIONS.H
+			char* dimensions;
+			if (strcmp(create_dimensions(declarator_copy, ""), "") != 0) // ARRAY_FUNCTIONS.H
 			{
-				strcat(varname, create_dimensions(declarator, "")); // ARRAY_FUNCTIONS.H
+				dimensions = create_dimensions(declarator_copy, ""); // ARRAY_FUNCTIONS.H
 			}
 			else
 			{
+				dimensions = (char*)malloc(3 + 1);
 				// default value for the array
-				strcat(varname, "100");
+				strcpy(dimensions, "100");
 			}
+			varname = (char*)malloc(1 + strlen(array_p_name) + 2 + strlen(dimensions) + 1 + 1);
+			strcpy(varname, "(");				// start varname
+			strcat(varname, array_p_name);		// add array name in prolog
+			strcat(varname, ", ");
+			strcat(varname, dimensions);
 			strcat(varname, ")");
-			strcpy(declarator, varname);	// copy the entire details back to declarator
+			strcpy(declarator_copy, varname);	// copy the entire details back to declarator
 			strcpy(vardetails, "array");	// store vardetails as 'array'
+
+			free(dimensions);
 
 		}
 		else
 		{
 			// MULTI DIMENSIONAL ARRAY
+			char* dimensions = create_multidims(declarator);
+			varname = (char*)malloc(1 + strlen(array_p_name) + 2 + strlen(dimensions) + 1 + 1);
 			strcpy(varname, "(");
 			strcat(varname, array_p_name);		// add array name in prolog
 			strcat(varname, ", ");
-			strcat(varname, create_multidims(declarator)); // ARRAY_FUNCTIONS.H
+			strcat(varname, dimensions); // ARRAY_FUNCTIONS.H
 			strcat(varname, ")");
-			strcpy(declarator, varname);
+
+			strcpy(declarator_copy, varname);
 			strcpy(vardetails, "multi");
+
+			free(dimensions);
 		}
+		free(array_p_name);
+		free(varname);
 	}
 	else
 	{
 		// 'NORMAL' VARIABLE DECLARATION
-		strcpy(C_name, declarator);		// copy C name before modifying declarator
 		strcpy(vardetails, "other");	// store the variable details
-		char* varname_with_Lc_Uc_prefix = case_name(declarator); 	// change to prolog terms - OUTPUT_FUNCTIONS.H
+		char* varname_with_Lc_Uc_prefix = case_name(declarator_copy); 	// change to prolog terms - OUTPUT_FUNCTIONS.H
 		PushVar(varname_with_Lc_Uc_prefix, YES);	 // push onto Stack (SCOPES.H)
 		char* full_variable_name = scope_details(varname_with_Lc_Uc_prefix, YES); // add scope details - OUTPUT_FUNCTIONS.H
-		declarator = full_variable_name;
+		strcpy(declarator_copy, full_variable_name);
+
+		free(full_variable_name);
+		free(varname_with_Lc_Uc_prefix);
 	}
 
 	// For all variables store the scope details
@@ -291,31 +303,36 @@ void addvariables(char* declarator, int Param)
 	else
 		strcpy(varscope, "local");
 
-	// For all variables - add the variables just declared to the linked list
-	addvariablestolist(declarator, vardetails, varassign, varscope);
 
+	char varassign[] = "";
+
+	// For all variables - add the variables just declared to the linked list
+	addvariablestolist(declarator_copy, vardetails, varassign, varscope);
+	free(declarator_copy);
+	free(varscope);
+	free(vardetails);
 }
 
 void addvariablestolist(char varname[], char vardetails[], char varassign[], char varscope[])
 {
 	/*
-	This function is called from:
-		void addvariables(char declarator[])
-	where it is passed values for the varname, vardetails & varassign
-	e.g. varname =  I_ptr , vardetails = pointer , varassign = ""
+		This function is called from:
+			void addvariables(char declarator[])
+		where it is passed values for the varname, vardetails & varassign
+		e.g. varname =  I_ptr , vardetails = pointer , varassign = ""
 
-	It is also called from:
-		void addvariabledetails(char varname[], char varconstant[])
-	where it is passed values for the varname, vardetails & varassign.
-	In this case varassign will not be blank but will contain a string
-	with details of that variables assignment or initialisation
-	e.g. varname = (Array, 5) , vardetails = array
-		 varassign = "init_array(Array, [0,0,0,0,0])"
+		It is also called from:
+			void addvariabledetails(char varname[], char varconstant[])
+		where it is passed values for the varname, vardetails & varassign.
+		In this case varassign will not be blank but will contain a string
+		with details of that variables assignment or initialisation
+		e.g. varname = (Array, 5) , vardetails = array
+			 varassign = "init_array(Array, [0,0,0,0,0])"
 
-	If this is the first use of the linked list (FirstUseList = NO) then varstart.varnext is
-	assigned the value NULL to signify an empty list and FirstUseList is reset.
+		If this is the first use of the linked list (FirstUseList = NO) then varstart.varnext is
+		assigned the value NULL to signify an empty list and FirstUseList is reset.
 
-	The varname, vardetails and varassign are added to the linked list ListOfVars
+		The varname, vardetails and varassign are added to the linked list ListOfVars
 	*/
 
 	if (FirstUseList == NO)
@@ -331,9 +348,10 @@ void addvariablestolist(char varname[], char vardetails[], char varassign[], cha
 	varnode->varnext = (struct ListOfVars*)malloc(sizeof(struct ListOfVars));
 	varnode = varnode->varnext;
 
-	strcpy(varnode->variablename, initialisestring(varnode->variablename, STRING_LIMIT));
-	strcpy(varnode->variabledetails, initialisestring(varnode->variabledetails, STRING_LIMIT));
-	strcpy(varnode->assignstring, initialisestring(varnode->assignstring, STRING_LIMIT));
+	varnode->variablename = (char*)malloc(strlen(varname) + 1);
+	varnode->variabledetails = (char*)malloc(strlen(vardetails) + 1);
+	varnode->assignstring = (char*)malloc(strlen(varassign) + 1);
+	varnode->varscope = (char*)malloc(strlen(varscope) + 1);
 	strcpy(varnode->variablename, varname);
 	strcpy(varnode->variabledetails, vardetails);
 	strcpy(varnode->assignstring, varassign);
@@ -558,7 +576,10 @@ void addvariabledetails(char varname[], char varconstant[])
 		if (numdims == 1)
 		{
 			// find dimensions and finish finalvarname
-			strcpy(dimension, create_dimensions(variable_name, varconstant)); // ARRAY_FUNCTIONS.H
+			char* dimension_string = create_dimensions(variable_name, varconstant);
+			strcpy(dimension, dimension_string); // ARRAY_FUNCTIONS.H
+			free(dimension_string);
+
 			strcat(finalvarname, dimension);
 			strcat(finalvarname, ")");
 			strcpy(variable_name, finalvarname);
@@ -567,8 +588,10 @@ void addvariabledetails(char varname[], char varconstant[])
 			strcpy(assigndetails, "\ninit_array(");
 			strcat(assigndetails, arrayname);
 			strcat(assigndetails, " , ");
-			strcat(assigndetails, single_array(varconstant, dimension)); // ARRAY_FUNCTIONS.H
+			char* single_array_assignment = single_array(varconstant, dimension); // ARRAY_FUNCTIONS.H
+			strcat(assigndetails, single_array_assignment); 
 			strcat(assigndetails, "),");
+			free(single_array_assignment);
 
 			// store vardetails
 			strcpy(vardetails, "array");
@@ -587,8 +610,11 @@ void addvariabledetails(char varname[], char varconstant[])
 			strcpy(assigndetails, "\ninit_array(");
 			strcat(assigndetails, arrayname);
 			strcat(assigndetails, ", [");
-			strcat(assigndetails, multi_array(varconstant, dimension)); // ARRAY_FUNCTIONS.H
+			char* multi_dimension_array_assignment = multi_array(varconstant, dimension); // ARRAY_FUNCTIONS.H
+			strcat(assigndetails, multi_dimension_array_assignment);
 			strcat(assigndetails, "]),");
+
+			free(multi_dimension_array_assignment);
 
 			// store vardetails
 			strcpy(vardetails, "multi");
@@ -639,6 +665,7 @@ void addvariabledetails(char varname[], char varconstant[])
 
 	// For all variables - add the variables just declared to the linked list
 	addvariablestolist(variable_name, vardetails, assigndetails, varscope);
+	free(variable_name);
 }
 
 
@@ -682,7 +709,6 @@ char* findvariabledetails(char vartype[])
 	*/
 
 	char* declstring[STRING_LIMIT];
-	char* retstring;
 	int lenstring;
 	int lenvarname;
 	char tempstring[STRING_LIMIT];
@@ -806,8 +832,10 @@ char* findvariabledetails(char vartype[])
 					strcat(declstring, vartype);
 					strcat(declstring, ", [");
 					strcat(declstring, varnode->variablename);
-					strcat(declstring, "]),");
+					strcat(declstring, "],[");
+					strip_last_comma(varnode->assignstring);
 					strcat(declstring, varnode->assignstring);
+					strcat(declstring, "]),");
 				}
 			}
 		}
@@ -815,7 +843,7 @@ char* findvariabledetails(char vartype[])
 		varnode = varnode->varnext;
 	}
 
-	retstring = (char*)malloc(strlen(declstring) + 1);
+	char* retstring = (char*)malloc(strlen(declstring) + 1);
 	strcpy(retstring, declstring);
 	return retstring;
 }
@@ -893,7 +921,11 @@ char* change_asterisk(char* str)
 	while (i < strlen(str))
 	{
 		if (str[i] != '*')
-			strcat(retstr, copystring(str, i, 0));
+		{
+			char* substring = copystring(str, i, 0);
+			strcat(retstr, substring);
+			free(substring);
+		}
 		else
 			strcat(retstr, "pointer");
 		i++;
@@ -947,7 +979,7 @@ char* identifier_function(char identifier[])
 			strcat(returnstr, istr);
 		}
 	}
-
+	free(istr);
 	return returnstr;
 }
 
@@ -975,8 +1007,7 @@ char* process_cast_unary_rule(char unary_op[], char cast_exp[])
 
 	unsigned int i = 0;					 // while loop control variable
 	unsigned int istr = 0;				 // while loop control variable
-	char* returnstr = (char*)malloc(STRING_LIMIT);				 // return string of function
-	char new_cast_exp[STRING_LIMIT];	// new cast_exp variable
+	char* returnstr = (char*)malloc(strlen(unary_op) + 1 + strlen(cast_exp) + 1 + 1); // return string of function
 
 	// Begin build return string
 	strcpy(returnstr, unary_op);
@@ -988,43 +1019,10 @@ char* process_cast_unary_rule(char unary_op[], char cast_exp[])
 	}
 	else if (strcmp(unary_op, "dereference") == 0)
 	{
-		//	Check for pointer dereferencing
-		while ((cast_exp[i] != '-') && (cast_exp[i] != '+') && (cast_exp[i] != '\0'))
-			i++;
-		// Build different cast_exp
-		if ((strlen(cast_exp)) != i)
-		{
-			strcpy(new_cast_exp, initialisestring(new_cast_exp, STRING_LIMIT));
-			while (istr <= i)
-			{
-				new_cast_exp[istr] = cast_exp[istr];
-				istr++;
-			}
-
-			new_cast_exp[istr] = '(';
-			istr++;
-			i++;
-
-			while (cast_exp[i] != '\0')
-			{
-				new_cast_exp[istr] = cast_exp[i];
-				istr++;
-				i++;
-			}
-			strcat(new_cast_exp, ")");
-
-			strcat(returnstr, "(");
-			strcat(returnstr, new_cast_exp);
-			strcat(returnstr, ")");
-		}
-		else
-		{
 			// Surround cast_exp with brackets
 			strcat(returnstr, "(");
 			strcat(returnstr, cast_exp);
 			strcat(returnstr, ")");
-		}
-
 	}
 	else
 	{
@@ -1064,40 +1062,45 @@ char* process_functions(char S1[], char S2[], char S3[])
 	*/
 
 	// variable declarations
-	char* returnstr;
-	const len_start_prototypestr = 19;	// string "function_prototype(" is 19 chars
-	const len_end_prototypestr = 3;		// string ")." is 2 chars + one for NULL char
-	int howmany;
-
-	returnstr = (char*)malloc(STRING_LIMIT);
-
-	// append function beginning and parameters
-	strcpy(returnstr, "function_definition(");
+	const int len_start_prototypestr = 19;	// string "function_prototype(" is 19 chars
+	const int len_end_prototypestr = 3;		// string ")." is 2 chars + one for NULL char
+	char* S2_substring = NULL;
+	
 	if (strstr(S2, "*function_prototype(") != NULL)
 	{
-		howmany = (strlen(S2) - len_end_prototypestr) - (len_start_prototypestr + 1);
 		// calculating how many characters we need to copy onto $$
-		char* temp = copystring(S2, (len_start_prototypestr + 1), howmany);
-		if (isupper(temp[0]))
-			strcat(returnstr, "UC_");
-		else
-			strcat(returnstr, "LC_");
-		strcat(returnstr, temp);
+		int howmany = (strlen(S2) - len_end_prototypestr) - (len_start_prototypestr + 1);
+		S2_substring = copystring(S2, (len_start_prototypestr + 1), howmany);
 	}
 	else if (strstr(S2, "function_prototype(") != NULL)
 	{
-		howmany = (strlen(S2) - len_end_prototypestr) - len_start_prototypestr;
 		// calculating how many characters we need to copy onto $$
-		char* temp = copystring(S2, len_start_prototypestr, howmany);
-		if (isupper(temp[0]))
+		int howmany = (strlen(S2) - len_end_prototypestr) - len_start_prototypestr;
+		S2_substring = copystring(S2, len_start_prototypestr, howmany);	
+	}
+
+
+	char* returnstr;
+	if (S2_substring != NULL) {
+		returnstr = (char*)malloc(20 + 3 + strlen(S2_substring) + strlen(S3) + 2 + strlen(S1) + 2 + 1);
+		strcpy(returnstr, "function_definition(");
+
+		if (isupper(S2_substring[0]))
 			strcat(returnstr, "UC_");
 		else
 			strcat(returnstr, "LC_");
-		//lilyparser_get_function_name(temp);
-		strcat(returnstr, temp);
+		strcat(returnstr, S2_substring);
+
+		free(S2_substring);
 	}
-	else
-	{
+	else {
+
+		int howmany = strlen(S2) - 3;
+		// remove the final () and the NULL character
+		S2_substring = copystring(S2, 0, howmany);
+
+		returnstr = (char*)malloc(20 + 3 + strlen(S2_substring) + 11 + strlen(S3) + 2 + strlen(S1) + 2 + 1);
+		strcpy(returnstr, "function_definition(");
 		if (isupper(S2[0]))
 			strcat(returnstr, "UC_");
 		else
@@ -1105,12 +1108,12 @@ char* process_functions(char S1[], char S2[], char S3[])
 
 		S2[0] = convert_tolower(S2[0]);
 		// the function name is parsed as upper case so change to lowercase
-		howmany = strlen(S2) - 3;
-		// remove the final () and the NULL character
-		strcat(returnstr, copystring(S2, 0, howmany));
+		strcat(returnstr, S2_substring);
 		strcat(returnstr, ", [void], ");
+		free(S2_substring);
 	}
 
+	
 	// append statements of the function
 	strcat(returnstr, S3);
 	strcat(returnstr, ", ");
@@ -1150,13 +1153,11 @@ char* process_prototypes(char S1[], char S2[])
 	if (strstr(S1, "function_prototype(") != NULL)
 	{
 		// variable declarations and space allocation
-		char* newS1;
-		char* bracket_str;
+		char* newS1 = (char*)malloc(STRING_LIMIT);
 		int lenBracket;
-		newS1 = (char*)malloc(STRING_LIMIT);
-		bracket_str = (char*)malloc(STRING_LIMIT);
+
 		// Build new return string
-		bracket_str = strstr(S1, "(");
+		char* bracket_str = strstr(S1, "(");
 		lenBracket = strlen(bracket_str) - 3;
 		strcpy(newS1, "function_definition");
 		strncat(newS1, bracket_str, lenBracket);
@@ -1166,6 +1167,8 @@ char* process_prototypes(char S1[], char S2[])
 		strcpy(returnstr, S2);
 		strcat(returnstr, ", ");
 		strcat(returnstr, "void).\n");
+
+		free(newS1);
 	}
 	// Otherwise, S1 is a function name followed by ().
 	// Convert the name of the function to lower case.
@@ -1188,6 +1191,8 @@ char* process_prototypes(char S1[], char S2[])
 		strcat(returnstr, ", [void], ");
 		strcat(returnstr, S2);
 		strcat(returnstr, ", void).");
+
+		free(function_name);
 	}
 
 	return returnstr;

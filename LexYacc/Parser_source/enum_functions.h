@@ -99,19 +99,14 @@ int traverse_enums(char enumname[])
 
 	int result = NO;					// control variable of while loop
 	int enum_value = -1;				// return value of the function, default -1
-	char enumstring[STRING_LIMIT];	// holds enumeration names in linked list	
-	char varname[STRING_LIMIT];	// holds uppercase of parameter 'enumname'
 
-	// allocate space to varname, assign it upper case of 'typedefname'
-	strcpy(varname, initialisestring(varname, STRING_LIMIT));						
-	strcpy(varname, upper(enumname));
+	char* varname = upper(enumname);
 
 	// Traverse the linked list and compare the enums therein with 'varname'.						
 	enumnode = enumstart.enumnext;
 	while (enumnode && (result == NO))
 	{
-		strcpy(enumstring, initialisestring(enumstring, STRING_LIMIT));						
-		strcpy(enumstring, upper(enumnode->enum_name));						
+		char* enumstring = upper(enumnode->enum_name);
 		
 		// Compare the UPPER CASE equivalent of both strings.
 		// If they are the same, result = YES, change 'enum_value'						
@@ -121,12 +116,13 @@ int traverse_enums(char enumname[])
 			enum_value = enumnode->enum_value;
 		}
 		enumnode = enumnode->enumnext;
+		free(enumstring);
 	}
 
 	return enum_value;
 }
 
-char * change_enum(char * s)
+char* change_enum(char * s)
 {
 	/*
 		This function is called from the following places in GRAMMAR.Y:
@@ -148,8 +144,7 @@ char * change_enum(char * s)
 	*/
 
 	// variable declaration and allocation of space
-	char * returnstr;
-	returnstr = (char *) malloc(STRING_LIMIT);
+	char* returnstr = (char*)malloc(3 + strlen(s) + 1);
 	
 	// Precede the return string by "lc_" or "uc_"	
 	if (islower(s[0]))

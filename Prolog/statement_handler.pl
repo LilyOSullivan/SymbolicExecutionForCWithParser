@@ -18,6 +18,9 @@ function_handler(_, _, _, _, _).
 %%  Arguments: The arguments to pass to the function
 %%  Return_value: The returned value from the function
 function_handler(Function_info, Arguments, Return_value_normalised) :-
+    function_info__get_body(Function_info, Body),
+    find_static_declarations(Body),
+
     function_info__get_clean_function(Function_info, _, Params, Body, Return_type),
     utils__assign_arguments_to_parameters(Arguments, Params),
     handle(Body, return(Return_value, Return_type)),
@@ -54,8 +57,14 @@ handle([Statement | More_statements], return(Return_value, Return_type)) :-
 %% This occurs if a variable is declared in the function body
 %% Eg:
 %%  int x;
-handle(declaration(Type, Vars), _) :-
-    declaration(Type, Vars). % This calls declaration predicates in declaration.pl
+handle(declaration(Type, Vars, Assignment), _) :-
+    (
+        is_static_declared(declaration(Type, Vars, Assignment)) ->
+            % This is already declared at function call-time
+            true
+        ;
+        declaration(Type, Vars, Assignment) % This calls declaration predicates in declaration.pl
+    ).
 
 %% If statement handler
 handle(if_statement(_Line_Number, expression(Expression), If_body, Else_body), Return_info) :-
@@ -81,7 +90,17 @@ handle(return(Expression), return(Return_value,Return_type)) :-
     utils__c_to_ptc_type(Return_type, Ptc_type),
     once evaluate_expression(Expression, Return_expression),
     ptc_solver__variable([Return_variable], Ptc_type),
-    ptc_solver__sdl(Return_variable = Return_expression),
+
+    % ptc_solver__integer_range(Return_variable, Min, Max),
+    % % Check if Return_expression is within range Min and Max
+    % ( Return_expression >= Min, Return_expression =< Max ->
+    %         true
+    %     ;
+    %         true
+    % ).
+
+
+    ptc_solver__sdl(eq_cast(Return_variable,Return_expression)),
     c_var__create(Return_type, Ptc_type, Return_variable, local, "__return__", Return_value),
     writeln(Return_expression).
 

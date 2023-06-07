@@ -56,7 +56,7 @@ main(Filename_without_extension, Function_name, Path_to_C_file, Override_globals
     util__error_if_false(is_boolean(Override_globals), "Override globals option must be a boolean"),
     ptc_solver__clean_up,
     ptc_solver__default_declarations,
-    ptc_solver__type(char, integer, range_bounds(33, 126)),
+    ptc_solver__type(char, integer, range_bounds(-128, 127)),
     ptc_solver__type(boolean_int, integer, range_bounds(0, 1)),
     % 33-126 are the printable ASCII characters
     % https://www.ascii-code.com

@@ -51,11 +51,10 @@ char* scope_details(char* varname, int param)
 	
 	int linenumber = ScopeLineNumber();	// get the current scope linenumber	- SCOPES.H
 	int number_str_size = snprintf(NULL, 0, "%d", linenumber); // Calculate size needed for number_str
-	char* number_str = (char*)malloc(number_str_size + 1);
+	char* number_str = (char*)malloc(number_str_size + 1 + 1);
 	snprintf(number_str, number_str_size + 1, "%d", linenumber); // Write linenumber to number_str
 
-	int name_size = strlen(varname) + strlen(number_str) + 1; // Allocate enough space for varname, number_str and the underscore
-	char* name = (char*)malloc(name_size + 1);
+	char* name = (char*)malloc(strlen(varname) + 1 + strlen(number_str) + 1);
 
 	strcpy(name, varname);
 	strcat(name, "_");
@@ -84,10 +83,7 @@ void printfunction(char inputstring[])
 	*/
 
 	FILE* file_ptr;				// file pointer
-	char* Prologterms;			// Prolog terms - assigned contents of $$
-
-	Prologterms = (char*)malloc(strlen(inputstring) + 1);
-
+	char* Prologterms = (char*)malloc(strlen(inputstring) + 1);
 	strcpy(Prologterms, inputstring);
 
 	// Open file and append to

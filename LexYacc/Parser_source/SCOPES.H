@@ -236,6 +236,8 @@ void Pop(void)
 		{
    			// Perform Pop operation 	
       		Head.NextLevel = FirstNode->NextLevel;
+			free(FirstNode->NextVar->VarName);
+			free(FirstNode->NextVar);
   			free(FirstNode);
 
   			if (IsEmpty() == 1)

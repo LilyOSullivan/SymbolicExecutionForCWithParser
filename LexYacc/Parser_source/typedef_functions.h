@@ -97,30 +97,24 @@ int traverse_types(char typedefname[])
 
 	int result = NO;				// return result of the function
 									// by default, the result is 0 - NO
-	char* param_string;			// assigned the parameter 'typedefname'
-	char* linkedlist_string;		// assigned each typedef in linked list
 	
 	// allocate space to param_string, assign it upper case of 'typedefname'
-	char* temp = upper(typedefname);
-	param_string = (char*)malloc(strlen(temp) + 1);
-	strcpy(param_string, temp);
-	free(temp);
+	char* param_string = upper(typedefname);
 	// Traverse the linked list and compare the typedefs therein with 'typedefname'.
 	typenode = typestart.typenext;
 	while (typenode && (result == NO))
 	{
 		// allocate space to linkedlist_string, assign it upper case of current node string
-		char* temp = upper(typenode->type_name);
-		linkedlist_string = (char*)malloc(strlen(temp) + 1);
-		strcpy(linkedlist_string, temp);
-		free(temp);
+		char* linkedlist_string = upper(typenode->type_name);
 		
 		// Compare the UPPER CASE equivalent of both strings.
 		// If they are the same, result = EXISTS
 		if (strcmp(param_string, linkedlist_string) == 0)						
 			result = YES;		
 		typenode = typenode->typenext;
+		free(linkedlist_string);
 	}
+	free(param_string);
 	
 	return result;		
 }
@@ -131,8 +125,7 @@ void set_typedef_flag(void)
 	/*
 		This function SETS the typedef_flag if it is NO.
 	*/
-	if (typedef_flag == NO)
-		typedef_flag = YES;
+	typedef_flag = YES;
 }
 
 
@@ -155,16 +148,16 @@ char * change_typedef(char* typedefname)
 
 	int index = find_first_non_star(typedefname);
 
-	char* typename = copystring(typedefname, index, strlen(typedefname));
+	char* type_name = copystring(typedefname, index, strlen(typedefname));
 	
 	// Precede the return string by "lc_" or "uc_"
-	if (islower(typedefname[index]))
-		strcpy(returnstr, "lc_");
-	else
+	if (isupper(typedefname[index]))
 		strcpy(returnstr, "uc_");
+	else
+		strcpy(returnstr, "lc_");
 
-	strcat(returnstr, typename);
-	free(typename);
+	strcat(returnstr, type_name);
+	free(type_name);
 	return returnstr;
 }
 

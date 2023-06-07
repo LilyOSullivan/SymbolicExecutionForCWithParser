@@ -84,45 +84,34 @@ char * switch_statement(char S3[], char S5[])
 		a default is executed by the switch statement (if present).
 	*/
 
-	char* SS = (char*)malloc(STRING_LIMIT);			// return string of the function	
+	char* switch_statement_processed = NULL;
+	
 	int lenstring = strlen(S5) - 1;				// used to determine the length of S5
 
-	// NAME OF STATEMENT - SWITCH STATEMENT
-	strcpy(SS, "\nswitch(");
 
 	// LINE NUMBER -- ERROR REPORTING PURPOSES
-	strcat(SS, PopList(Switch));	// LINKEDLISTS.H 
+	char* popped_value = PopList(Switch); // LINKEDLISTS.H 
+	
 	if (IsEmptyList(Switch))		// LINKEDLISTS.H 
 	{
 		DisposeList(Switch);		// LINKEDLISTS.H 
 		SwitchListUsed = NO;		// LINKEDLISTS.H 
 	}
-	strcat(SS, ", ");
 	
-	// EXPRESSION
-	strcat(SS, "expression(");
-	strcat(SS, S3);
-	strcat(SS, "), "); 
-		
+	
 	// SWITCH STATEMENTS
 		
-	if (strlen(S5) == 3)
-	{
-		//// SWITCH STATEMENT EMPTY ////
-		strcat(SS, "[]");
-	}
-	else
+	if (strlen(S5) != 3)
 	{
 		//// PROCESS SWITCH STATEMENT ////
-		if (S5[0] != '[') 
-		{	// if there is no '[' at beginning of S5 insert one
-			// to ensure else if part is a prolog list
-			strcat(SS, "[");		
-		}		
-		strcpy(S5, unreachablecode(S5)); 	// remove unreachable code
-		strcpy(S5, insertswitch(S5, S3));	// insert switch expressions into case statements
-		strcpy(S5, process_default(S5));	// add a final default to the switch statement
-		strcat(SS, S5);						// append the altered S5 to SS
+
+		char* unreachable_code = unreachablecode(S5); // remove unreachable code
+		char* switch_statement_str = insertswitch(unreachable_code, S3); // insert switch expressions into case statements
+		switch_statement_processed = process_default(switch_statement_str);	// add a final default to the switch statement
+		
+		free(unreachable_code);
+		free(switch_statement_str);
+
 		
 		if (S5[lenstring] != ']') 
 		{	
@@ -131,7 +120,43 @@ char * switch_statement(char S3[], char S5[])
 			strcat(S5, "]");
 		}			
 	}
-	strcat(SS, ")");						// finish with a closing bracket
+
+
+
+	///////////////////////////
+
+	char* SS = switch_statement_processed != NULL ?
+		(char*)malloc(9 + strlen(popped_value) + 2 + 11 + strlen(S3) + 3 + 1 + strlen(switch_statement_processed) + 1 + 1)
+		: (char*)malloc(9 + strlen(popped_value) + 2 + 11 + strlen(S3) + 3 + 2 + 1 + 1);
+
+
+	strcpy(SS, "\nswitch(");
+	strcat(SS, popped_value);
+	strcat(SS, ", ");
+
+	// EXPRESSION
+	strcat(SS, "expression(");
+	strcat(SS, S3);
+	strcat(SS, "), ");
+
+	if (switch_statement_processed != NULL) {
+
+		if (S5[0] != '[')
+		{	// if there is no '[' at beginning of S5 insert one
+			// to ensure else if part is a prolog list
+			strcat(SS, "[");
+		}
+		strcat(SS, switch_statement_processed);	// append the altered S5 to SS
+		free(switch_statement_processed);
+	}
+	else {
+		strcat(SS, "[]");
+	}
+	strcat(SS, ")"); // finish with a closing bracket
+
+
+	free(popped_value);
+
 	return SS;
 }
 
@@ -153,10 +178,10 @@ char * unreachablecode(char switchstring[])
 		The input string, less the unreachable code, is returned by the function.
 	*/
 
-	char * returnstring = (char*)malloc(STRING_LIMIT);
-	char * defaultptr = NULL;
-	char * caseptr = NULL;
-	char * tempstring = (char*)malloc(STRING_LIMIT);
+	char* returnstring;
+	char* defaultptr = NULL;
+	char* caseptr = NULL;
+	char* tempstring = (char*)malloc(strlen(switchstring) + 1);
 	int defaultref = 0;
 	int caseref = 0;
 
@@ -172,22 +197,15 @@ char * unreachablecode(char switchstring[])
 	
 	if (strstr(tempstring, DEFAULT_STRING) != NULL)
 	{
-		defaultptr = (char *) malloc(STRING_LIMIT);
-		strcpy(defaultptr, strstr(tempstring, DEFAULT_STRING));
+		defaultptr = strstr(tempstring, DEFAULT_STRING);
 		defaultref = strlen(tempstring) - strlen(defaultptr);
 	}
 
 	if (strstr(tempstring, CASE_STRING) != NULL)
 	{
-		caseptr = (char *) malloc(STRING_LIMIT);
-		strcpy(caseptr, strstr(tempstring, CASE_STRING));
+		caseptr = strstr(tempstring, CASE_STRING);
 		caseref = strlen(tempstring) - strlen(caseptr);
-		}
-
-	// Create the beginning of the string
-	if (tempstring[0] == '[')	
-		strcpy(returnstring, "[");	
-	strcat(returnstring, "\n");	
+	}
 
 	// If both a 'case' and 'default' have been seen then ...
 	// Check if the case is seen before the default, if so
@@ -198,28 +216,41 @@ char * unreachablecode(char switchstring[])
 	// If only a default has been seen, append the defaultptr.
 	// Else just append ']' to the return string.
 
+	char* selected_ptr = NULL;
+
+
 	if (caseptr != NULL && defaultptr != NULL)
 	{
-		if (caseref < defaultref)
-			//// CASE FIRST ////
-			strcat(returnstring, caseptr);
-		else
-			//// DEFAULT FIRST ////
-			strcat(returnstring, defaultptr);	
+		selected_ptr = (caseref < defaultref) ? caseptr : defaultptr;
 	}
-	else
-	{
-		if (caseptr != NULL)
-			//// CASE ONLY ////
-			strcat(returnstring, caseptr);
-		else if (defaultptr != NULL)
-			//// DEFAULT ONLY ////
-			strcat(returnstring, defaultptr);
-		else
-			//// NO CASES OR DEFAULTS ////
-			strcat(returnstring, "]"); 
+	else if (caseptr != NULL) {
+		selected_ptr = caseptr;
 	}
-	
+	 else if (defaultptr != NULL) {
+		selected_ptr = defaultptr;
+	}
+
+
+	if (selected_ptr != NULL) {
+		returnstring = (char*)malloc(3 + strlen(selected_ptr) + 1);
+		if (tempstring[0] == '[')
+			strcpy(returnstring, "[");
+		strcat(returnstring, "\n");
+
+		strcat(returnstring, selected_ptr);
+	}
+	else {
+		// No cases or defaults
+		returnstring = (char*)malloc(3 + 1 + 1);
+		if (tempstring[0] == '[')
+			strcpy(returnstring, "[");
+		strcat(returnstring, "\n");
+
+		strcat(returnstring, "]");
+	}
+
+	free(tempstring);
+
 	return returnstring;
 }
 
@@ -240,20 +271,11 @@ char * process_default(char switchstmt[])
 		could be executed as execution would fall to the statements following.					
 	*/
 
-	char * returnstring;		// return string of the function
-	char * holdstring;			// work string of the function
-	char * tempstring;			// temporary holding string of the function
-	int defaultcount = 0;		// number of defaults in the switchstmt
-	char * defaultptr = NULL;	// holds string starting with DEFAULT_STRING
+	char* holdstring;
 	
-	holdstring		= (char *) malloc(STRING_LIMIT);
-	
-	strcpy(holdstring, switchstmt);
-
-	defaultcount = strstrcount(holdstring, DEFAULT_STRING);
 	/* find the number of defaults in the switchstmt */
 
-	if(defaultcount > 0)
+	if(strstrcount(switchstmt, DEFAULT_STRING) > 0)
 	{	
 		// if there are more than 0 (should only be 0 or 1) defaults in	
 		// switch statement the proceed by:				
@@ -261,19 +283,24 @@ char * process_default(char switchstmt[])
 		// -- Put entire holdstring into tempstring, less 2 for closing ] and NULL.	
 		// -- Concatenate the comma, "final" and then defaultptr.		
 		// -- copy tempstring back into holdstring
-		defaultptr = (char *) malloc(STRING_LIMIT);
-		strcpy(defaultptr, strstr(holdstring, DEFAULT_STRING));
-		tempstring = (char*)malloc(STRING_LIMIT);
-		strcpy(tempstring, copystring(holdstring, 0, (strlen(holdstring) - 2)));
-		strcat(tempstring, ", \n");
-		strcat(tempstring, "final");
-		strcat(tempstring, defaultptr);
-		strcpy(holdstring, "");
-		strcpy(holdstring, tempstring);
+		char* defaultptr = strstr(switchstmt, DEFAULT_STRING);
+		char* hold_string_shortened = copystring(switchstmt, 0, (strlen(switchstmt) - 2));
+		holdstring = (char*)malloc(strlen(hold_string_shortened) + 4 + 5 + strlen(defaultptr) + 1);
+		strcpy(holdstring, hold_string_shortened);
+		strcat(holdstring, ", \n");
+		strcat(holdstring, "final");
+		strcat(holdstring, defaultptr);
+
+		free(hold_string_shortened);
+	}
+	else {
+		holdstring = (char*)malloc(strlen(switchstmt) + 1);
+		strcpy(holdstring, switchstmt);
 	}
 
-	returnstring = (char*)malloc(strlen(holdstring) + 1);
+	char* returnstring = (char*)malloc(strlen(holdstring) + 1);
 	strcpy(returnstring, holdstring);
+	free(holdstring);
 	return returnstring;
 }
 
@@ -300,17 +327,15 @@ char * insertswitch(char switchstmt[], char switchexpression[])
 	char * returnstring;		// return string of the function
 	char * expression;			// holds the second parameter - expression of the switch stmt
 	char * holdstring;			// holding string of the function
-	char * workstring;			// work string of the function
+
 	int count;					// number of instances of CASE_STRING in holdstring
 	int loopcounter;			// control variable of the FOR loop
-	char * caseptr = NULL;		// holds string starting with CASE_STRING	
-	char * commaptr = NULL;		// holds string starting with COMMA_STRING
 	char * second_caseptr = NULL;// position of next case statement
 	
+	
 	// Allocate space to the strings used
-	expression  	= (char *) malloc(STRING_LIMIT);	
-	workstring 		= (char *) malloc(STRING_LIMIT);	
-	holdstring		= (char *) malloc(STRING_LIMIT);
+	expression	= (char *) malloc(strlen(switchexpression) + 1);
+	holdstring = (char*)malloc(strlen(switchstmt) + 1);
 	
 	// Initialise Strings
 	strcpy(expression, switchexpression);
@@ -321,46 +346,64 @@ char * insertswitch(char switchstmt[], char switchexpression[])
 
 	if (count > 0)
 	{	
+
+		char* temp;
+		char* copy;
+		char* workstring = copystring(holdstring, 0, (strlen(holdstring) - strlen(strstr(holdstring, CASE_STRING)) - 1));
 		// Case statements found - process the case statements
-		caseptr = (char *) malloc(STRING_LIMIT);
-		strcpy(caseptr, strstr(holdstring, CASE_STRING));		
-		strcpy(workstring, copystring(holdstring, 0, (strlen(holdstring) - strlen(caseptr) - 1)));
 	
 		for (loopcounter = 1; loopcounter < count; loopcounter++)
 		{
-			
-			caseptr = (char *) malloc(STRING_LIMIT);
-			strcpy(caseptr, strstr(holdstring, CASE_STRING));				
-			commaptr =  (char *) malloc(STRING_LIMIT);
-			strcpy(commaptr, strstr(caseptr, COMMA_STRING));
-			strcat(workstring, copystring(caseptr, 0, (strlen(caseptr) - strlen(commaptr))));
-			strcat(workstring, expression);
-			strcat(workstring, "==");
+			char* caseptr = strstr(holdstring, CASE_STRING);
+			char* commaptr = strstr(caseptr, COMMA_STRING);
+			char* case_statement_substring = copystring(caseptr, 0, (strlen(caseptr) - strlen(commaptr)));
 
 			if(strstr(commaptr, CASE_STRING) != NULL)
 			{
-				second_caseptr = (char *) malloc(STRING_LIMIT);
-				strcpy(second_caseptr, strstr(commaptr, CASE_STRING));
-				strcat(workstring, copystring(commaptr, 1, (strlen(commaptr) - strlen(second_caseptr) - 2)));
-				strcpy(holdstring, "");
+				second_caseptr = strstr(commaptr, CASE_STRING);
+				temp = copystring(commaptr, 1, (strlen(commaptr) - strlen(second_caseptr) - 2));
 				strcpy(holdstring, second_caseptr);
 			}
+			else {
+				temp = (char*)malloc(1 + 1);
+				strcpy(temp, "");
+			}
+			copy = workstring;
+			workstring = (char*)malloc(strlen(copy) + strlen(case_statement_substring) + strlen(expression) + 2 + strlen(temp) + 1);
+			strcpy(workstring, copy);
+			strcat(workstring, case_statement_substring);
+			strcat(workstring, expression);
+			strcat(workstring, "==");
+			strcat(workstring, temp);
+
+			free(case_statement_substring);
+
+			free(temp);
+			free(copy);
 			
 		}	
 		// Process that last case statement
 		if (loopcounter == count)
 		{
-			caseptr = (char *) malloc(STRING_LIMIT);
-			strcpy(caseptr, strstr(holdstring, CASE_STRING));				
-			commaptr =  (char *) malloc(STRING_LIMIT);
-			strcpy(commaptr, strstr(caseptr, COMMA_STRING));
-			strcat(workstring, copystring(caseptr, 0, (strlen(caseptr) - strlen(commaptr))));
+			char* caseptr = strstr(holdstring, CASE_STRING);
+			char* commaptr = strstr(caseptr, COMMA_STRING);
+			char* case_statement_substring = copystring(caseptr, 0, (strlen(caseptr) - strlen(commaptr)));
+			temp = copystring(commaptr, 1, strlen(commaptr));
+			copy = workstring;
+			workstring = (char*)malloc(strlen(copy) + strlen(case_statement_substring) + strlen(expression) + 2 + strlen(temp) + 1);
+
+			strcpy(workstring, copy);
+			strcat(workstring, case_statement_substring);
 			strcat(workstring, expression);
 			strcat(workstring, "==");
-			strcat(workstring, copystring(commaptr, 1, strlen(commaptr)));		
+			strcat(workstring, temp);
+
+			free(case_statement_substring);
+			free(temp);
 		}
 		returnstring = (char*)malloc(strlen(workstring) + 1);
 		strcpy(returnstring, workstring);
+		free(workstring);
 	}
 	else
 	{	
@@ -369,6 +412,10 @@ char * insertswitch(char switchstmt[], char switchexpression[])
 		strcpy(returnstring, switchstmt);
 	}	
 	
+	free(expression);
+	
+	free(holdstring);
+
 	return returnstring;
 }
 
@@ -458,13 +505,15 @@ char* default_statement(char S3[])
 		a '[' and ']', this must be done in the functions defined in this header file.
 	*/
 
-	char * returnstr = (char*)malloc(STRING_LIMIT);				// return string of the function
+	char* returnstr = (char*)malloc(STRING_LIMIT);				// return string of the function
 	int lenstring = strlen(S3) - 1;	// length of S3 (default statements) less 1 for NULL char
 	
 	strcpy(returnstr, "\ndefault(");
 
 	// LINENUMBER	
-	strcat(returnstr, PopList(Default));	// LINKEDLISTS.H
+	char* line_number = PopList(Default); 	// LINKEDLISTS.H
+	strcat(returnstr, line_number);
+	free(line_number);
 	if (IsEmptyList(Default))				// LINKEDLISTS.H
 	{
 		DisposeList(Default);				// LINKEDLISTS.H
