@@ -19,7 +19,7 @@ function_handler(_, _, _, _, _).
 %%  Return_value: The returned value from the function
 function_handler(Function_info, Arguments, Return_value_normalised) :-
     function_info__get_body(Function_info, Body),
-    find_static_declarations(Body),
+    declare_static_variables(Body),
 
     function_info__get_clean_function(Function_info, _, Params, Body, Return_type),
     utils__assign_arguments_to_parameters(Arguments, Params),
@@ -86,29 +86,33 @@ handle(return, return(Return_value, Return_type)) :-
 
 %% Return statement with value to return
 %% Eg: return 5;
-handle(return(Expression), return(Return_value,Return_type)) :-
+handle(return(Expression), return(Return_value, Return_type)) :-
     utils__c_to_ptc_type(Return_type, Ptc_type),
     once evaluate_expression(Expression, Return_expression),
     ptc_solver__variable([Return_variable], Ptc_type),
 
-    % ptc_solver__integer_range(Return_variable, Min, Max),
-    % % Check if Return_expression is within range Min and Max
-    % ( Return_expression >= Min, Return_expression =< Max ->
-    %         true
-    %     ;
-    %         true
-    % ).
-
-
-    ptc_solver__sdl(eq_cast(Return_variable,Return_expression)),
+    %% Check if demotion (Downcasting) is required
+    ptc_solver__integer_range(Return_variable, Min, Max),
+    (Return_expression >= Min, Return_expression =< Max ->
+        Return = Return_expression
+    ;
+        utils__truncate(Return_expression, Min, Max, Return)
+    ),
+    ptc_solver__sdl(eq_cast(Return_variable, Return)),
     c_var__create(Return_type, Ptc_type, Return_variable, local, "__return__", Return_value),
-    writeln(Return_expression).
+    writeln(Return).
 
+%% Function call that is assigned to a variable
+%% Eg:
+%%  int x = give_five();
 handle(init_record(Variable, function_call(Function_name, Arguments)), _) :-
     maplist(evaluate_expression, Arguments, Arguments_result),
     function_handler(Function_name, Arguments_result, Return_value),
     utils__assignment(Variable, Return_value, _).
 
+%% Function call on it's own, without assigning the return value
+%% Eg:
+%%  give_five();
 handle(function_call(Function_name, Arguments), _) :-
     maplist(evaluate_expression, Arguments, Arguments_result),
     function_handler(Function_name, Arguments_result, _).
