@@ -3,9 +3,6 @@
 :- use_module(c_array).
 :- use_module(c_var).
 
-% %% Handles a stop condition for the recursive declaration/2 predicate
-% declaration(_, []).
-
 %% Declare an integer variable
 declaration(int, [C_variable], Assignment) :-
     declaration__get_variable_name(C_variable, C_name),
@@ -19,6 +16,14 @@ declaration(char, [C_variable], Assignment) :-
     declaration__get_variable_name(C_variable, C_name),
     ptc_solver__variable([In], char),
     c_var__create(char, char, In, local, C_name, C_variable),
+    !,
+    handle(Assignment, _).
+
+%% Declare a float variable
+declaration(float, [C_variable], Assignment) :-
+    declaration__get_variable_name(C_variable, C_name),
+    ptc_solver__variable([In], float),
+    c_var__create(float, float, In, local, C_name, C_variable),
     !,
     handle(Assignment, _).
 
