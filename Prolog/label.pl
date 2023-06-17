@@ -16,9 +16,9 @@ label_collectively(Parameters) :-
 %% Parameters:
 %%   - List of declaration predicates, as output by the parser
 %%   - Value assigned the result
-%% Eg: [declaration(integer,[x]), declaration(double,[a])] -> [[integer,[x]],[double,[a]]]
+%% Eg: [declaration(integer, [x], []), declaration(double,[a], [])] -> [[integer,[x]],[double,[a]]]
 label__group_by_ptc_type([], []) :- !.
-label__group_by_ptc_type([declaration(_Type, [Variable]) | More_declarations], Grouped_variables) :-
+label__group_by_ptc_type([declaration(_Type, [Variable], _) | More_declarations], Grouped_variables) :-
     label__group_by_ptc_type(More_declarations, Grouped_declarations),
     c_var__get_ptc_type(Variable, Type),
     c_var__get_in_var(Variable, In_var),
@@ -41,11 +41,15 @@ label([]) :- !.
 %% The parameter must be in the form [[Type,[Var1,Var2,...]]]
 %% Eg: [[integer,[x,y]],[double,[a,b]]]
 %% This structure is created by the predicate label__group_by_ptc_type
-label([label_variables(integer,Integers_to_label) | More_to_label]) :-
+label([label_variables(integer, Integers_to_label) | More_to_label]) :-
     ptc_solver__label_integers(Integers_to_label),
     label(More_to_label).
 
-label([label_variables(intpointer,Values_to_label) | More_to_label]) :-
+label([label_variables(float, Float_to_label) | More_to_label]) :-
+    ptc_solver__label_reals(Float_to_label),
+    label(More_to_label).
+
+label([label_variables(intpointer, Values_to_label) | More_to_label]) :-
     ( foreach(Value, Values_to_label), foreach(Array_inputs, Array_values) do
         ptc_solver__get_array_index_elements(Value, Indexs),
         utils__get_all_array_inputs(Indexs, Array_inputs)
@@ -53,7 +57,7 @@ label([label_variables(intpointer,Values_to_label) | More_to_label]) :-
     ptc_solver__label_integers(Array_values),
     label(More_to_label).
 
-label([label_variables(charpointer,Values_to_label) | More_to_label]) :-
+label([label_variables(charpointer, Values_to_label) | More_to_label]) :-
     ( foreach(Value, Values_to_label), foreach(Array_inputs, Array_values) do
         ptc_solver__get_array_index_elements(Value, Indexs),
         utils__get_all_array_inputs(Indexs, Array_inputs)
@@ -63,6 +67,10 @@ label([label_variables(charpointer,Values_to_label) | More_to_label]) :-
     % TODO:Handle generation of backslashes and single quotes, by escaping them
 
     label(More_to_label).
+
+
+
+
 
 % WIP below
 %% Escape backslash and single quote characters

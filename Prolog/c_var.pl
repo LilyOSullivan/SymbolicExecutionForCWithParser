@@ -1,5 +1,7 @@
 :- module(c_var).
 
+:- lib(ptc_solver).
+
 :- export c_var__create/6.
 :- export c_var__get_name/2.
 :- export c_var__get_in_var/2.
@@ -116,30 +118,40 @@ c_var__create_declaration(Variable, Declaration) :-
 c_var__create_declaration(Variable, int, Declaration) :-
     c_var__get_in_var(Variable, Ptc_in_var),
     c_var__get_name(Variable, Var_name),
-    c_var__get_scope(Variable, Scope),
-    (
-        Scope = global ->
-            (
-                sprintf(Declaration, "\t%s = %d;\n", [Var_name, Ptc_in_var])
-            )
-        ;
-            (
-                sprintf(Declaration, "\t%s %s = %d;\n", [int, Var_name, Ptc_in_var])
-            )
-    ).
+    create_declaration_based_on_scope(Variable, Var_name, int, Ptc_in_var, Declaration).
 
 c_var__create_declaration(Variable, char, Declaration) :-
     c_var__get_in_var(Variable, Ptc_in_var),
     char_code(Char, Ptc_in_var),
     c_var__get_name(Variable, Var_name),
+    create_declaration_based_on_scope(Variable, Var_name, char, Char, Declaration).
+
+c_var__create_declaration(Variable, float, Declaration) :-
+    c_var__get_in_var(Variable, Ptc_in_var),
+    ptc_solver__label_reals([Ptc_in_var], [Float_value]),
+    c_var__get_name(Variable, Var_name),
     c_var__get_scope(Variable, Scope),
     (
         Scope = global ->
             (
-                sprintf(Declaration, "\t%s = %d;\n", [Var_name, Char])
+                sprintf(Declaration, "\t%s = %f;\n", [Var_name, Float_value])
             )
         ;
             (
-                sprintf(Declaration, "\t%s %s = %d;\n", [char, Var_name, Char])
+                sprintf(Declaration, "\t%s %s = %f;\n", [float, Var_name, Float_value])
+            )
+    ).
+    % create_declaration_based_on_scope(Variable, Var_name, float, Ptc_in_var, Declaration).
+
+create_declaration_based_on_scope(Variable, Var_name, Type, Value, Declaration) :-
+    c_var__get_scope(Variable, Scope),
+    (
+        Scope = global ->
+            (
+                sprintf(Declaration, "\t%s = %d;\n", [Var_name, Value])
+            )
+        ;
+            (
+                sprintf(Declaration, "\t%s %s = %d;\n", [Type, Var_name, Value])
             )
     ).

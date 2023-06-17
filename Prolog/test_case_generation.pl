@@ -117,7 +117,7 @@ get_test_name(Test_name) :-
 %%  -> All_variable_names = "x,y"
 var_names_as_parameters([], Variable_name_accumulator, All_variable_names) :-
     utils__strip_right_comma(Variable_name_accumulator, All_variable_names).
-var_names_as_parameters([declaration(_, [Variable]) | More_variables], Variable_name_accumulator, All_variable_names) :-
+var_names_as_parameters([declaration(_, [Variable], []) | More_variables], Variable_name_accumulator, All_variable_names) :-
     c_var__is_variable(Variable),
     !,
     c_var__get_name(Variable, Var_name),
@@ -188,4 +188,6 @@ create_return(Return_value, char, Return_value_as_string) :-
         )
     ).
 create_return(Return_value, float, Return_value_as_string) :-
-    term_string(Return_value, Return_value_as_string).
+    ptc_solver__label_reals([Return_value], [Float_value]),
+    !,
+    term_string(Float_value, Return_value_as_string).
