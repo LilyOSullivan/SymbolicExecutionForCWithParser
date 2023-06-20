@@ -1,8 +1,6 @@
 :- lib(ptc_solver).
 :- lib(regex).
 
-% :- import atom_concat/3 from iso_light.
-
 % From Eileen's Code
 utils__get_all_array_inputs([], []).
 utils__get_all_array_inputs([(_, Value) | Rest], [Value | Rest2]) :-
@@ -126,10 +124,10 @@ util__error_if_false(Goal, Error_message) :-
             abort
     ).
 
-% Base case: If the number is zero, its binary representation is '0'.
+%% If the number is zero, its binary representation is '0'.
 utils__number_to_bin(0, '0') :- !.
 
-% Recursive case: Divide the integer by 2 and convert the rest to binary.
+%% Divide the integer by 2 and convert the rest to binary.
 utils__number_to_bin(N, Bin) :-
     N > 0,
     X is N mod 2,  % Get the remainder when N is divided by 2.
@@ -203,6 +201,16 @@ bit_length(Int, Bit_length) :-
     Bit_length is Temp_length + 1.
 
 
+util__get_breal_bounds(Breal, Min, Max) :-
+    get_float_bounds(Breal, Min_bound, Max_bound),
+    utils__round_real(Min_bound, 3 , Min),
+    utils__round_real(Max_bound, 3 , Max).
+
+utils__round_real(Number, Places, Result) :-
+    Multiplier is 10^Places,
+    Temp is Number * Multiplier,
+    TempRounded is round(Temp),
+    Result is TempRounded / Multiplier.
 
 
 

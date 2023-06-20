@@ -1,7 +1,6 @@
 :- use_module(c_array).
 :- use_module(c_var).
 
-
 %% Generate multiple test cases through failing backtrack
 write_test_case_all(Filename, Function_name, Params, Return_value, Return_type) :-
     write_test_case(Filename, Function_name, Params, Return_value, Return_type),
@@ -59,8 +58,23 @@ write_calls_to_test_cases([Test_case | More_test_cases], Add_to_suite_accumulato
 
 %% Creates the assert statement that performs unit-testing
 create_assert(Function_name, [void], Return_value, Return_type, Assert) :-
+    breal(Return_value),
+    sprintf(Function_call_return_value, "%a_return_value", [Function_name]),
+    sprintf(Call_function,"\t%a %s = %a();\n",[Return_type, Function_call_return_value, Function_name]),
+    util__get_breal_bounds(Return_value, Min, Max),
+    sprintf(Assert, "%s\tassert(%s >= %f && %s <= %f);\n", [Call_function, Function_call_return_value, Min, Function_call_return_value, Max]).
+create_assert(Function_name, [void], Return_value, Return_type, Assert) :-
     create_return(Return_value, Return_type, Return_value_as_string),
     sprintf(Assert, "\tassert(%s() == %s);\n", [Function_name, Return_value_as_string]).
+
+create_assert(Function_name, Params, Return_value, Return_type, Assert) :-
+    breal(Return_value),
+    var_names_as_parameters(Params, "", Var_names),
+    sprintf(Function_call_return_value, "%a_return_value", [Function_name]),
+    sprintf(Call_function, "\t%a %s = %a(%s);\n", [Return_type, Function_call_return_value, Function_name, Var_names]),
+    util__get_breal_bounds(Return_value, Min, Max),
+    sprintf(Assert, "%s\tassert(%s >= %f && %s <= %f);\n", [Call_function, Function_call_return_value, Min, Function_call_return_value, Max]).
+
 create_assert(Function_name, Params, Return_value, Return_type, Assert) :-
     create_return(Return_value, Return_type, Return_value_as_string),
     var_names_as_parameters(Params, "", Var_names),
@@ -111,7 +125,7 @@ get_test_name(Test_name) :-
 %% Variable_name_accumulator: The accumulator for the variable names, as a continuous string
 %% All_variable_names: The variable that will be instantiated with the final string
 %% Eg: var_names_as_parameters(
-%%      [declaration(int, [LC_x{"x"}]),declaration(int, [LC_y{"y"}])],
+%%      [declaration(int, [LC_x{"x"}], []),declaration(int, [LC_y{"y"}]), []],
 %%      "", All_variable_names
 %%     )
 %%  -> All_variable_names = "x,y"
@@ -133,7 +147,7 @@ var_names_as_parameters([declaration(_, [Variable], []) | More_variables], Varia
                 var_names_as_parameters(More_variables, Result, All_variable_names)
             )
     ).
-% var_names_as_parameters([declaration(_, [Variable]) | More_variables], Variable_name_accumulator, All_variable_names) :-
+% var_names_as_parameters([declaration(_, [Variable], []) | More_variables], Variable_name_accumulator, All_variable_names) :-
 %     c_array__is_array(Variable),
 %     !,
 %     c_array__get_name(Variable, Var_name),
@@ -145,23 +159,71 @@ var_names_as_parameters([declaration(_, [Variable], []) | More_variables], Varia
 %% Declaration_accumulator: The accumulator for the declarations, as a continuous string
 %% All_declarations: The variable that will be instantiated with the final string
 %% Eg: create_declaration_section(
-%%      [declaration(int, [LC_x{"x"}]), declaration(int, [LC_y{"y"}])], Declaration_section)
+%%      [declaration(int, [LC_x{"x"}], []), declaration(int, [LC_y{"y"}, []])], Declaration_section)
 %%  -> All_declarations = "int x = 5;\nint y = -2;\n"
 create_declaration_section(Declarations, Declaration_section) :-
     create_declaration_section(Declarations, "", All_declarations),
     concat_string(["\n", All_declarations, "\n"], Declaration_section).
 create_declaration_section([void], "").
+
 create_declaration_section([], Declaration_accumulator, Declaration_accumulator).
 create_declaration_section([declaration(_, [Variable], _) | More_variables], Declaration_accumulator, All_declarations) :-
-    c_var__create_declaration(Variable, Declaration),
+    create_declaration(Variable, Declaration),
     sprintf(Result, "%s%s", [Declaration_accumulator, Declaration]),
     create_declaration_section(More_variables, Result, All_declarations),
     !.
-% create_declaration_section([declaration(_, [Variable]) | More_variables], Declaration_accumulator, All_declarations) :-
-%     c_array__create_declaration(Variable, Declaration),
-%     sprintf(Result, "%s%s", [Declaration_accumulator, Declaration]),
-%     create_declaration_section(More_variables, Result, All_declarations),
-%     !.
+
+%% Creates a declaration in C for the c_var
+create_declaration(Variable, Declaration) :-
+    c_var__is_variable(Variable),
+    c_var__get_in_var(Variable, Ptc_in_var),
+    c_var__get_c_type(Variable, C_type),
+    determine_variable_value(Ptc_in_var, Variable_value, C_type),
+    c_var__get_name(Variable, Var_name),
+    c_var__get_scope(Variable, Scope),
+    generate_declaration(Scope, C_type, Var_name, Variable_value, Declaration).
+
+%% Create the appropriate value for the variable, based on its type
+determine_variable_value(Ptc_in_var, Variable_value, C_type) :-
+    (integer(Ptc_in_var) ->
+            (
+                (C_type = char ->
+                    char_code(Variable_value, Ptc_in_var)
+                ;
+                    Variable_value = Ptc_in_var
+                )
+            )
+        ;
+            (
+                (breal(Ptc_in_var) ->
+                    (
+                        ptc_solver__label_reals([Ptc_in_var], [Float_labelled]),
+                        utils__round_real(Float_labelled, 3, Variable_value)
+                    )
+                )
+            )
+    ).
+
+%% Generate the declaration string based on scope, type, variable name and value
+generate_declaration(Scope, C_type, Var_name, Value, Declaration) :-
+    (
+        float(Value) ->
+            (
+                Scope = global ->
+                    sprintf(Declaration, "\t%s = %f;\n", [Var_name, Value])
+                ;
+                    sprintf(Declaration, "\t%s %s = %f;\n", [C_type, Var_name, Value])
+            )
+            ;
+            (
+                Scope = global ->
+                    sprintf(Declaration, "\t%s = %d;\n", [Var_name, Value])
+                ;
+                    sprintf(Declaration, "\t%s %s = %d;\n", [C_type, Var_name, Value])
+            )
+    ).
+
+
 
 create_return(Return_value, int, Return_value_as_string) :-
     term_string(Return_value, Return_value_as_string).
@@ -187,7 +249,3 @@ create_return(Return_value, char, Return_value_as_string) :-
             term_string(Return_value, Return_value_as_string)
         )
     ).
-create_return(Return_value, float, Return_value_as_string) :-
-    ptc_solver__label_reals([Return_value], [Float_value]),
-    !,
-    term_string(Float_value, Return_value_as_string).
