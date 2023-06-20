@@ -238,6 +238,11 @@ create_return(Return_value, char, Return_value_as_string) :-
                     Return_value_as_string = "'\\''"
                 )
             ;
+            Return_value =:= 92 ->
+                (
+                    Return_value_as_string = "'\\\\'"
+                )
+            ;
                 (
                     string_codes(Value_as_string, [Return_value]),
                     concat_string(["'", Value_as_string, "'"], Return_value_as_string)
