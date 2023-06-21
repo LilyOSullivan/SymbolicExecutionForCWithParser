@@ -10,7 +10,6 @@
 :- export c_var__get_c_type/2.
 :- export c_var__get_ptc_type/2.
 :- export c_var__is_variable/1.
-:- export c_var__create_declaration/2.
 :- export c_var__get_scope/2.
 :- export c_var__set_scope/2.
 

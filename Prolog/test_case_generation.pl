@@ -26,7 +26,7 @@ write_test_case(Filename, Function_name, Params, Return_value, Return_type) :-
         )
     ),
     create_declaration_section(Params, Declaration_section),
-    create_assert(Function_name, Params, Return_value, Return_type, Assert),
+    once create_assert(Function_name, Params, Return_value, Return_type, Assert),
     get_test_name(Test_name),
     printf(testcase, "void %s(void) {\n%s%s}\n", [Test_name, Declaration_section, Assert]),
     write_main(Test_suite_name),
@@ -161,10 +161,10 @@ var_names_as_parameters([declaration(_, [Variable], []) | More_variables], Varia
 %% Eg: create_declaration_section(
 %%      [declaration(int, [LC_x{"x"}], []), declaration(int, [LC_y{"y"}, []])], Declaration_section)
 %%  -> All_declarations = "int x = 5;\nint y = -2;\n"
+create_declaration_section([void], "").
 create_declaration_section(Declarations, Declaration_section) :-
     create_declaration_section(Declarations, "", All_declarations),
     concat_string(["\n", All_declarations, "\n"], Declaration_section).
-create_declaration_section([void], "").
 
 create_declaration_section([], Declaration_accumulator, Declaration_accumulator).
 create_declaration_section([declaration(_, [Variable], _) | More_variables], Declaration_accumulator, All_declarations) :-
@@ -224,7 +224,8 @@ generate_declaration(Scope, C_type, Var_name, Value, Declaration) :-
     ).
 
 
-
+create_return(Return_value, float, Return_value_as_string) :-
+    term_string(Return_value, Return_value_as_string).
 create_return(Return_value, int, Return_value_as_string) :-
     term_string(Return_value, Return_value_as_string).
 create_return(Return_value, char, Return_value_as_string) :-

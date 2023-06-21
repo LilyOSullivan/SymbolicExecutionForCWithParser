@@ -100,7 +100,7 @@ handle(return(Expression), return(Return_value, Return_type)) :-
     ),
     ptc_solver__sdl(eq_cast(Return_variable, Return)),
     c_var__create(Return_type, Ptc_type, Return_variable, local, "__return__", Return_value),
-    writeln(Return).
+    writeln(Return_variable).
 
 %% Function call that is assigned to a variable
 %% Eg:

@@ -1,6 +1,8 @@
 :- lib(ptc_solver).
 :- lib(regex).
 
+:- lib(ic).
+
 % From Eileen's Code
 utils__get_all_array_inputs([], []).
 utils__get_all_array_inputs([(_, Value) | Rest], [Value | Rest2]) :-
