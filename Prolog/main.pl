@@ -58,6 +58,7 @@ main(Filename_without_extension, Function_name, Path_to_C_file, Override_globals
     ptc_solver__default_declarations,
     ptc_solver__type(char, integer, range_bounds(-128, 127)),
     ptc_solver__type(boolean_int, integer, range_bounds(0, 1)),
+    ptc_solver__subtype(int, integer),
     % 33-126 are the printable ASCII characters
     % https://www.ascii-code.com
     concat_string([Path_to_C_file, "/", Filename_without_extension, ".pl"], Prolog_file),

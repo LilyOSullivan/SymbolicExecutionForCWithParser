@@ -147,12 +147,6 @@ var_names_as_parameters([declaration(_, [Variable], []) | More_variables], Varia
                 var_names_as_parameters(More_variables, Result, All_variable_names)
             )
     ).
-% var_names_as_parameters([declaration(_, [Variable], []) | More_variables], Variable_name_accumulator, All_variable_names) :-
-%     c_array__is_array(Variable),
-%     !,
-%     c_array__get_name(Variable, Var_name),
-%     sprintf(Result, "%s%s,", [Variable_name_accumulator, Var_name]),
-%     var_names_as_parameters(More_variables, Result, All_variable_names).
 
 %% Creates a declaration, and assignment, section for variables used in the test cases
 %% Params: The list of parameters
@@ -223,35 +217,42 @@ generate_declaration(Scope, C_type, Var_name, Value, Declaration) :-
             )
     ).
 
+create_return(Return_value, Type, Return_value_as_string) :-
+    integer(Return_value),
 
-create_return(Return_value, float, Return_value_as_string) :-
-    term_string(Return_value, Return_value_as_string).
-create_return(Return_value, int, Return_value_as_string) :-
-    term_string(Return_value, Return_value_as_string).
-create_return(Return_value, char, Return_value_as_string) :-
-    %% Check if Return_value is within the printable ASCII range
-    %% https://www.ascii-code.com/characters/printable-characters
-    (Return_value >= 32, Return_value =< 126 ->
-        (
-            %% Check if Return_value is a single quote
-            (Return_value =:= 39 ->
-                (
-                    Return_value_as_string = "'\\''"
+    (Type = char ->
+        %% Check if Return_value is within the printable ASCII range
+        %% https://www.ascii-code.com/characters/printable-characters
+        (Return_value >= 32, Return_value =< 126 ->
+            (
+                %% Check if Return_value is a single quote
+                (Return_value =:= 39 ->
+                    (
+                        Return_value_as_string = "'\\''"
+                    )
+                ;
+                Return_value =:= 92 ->
+                    (
+                        Return_value_as_string = "'\\\\'"
+                    )
+                ;
+                    (
+                        string_codes(Value_as_string, [Return_value]),
+                        concat_string(["'", Value_as_string, "'"], Return_value_as_string)
+                    )
                 )
-            ;
-            Return_value =:= 92 ->
-                (
-                    Return_value_as_string = "'\\\\'"
-                )
-            ;
-                (
-                    string_codes(Value_as_string, [Return_value]),
-                    concat_string(["'", Value_as_string, "'"], Return_value_as_string)
-                )
+            )
+        ;
+            (
+                term_string(Return_value, Return_value_as_string)
             )
         )
     ;
-        (
-            term_string(Return_value, Return_value_as_string)
-        )
-    ).
+        term_string(Return_value, Return_value_as_string)
+    ),
+    !.
+
+create_return(Return_value, _Type, Return_value_as_string) :-
+    float(Return_value),
+    term_string(Return_value, Return_value_as_string),
+    !.

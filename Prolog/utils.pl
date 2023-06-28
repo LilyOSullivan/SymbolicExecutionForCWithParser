@@ -137,14 +137,6 @@ utils__number_to_bin(N, Bin) :-
     utils__number_to_bin(Y, Bin1),
     atom_concat(Bin1, X, Bin).
 
-%% Convert a c-type to a ptc-type
-utils__c_to_ptc_type(int, integer) :- !.
-utils__c_to_ptc_type(Type, Type) :- !.
-
-
-
-
-
 %% Truncate a whole number by its binary digits to fit an integer range.
 %% Parameters:
 %%  Number_to_truncate - the value to be truncated
@@ -160,6 +152,8 @@ utils__c_to_ptc_type(Type, Type) :- !.
 utils__truncate(Number_to_truncate, Min_bound, Max_bound, Result) :-
     integer(Min_bound),
     integer(Max_bound),
+    integer(Number_to_truncate),
+
     Min_bound =< Max_bound,
 
     %% Calculate the range size, and adjust the range size for bit_length calculation
@@ -204,7 +198,7 @@ bit_length(Int, Bit_length) :-
 
 
 util__get_breal_bounds(Breal, Min, Max) :-
-    get_float_bounds(Breal, Min_bound, Max_bound),
+    get_float_bounds(Breal, Min_bound, Max_bound), % from: lib(ic)
     utils__round_real(Min_bound, 3 , Min),
     utils__round_real(Max_bound, 3 , Max).
 
