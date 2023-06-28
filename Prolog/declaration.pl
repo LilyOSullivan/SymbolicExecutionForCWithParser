@@ -5,7 +5,7 @@
 declaration(Type, [C_variable], Assignment) :-
     declaration__get_variable_name(C_variable, C_name),
     ptc_solver__variable([In], Type),
-    c_var__create(Type, Type, In, local, C_name, C_variable),
+    c_var__create(Type, In, local, C_name, C_variable),
     handle(Assignment, _),
     !.
 

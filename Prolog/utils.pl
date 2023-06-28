@@ -89,8 +89,8 @@ utils__join([String | More_strings], Separator, Result) :-
 %%  Assigned_value: The value assigned that has been assigned
 %% Eg: utils__assignment(Assign_to{"x"}, 5, Result) -> Result = 5
 utils__assignment(Assign_to, Value, Assigned_value) :-
-    c_var__get_ptc_type(Assign_to, Ptc_type),
-    ptc_solver__variable([Assigned_value], Ptc_type),
+    c_var__get_type(Assign_to, Type),
+    ptc_solver__variable([Assigned_value], Type),
     (c_var__is_variable(Value) ->
         (
             c_var__get_out_var(Value,Value_to_assign)
@@ -182,6 +182,21 @@ utils__truncate(Number_to_truncate, Min_bound, Max_bound, Result) :-
 
     Result >= Min_bound,
     Result =< Max_bound.
+
+% utils__truncate(Number_to_truncate, Min_bound, Max_bound, Result) :-
+%     % Ensure that Min_bound is less than or equal to Max_bound
+%     Min_bound =< Max_bound,
+
+%     % Calculate the size of the range
+%     Range_size is Max_bound - Min_bound,
+
+%     % Calculate the fractional part of Number_to_truncate (i.e., the part after the decimal point)
+%     Frac is abs(Number_to_truncate - floor(Number_to_truncate)),
+
+%     % Scale the fractional part to the size of the range, and add it to the minimum bound
+%     % The is/2 predicate is used to evaluate arithmetic expressions
+%     Result is Min_bound + Frac * Range_size.
+
 
 % bit_length/2 predicate, to calculate the number of bits necessary to represent a non-negative integer in binary
 % Int - the integer that you want to represent in binary

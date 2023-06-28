@@ -2,13 +2,12 @@
 
 :- lib(ptc_solver).
 
-:- export c_var__create/6.
+:- export c_var__create/5.
 :- export c_var__get_name/2.
 :- export c_var__get_in_var/2.
 :- export c_var__get_out_var/2.
 :- export c_var__set_out_var/2.
-:- export c_var__get_c_type/2.
-:- export c_var__get_ptc_type/2.
+:- export c_var__get_type/2.
 :- export c_var__is_variable/1.
 :- export c_var__get_scope/2.
 :- export c_var__set_scope/2.
@@ -25,7 +24,7 @@
 %%      c_source_variable_name: The variable name in the C-source-code
 %%
 %% c_var structure:
-%%  c_var{c_type,ptc_type,in,out,c_source_variable_name}
+%%  c_var{type, in, out, scope, c_source_variable_name}
 
 
 %% Declare c_var as an attributed variable
@@ -55,55 +54,50 @@ unify_c_var_c_var(_Y, _AttrX, AttrY) :-
 
 %% Used internally by ECLiPSe for printing a c_var
 %% Additionally controls how the debugger displays the value
-print_c_var(_{cvar(_CType,_PTCType,_Variable_scope , _In, _Out, Name)}, Print_value) :-
+print_c_var(_{cvar(_Type, _Variable_scope , _In, _Out, Name)}, Print_value) :-
     -?->
         Print_value = cvar(Name).
 
 %% Constructor for a c_var
-c_var__create(C_type, Ptc_type, Ptc_variable_in, Variable_scope, Var_name, C_var_instantiated) :-
-    add_attribute(C_var_instantiated, cvar(C_type, Ptc_type, Ptc_variable_in, Ptc_variable_in, Variable_scope, Var_name)).
+c_var__create(Type, Ptc_variable_in, Variable_scope, Var_name, C_var_instantiated) :-
+    add_attribute(C_var_instantiated, cvar(Type, Ptc_variable_in, Ptc_variable_in, Variable_scope, Var_name)).
 
-%% Returns the c-type of the c_var
-c_var__get_c_type(_Var{C_var}, C_type) :-
+%% Returns the type of the c_var
+c_var__get_type(_Var{C_var}, Type) :-
     -?->
-        C_var = cvar(C_type, _, _, _, _, _).
-
-%% Returns ptc type of the c_var
-c_var__get_ptc_type(_Var{C_var}, Ptc_type) :-
-    -?->
-        C_var = cvar(_, Ptc_type, _, _, _, _).
+        C_var = cvar(Type, _, _, _, _).
 
 %% Returns the name in the source code of the c_var
 c_var__get_name(_Var{C_var}, Name) :-
     -?->
-        C_var = cvar(_, _, _, _, _, Name).
+        C_var = cvar(_, _, _, _, Name).
 
 %% Returns the in-value of the c_var
 c_var__get_in_var(_Var{C_var}, In_var) :-
     -?->
-        C_var = cvar(_, _, In_var, _, _, _).
+        C_var = cvar(_, In_var, _, _, _).
 
 %% Returns the out-value of the c_var
 c_var__get_out_var(_Var{C_var}, Out_var) :-
     -?->
-        C_var = cvar(_, _, _, Out_var, _, _).
+        C_var = cvar(_, _, Out_var, _, _).
 
 %% Sets the out-value of the c_var
 c_var__set_out_var(_Var{C_var}, New_out_variable) :-
     -?->
-        setarg(4, C_var, New_out_variable).
+        setarg(3, C_var, New_out_variable).
 
 c_var__get_scope(_Var{C_var}, Scope) :-
     -?->
-        C_var = cvar(_, _, _, _, Scope, _).
+        C_var = cvar(_, _, _, Scope, _).
 
 c_var__set_scope(_Var{C_var}, New_scope) :-
     -?->
-        setarg(5, C_var, New_scope).
+        setarg(4, C_var, New_scope).
 
 %% Passes if the variable is a c_var
 %% Fails otherwise
 c_var__is_variable(_Var{C_var}) :-
     -?->
-        C_var = cvar(_, _, _, _, _, Name),
+        C_var = cvar(_, _, _, _, Name),
         nonvar(Name).

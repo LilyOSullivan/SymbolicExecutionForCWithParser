@@ -171,17 +171,17 @@ create_declaration_section([declaration(_, [Variable], _) | More_variables], Dec
 create_declaration(Variable, Declaration) :-
     c_var__is_variable(Variable),
     c_var__get_in_var(Variable, Ptc_in_var),
-    c_var__get_c_type(Variable, C_type),
-    determine_variable_value(Ptc_in_var, Variable_value, C_type),
+    c_var__get_type(Variable, Type),
+    determine_variable_value(Ptc_in_var, Variable_value, Type),
     c_var__get_name(Variable, Var_name),
     c_var__get_scope(Variable, Scope),
-    generate_declaration(Scope, C_type, Var_name, Variable_value, Declaration).
+    generate_declaration(Scope, Type, Var_name, Variable_value, Declaration).
 
 %% Create the appropriate value for the variable, based on its type
-determine_variable_value(Ptc_in_var, Variable_value, C_type) :-
+determine_variable_value(Ptc_in_var, Variable_value, Type) :-
     (integer(Ptc_in_var) ->
             (
-                (C_type = char ->
+                (Type = char ->
                     char_code(Variable_value, Ptc_in_var)
                 ;
                     Variable_value = Ptc_in_var
@@ -199,21 +199,21 @@ determine_variable_value(Ptc_in_var, Variable_value, C_type) :-
     ).
 
 %% Generate the declaration string based on scope, type, variable name and value
-generate_declaration(Scope, C_type, Var_name, Value, Declaration) :-
+generate_declaration(Scope, Type, Var_name, Value, Declaration) :-
     (
         float(Value) ->
             (
                 Scope = global ->
                     sprintf(Declaration, "\t%s = %f;\n", [Var_name, Value])
                 ;
-                    sprintf(Declaration, "\t%s %s = %f;\n", [C_type, Var_name, Value])
+                    sprintf(Declaration, "\t%s %s = %f;\n", [Type, Var_name, Value])
             )
             ;
             (
                 Scope = global ->
                     sprintf(Declaration, "\t%s = %d;\n", [Var_name, Value])
                 ;
-                    sprintf(Declaration, "\t%s %s = %d;\n", [C_type, Var_name, Value])
+                    sprintf(Declaration, "\t%s %s = %d;\n", [Type, Var_name, Value])
             )
     ).
 

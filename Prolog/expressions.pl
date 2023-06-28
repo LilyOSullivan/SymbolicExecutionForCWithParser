@@ -127,8 +127,8 @@ evaluate_expression(Left/Right, Left_result/Right_result) :-
 evaluate_expression(post_increment(Assign_to, Increment_operation), Expression_result) :-
     evaluate_expression(Assign_to, Expression_result),
     evaluate_expression(Increment_operation, Increment_operation_result),
-    c_var__get_ptc_type(Assign_to, Ptc_type),
-    ptc_solver__variable([Temp], Ptc_type),
+    c_var__get_type(Assign_to, Type),
+    ptc_solver__variable([Temp], Type),
     ptc_solver__sdl(Temp = Increment_operation_result),
     c_var__set_out_var(Assign_to, Temp).
 
@@ -136,8 +136,8 @@ evaluate_expression(post_increment(Assign_to, Increment_operation), Expression_r
 %% Eg: ++x
 evaluate_expression(pre_increment(Assign_to, Increment_operation), Expression_result) :-
     evaluate_expression(Increment_operation, Increment_operation_result),
-    c_var__get_ptc_type(Assign_to, Ptc_type),
-    ptc_solver__variable([Expression_result], Ptc_type),
+    c_var__get_type(Assign_to, Type),
+    ptc_solver__variable([Expression_result], Type),
     ptc_solver__sdl(Expression_result = Increment_operation_result),
     c_var__set_out_var(Assign_to, Expression_result).
 
@@ -157,11 +157,20 @@ evaluate_expression(pre_decrement(Assign_to, Decrement_operation), Expression_re
 evaluate_expression(-Expression, -Expression_result) :-
     evaluate_expression(Expression, Expression_result).
 
+% assignment(rec(LC_p1_6, age) , 5)
+evaluate_expression(assignment(rec(Assign_to, Field), Expression), Expression_result) :-
+    evaluate_expression(Expression, Right_result),
+    c_var__get_out_var(Assign_to, Out_var),
+    ptc_solver__sdl(up_rec(Out_var, Field, Right_result)),
+    Expression_result = Right_result,
+    !.
+
 %% Assignment operator (=)
 %% Eg: x = 2
 evaluate_expression(assignment(Assign_to, Expression), Expression_result) :-
     evaluate_expression(Expression, Right_result),
-    utils__assignment(Assign_to,Right_result, Expression_result).
+    utils__assignment(Assign_to, Right_result, Expression_result),
+    !.
 
 %% Handle the += operator
 %%  Breakdown: Variable += Expression
