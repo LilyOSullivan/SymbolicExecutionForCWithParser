@@ -41,7 +41,7 @@ label([]) :- !.
 %% The parameter must be in the form [[Type,[Var1,Var2,...]]]
 %% Eg: [[integer,[x,y]],[double,[a,b]]]
 %% This structure is created by the predicate label__group_by_ptc_type
-label([label_variables(integer, Integers_to_label) | More_to_label]) :-
+label([label_variables(int, Integers_to_label) | More_to_label]) :-
     ptc_solver__label_integers(Integers_to_label),
     label(More_to_label).
 

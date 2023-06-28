@@ -2,6 +2,8 @@
 :- ['label'].
 :- ['test_case_generation'].
 
+:- lib(ic).
+
 %% The entrypoint to function analysis
 function_handler(Filename, Function_name, Body, Params, Return_type) :-
     parameter_handler(Params),
@@ -21,9 +23,9 @@ function_handler(Function_info, Arguments, Return_value_normalised) :-
     function_info__get_body(Function_info, Body),
     declare_static_variables(Body),
 
-    function_info__get_clean_function(Function_info, _, Params, Body, Return_type),
+    function_info__get_clean_function(Function_info, _, Params, Clean_body, Return_type),
     utils__assign_arguments_to_parameters(Arguments, Params),
-    handle(Body, return(Return_value, Return_type)),
+    handle(Clean_body, return(Return_value, Return_type)),
     c_var__get_out_var(Return_value, Return_value_normalised).
 
 %% Declare all parameters as variables
@@ -87,19 +89,20 @@ handle(return, return(Return_value, Return_type)) :-
 %% Return statement with value to return
 %% Eg: return 5;
 handle(return(Expression), return(Return_value, Return_type)) :-
-    utils__c_to_ptc_type(Return_type, Ptc_type),
     once evaluate_expression(Expression, Return_expression),
-    ptc_solver__variable([Return_variable], Ptc_type),
+    ptc_solver__variable([Return_variable], Return_type),
 
     %% Check if demotion (Downcasting) is required
     ptc_solver__integer_range(Return_variable, Min, Max),
-    (Return_expression >= Min, Return_expression =< Max ->
+    (ptc_solver__sdl(Return_expression >= Min),
+     ptc_solver__sdl(Return_expression <= Max)
+     ->
         Return = Return_expression
     ;
         utils__truncate(Return_expression, Min, Max, Return)
     ),
     ptc_solver__sdl(eq_cast(Return_variable, Return)),
-    c_var__create(Return_type, Ptc_type, Return_variable, local, "__return__", Return_value),
+    c_var__create(Return_type, Return_type, Return_variable, local, "__return__", Return_value),
     writeln(Return_variable).
 
 %% Function call that is assigned to a variable
@@ -122,9 +125,7 @@ handle(function_call(Function_name, Arguments), _) :-
 %% int x = 5; // Declaration (int x;) and Assignment (x = 5;)
 %% This becomes a declaration, handled above, and an assignment below
 handle(assignment(Assign_to, Expression), _) :-
-    evaluate_expression(Expression, Evaluated_expression),
-    !,
-    utils__assignment(Assign_to,Evaluated_expression, _).
+    evaluate_expression(assignment(Assign_to, Expression), _).
 
 %% This is incase of unnecessary semicolons
 %% Eg:
@@ -140,6 +141,13 @@ handle(null, _).
 %%  2+(x=3);
 handle(expression_statement(Expression), _) :-
     evaluate_expression(Expression, _).
+
+
+handle(record_declaration_type(_Type, Type_name, Fields), _) :-
+    ptc_solver__type(Type_name, record, Fields).
+
+handle(record_declaration_nofields(_ , Type_name, [LC_p1_6]), _) :-
+    declaration(Type_name, [LC_p1_6], []).
 
 % handle(assignment(int(Z), extern(f(X), Library_hName)), _) :-
 %     ptc_solver__variable([X], integer),

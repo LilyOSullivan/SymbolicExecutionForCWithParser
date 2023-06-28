@@ -88,6 +88,7 @@ main(Filename_without_extension, Function_name, Path_to_C_file, Override_globals
 
     util__error_if_false(Return_type \= void, "No unit tests to generate for a void-returning function"),
     setup_test_driver(Function_name, Path_to_C_file),
+    declare_static_variables(Body),
     function_handler(Filename_without_extension, Function_name, Body, Params, Return_type). % From Statement_handler.pl
 
 %% Setup for the test-driver

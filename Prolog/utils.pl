@@ -23,7 +23,7 @@ is_static_undeclared(declaration(Functor, [Variable], _)) :-
     not c_var__is_variable(Variable).
 
 declare_static_variables([]).
-declare_static_variables([H|T]) :-
+declare_static_variables([H | T]) :-
     ( is_static_undeclared(H) ->
         declaration(Type, [Variable], Assignment) = H,
         % Strip "static_" from the start of the 'Type' string
@@ -109,8 +109,8 @@ utils__assignment(Assign_to, Value, Assigned_value) :-
 %%  Parameters: The parameters to be assigned to
 utils__assign_arguments_to_parameters([], []) :- !.
 utils__assign_arguments_to_parameters([], [void]) :- !.
-utils__assign_arguments_to_parameters([Argument | More_arguments], [declaration(Type, Parameters) | More_parameters]) :-
-    declaration(Type, Parameters), % Calls declaration.pl
+utils__assign_arguments_to_parameters([Argument | More_arguments], [declaration(Type, Parameters, Assignment) | More_parameters]) :-
+    declaration(Type, Parameters, Assignment), % Calls declaration.pl
     Parameters = [Parameter | _],
     utils__assignment(Parameter, Argument, _),
     utils__assign_arguments_to_parameters(More_arguments, More_parameters).
