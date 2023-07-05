@@ -5,9 +5,7 @@
 declaration(Type, [C_variable], Assignment) :-
     declaration__get_variable_name(C_variable, C_name),
     ptc_solver__variable([In], Type),
-    get_free_address(Memory_model_address),
-    c_var__create(Type, In, local, C_name, Memory_model_address, C_variable),
-    add_to_memory(C_variable),
+    c_var__create(Type, In, local, C_name, C_variable),
     handle(Assignment, _),
     !.
 
