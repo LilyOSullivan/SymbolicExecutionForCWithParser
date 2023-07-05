@@ -64,7 +64,7 @@ handle(declaration(Type, Vars, Assignment), _) :-
         is_static_declared(declaration(Type, Vars, Assignment)) ->
             % This is already declared at function call-time
             true
-        ;
+    ;
         declaration(Type, Vars, Assignment) % This calls declaration predicates in declaration.pl
     ).
 
@@ -83,7 +83,7 @@ handle(if_statement(_Line_Number, expression(Expression), If_body, Else_body), R
 %% Empty return statement
 %% Eg: return;
 handle(return, return(Return_value, Return_type)) :-
-    c_var__create(Return_type, void, local, "__return__", Return_value),
+    c_var__create(Return_type, void, local, "__return__", _, Return_value),
     writeln("Void Return").
 
 %% Return statement with value to return
@@ -102,7 +102,7 @@ handle(return(Expression), return(Return_value, Return_type)) :-
         utils__truncate(Return_expression, Min, Max, Return)
     ),
     ptc_solver__sdl(eq_cast(Return_variable, Return)),
-    c_var__create(Return_type, Return_variable, local, "__return__", Return_value),
+    c_var__create(Return_type, Return_variable, local, "__return__", _, Return_value),
     writeln(Return_variable).
 
 %% Function call that is assigned to a variable

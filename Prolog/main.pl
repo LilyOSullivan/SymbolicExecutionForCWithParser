@@ -3,6 +3,7 @@
 :- use_module(c_var).
 :- use_module(function_info).
 
+:- ['memory_model'].
 :- ['declaration'].
 :- ['expressions'].
 :- ['statement_handler'].
@@ -16,6 +17,7 @@
 :- import atom_codes/2 from iso_light.
 
 %% Global values:
+%%  test_folder_path: The path to the folder where the test-cases are generated
 %%  test_id (Number, value:1): This is an Id used to identify test cases generated
 %%  tests (List, value:[]): This list holds the names of the generated test cases
 %%      Eg: ["test_1", "test_2", "test_3"...]
@@ -59,8 +61,7 @@ main(Filename_without_extension, Function_name, Path_to_C_file, Override_globals
     ptc_solver__type(char, integer, range_bounds(-128, 127)),
     ptc_solver__type(boolean_int, integer, range_bounds(0, 1)),
     ptc_solver__subtype(int, integer),
-    % 33-126 are the printable ASCII characters
-    % https://www.ascii-code.com
+    ptc_solver__subtype(intpointer, integer),
     concat_string([Path_to_C_file, "/", Filename_without_extension, ".pl"], Prolog_file),
     read_prolog_file(Prolog_file, Terms),
 
@@ -112,7 +113,11 @@ setup_test_driver(Function_name,Path_to_C_file) :-
 
     % A list holding the names of test cases in the form ["test_1","test_2"...] used in test_generation.pl
     % when generating the '_main' cunit .c file
-    setval(tests, []).
+    setval(tests, []),
+
+    % A value holding the next free address in the memory model. Used in memory_model.pl
+    setval(free_address, 1000),
+    create_memory_model.
 
 %% Reads the parser-result prolog file, and returns its' contents
 %% This is used in place of the compile predicate. The compile predicate

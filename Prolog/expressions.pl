@@ -222,6 +222,14 @@ evaluate_expression(post_decrement(Assign_to, Expression), Expression_result) :-
 evaluate_expression(pre_decrement(Assign_to, Expression), Expression_result) :-
     evaluate_expression(assignment(Assign_to, Expression), Expression_result).
 
+evaluate_expression(address_of(Variable), Expression_result) :-
+    c_var__get_address(Variable, Expression_result).
+
+evaluate_expression(dereference(Expression), Expression_result) :-
+    evaluate_expression(Expression, Address),
+    get_from_memory(Address, Content_at_address),
+    evaluate_expression(Content_at_address, Expression_result). % Should this be evaluated?
+
 %% Function call as expression
 %% Eg: int x = 2+give_five();
 evaluate_expression(function_call(Function_info, Arguments), Expression_result) :-
