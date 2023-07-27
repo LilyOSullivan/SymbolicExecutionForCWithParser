@@ -16,11 +16,15 @@
 %$ Used in regression_main/1 to convert an atom to a string
 :- import atom_codes/2 from iso_light.
 
-%% Global values:
-%%  test_folder_path: The path to the folder where the test-cases are generated
+%% Prolog Global values (getval/2, setval/2):
+%%  test_folder_path (String): The path to the folder where the test-cases are generated
 %%  test_id (Number, value:1): This is an Id used to identify test cases generated
 %%  tests (List, value:[]): This list holds the names of the generated test cases
 %%      Eg: ["test_1", "test_2", "test_3"...]
+%%  free_address (Number, value: 1000): This is the address of the next free memory location in the memory model
+
+%% Prolog Global References (getref/2, setref/2):
+%%  memory_model (hash, key: integer(getval(free_address)), value: c_var): Global memory model (In the form of a hash table)
 
 %% A shortcut predicate to main/3 outputting to the Prolog directory
 %% Useful for development. This is not called in code,
@@ -56,12 +60,8 @@ main(Filename_without_extension, Function_name, Path_to_C_file, Override_globals
     util__error_if_false(string(Path_to_C_file), "Path to C file must be a string"),
     util__error_if_false(get_file_info(Path_to_C_file, type, directory), "Path to C file is not a valid directory-path"),
     util__error_if_false(is_boolean(Override_globals), "Override globals option must be a boolean"),
-    ptc_solver__clean_up,
-    ptc_solver__default_declarations,
-    ptc_solver__type(char, integer, range_bounds(-128, 127)),
-    ptc_solver__type(boolean_int, integer, range_bounds(0, 1)),
-    ptc_solver__subtype(int, integer),
-    ptc_solver__subtype(intpointer, integer),
+    setup_test_driver(Function_name, Path_to_C_file),
+    setup_ptc_solver,
     concat_string([Path_to_C_file, "/", Filename_without_extension, ".pl"], Prolog_file),
     read_prolog_file(Prolog_file, Terms),
 
@@ -88,7 +88,6 @@ main(Filename_without_extension, Function_name, Path_to_C_file, Override_globals
     ),
 
     util__error_if_false(Return_type \= void, "No unit tests to generate for a void-returning function"),
-    setup_test_driver(Function_name, Path_to_C_file),
     declare_static_variables(Body),
     function_handler(Filename_without_extension, Function_name, Body, Params, Return_type). % From Statement_handler.pl
 
@@ -98,9 +97,9 @@ main(Filename_without_extension, Function_name, Path_to_C_file, Override_globals
 %%                 Eg: get_sign
 %%  Path_to_C_file: The folder-path to the C file to be symbolically executed.
 setup_test_driver(Function_name,Path_to_C_file) :-
-    get_flag(unix_time, Unix_time),
     % Format: 24Hours_Minutes_Seconds__days_months_year
     % Eg: 14_34_18__03_02_23
+    get_flag(unix_time, Unix_time),
     local_time_string(Unix_time,"%H_%M_%S__%d_%m_%y", Current_date_as_string),
     concat_string([Function_name, "_tests_", Current_date_as_string], Folder_name),
     concat_string([Path_to_C_file, "/", Folder_name, "/"], Path_to_test_directory),
@@ -117,7 +116,7 @@ setup_test_driver(Function_name,Path_to_C_file) :-
 
     % A value holding the next free address in the memory model. Used in memory_model.pl
     setval(free_address, 1000),
-    create_memory_model.
+    initialise_memory_model.
 
 %% Reads the parser-result prolog file, and returns its' contents
 %% This is used in place of the compile predicate. The compile predicate
@@ -200,3 +199,10 @@ declare_functions([_ | More_terms]) :-
 
 is_boolean(true).
 is_boolean(false).
+
+setup_ptc_solver :-
+    ptc_solver__clean_up,
+    ptc_solver__default_declarations,
+    ptc_solver__type(char, integer, range_bounds(-128, 127)),
+    ptc_solver__type(boolean_int, integer, range_bounds(0, 1)),
+    ptc_solver__subtype(int, integer).

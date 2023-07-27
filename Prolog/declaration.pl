@@ -2,12 +2,35 @@
 
 :- use_module(c_var).
 
+:- import sub_atom/5 from iso_light.
+:- import atom_length/2 from iso_light.
+
 declaration(Type, [C_variable], Assignment) :-
     declaration__get_variable_name(C_variable, C_name),
-    ptc_solver__variable([In], Type),
     get_free_address(Memory_model_address),
-    c_var__create(Type, In, local, C_name, Memory_model_address, C_variable),
-    add_to_memory(C_variable),
+
+    % Check if the type-atom ends with 'pointer'
+    (
+        sub_atom(Type, After, _, _, 'pointer') ->
+            (
+                % Count the number of 'pointer' occurrences in the type-atom
+                % sub_atom(Type, After, _, _, Sub_atom), % sub_atom(Type, 0, After, _, Sub_atom),
+
+                % atom_length(Sub_atom, Length),
+                % Number_of_pointers is Length / 7,
+
+                ptc_solver__subtype(Type, integer),
+                ptc_solver__variable([In], Type),
+                c_var__create(Type, In, local, C_name, Memory_model_address, C_variable),
+                add_pointer_to_memory_model(C_variable)
+            )
+        ;
+            (
+                ptc_solver__variable([In], Type),
+                c_var__create(Type, In, local, C_name, Memory_model_address, C_variable),
+                add_variable_to_memory_model(C_variable)
+            )
+    ),
     handle(Assignment, _),
     !.
 
