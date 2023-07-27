@@ -1,8 +1,6 @@
 :- lib(ptc_solver).
 :- lib(regex).
 
-:- lib(ic).
-
 % From Eileen's Code
 utils__get_all_array_inputs([], []).
 utils__get_all_array_inputs([(_, Value) | Rest], [Value | Rest2]) :-
@@ -23,9 +21,9 @@ is_static_undeclared(declaration(Functor, [Variable], _)) :-
     not c_var__is_variable(Variable).
 
 declare_static_variables([]).
-declare_static_variables([H | T]) :-
-    ( is_static_undeclared(H) ->
-        declaration(Type, [Variable], Assignment) = H,
+declare_static_variables([Statement | More_statements]) :-
+    ( is_static_undeclared(Statement) ->
+        declaration(Type, [Variable], Assignment) = Statement,
         % Strip "static_" from the start of the 'Type' string
         sub_atom(Type, 7, _, 0, Type_without_static),
         declaration(Type_without_static, [Variable], Assignment),
@@ -40,7 +38,7 @@ declare_static_variables([H | T]) :-
     ;
         true
     ),
-    declare_static_variables(T).
+    declare_static_variables(More_statements).
 
 %% Removes the line number suffix from a string, output by the parser (Eg: "_183").
 %% Parameters:
@@ -89,6 +87,7 @@ utils__join([String | More_strings], Separator, Result) :-
 %%  Assigned_value: The value assigned that has been assigned
 %% Eg: utils__assignment(Assign_to{"x"}, 5, Result) -> Result = 5
 utils__assignment(Assign_to, Value, Assigned_value) :-
+    c_var__is_variable(Assign_to),
     c_var__get_type(Assign_to, Type),
     ptc_solver__variable([Assigned_value], Type),
     (c_var__is_variable(Value) ->
@@ -126,23 +125,12 @@ util__error_if_false(Goal, Error_message) :-
             abort
     ).
 
-%% If the number is zero, its binary representation is '0'.
-utils__number_to_bin(0, '0') :- !.
-
-%% Divide the integer by 2 and convert the rest to binary.
-utils__number_to_bin(N, Bin) :-
-    N > 0,
-    X is N mod 2,  % Get the remainder when N is divided by 2.
-    Y is N // 2,  % Integer division by 2.
-    utils__number_to_bin(Y, Bin1),
-    atom_concat(Bin1, X, Bin).
-
 %% Truncate a whole number by its binary digits to fit an integer range.
 %% Parameters:
-%%  Number_to_truncate - the value to be truncated
-%%  Min_bound - the minimum value in the range
-%%  Max_bound - the maximum value in the range
-%%  Result - the final truncated number
+%%  Number_to_truncate: the value to be truncated
+%%  Min_bound: the minimum value in the range
+%%  Max_bound: the maximum value in the range
+%%  Result: the final truncated number
 
 %% 6.3.1.3 Signed and unsigned integers - Clause 2
 %%      "the value is converted by repeatedly adding or subtracting one more
@@ -183,24 +171,10 @@ utils__truncate(Number_to_truncate, Min_bound, Max_bound, Result) :-
     Result >= Min_bound,
     Result =< Max_bound.
 
-% utils__truncate(Number_to_truncate, Min_bound, Max_bound, Result) :-
-%     % Ensure that Min_bound is less than or equal to Max_bound
-%     Min_bound =< Max_bound,
-
-%     % Calculate the size of the range
-%     Range_size is Max_bound - Min_bound,
-
-%     % Calculate the fractional part of Number_to_truncate (i.e., the part after the decimal point)
-%     Frac is abs(Number_to_truncate - floor(Number_to_truncate)),
-
-%     % Scale the fractional part to the size of the range, and add it to the minimum bound
-%     % The is/2 predicate is used to evaluate arithmetic expressions
-%     Result is Min_bound + Frac * Range_size.
-
-
-% bit_length/2 predicate, to calculate the number of bits necessary to represent a non-negative integer in binary
-% Int - the integer that you want to represent in binary
-% Bit_length - the number of bits required to represent the integer
+%% Calculates the number of bits necessary to represent a non-negative integer in binary
+%% Parameters:
+%%  Int: the integer that you want to represent in binary
+%%  Bit_length: the number of bits required to represent the integer
 bit_length(0, 0) :- !.
 bit_length(Int, Bit_length) :-
     Int > 0,
@@ -213,7 +187,7 @@ bit_length(Int, Bit_length) :-
 
 
 util__get_breal_bounds(Breal, Min, Max) :-
-    get_float_bounds(Breal, Min_bound, Max_bound), % from: lib(ic)
+    ptc_solver__variable_range(Breal, Min_bound, Max_bound),
     utils__round_real(Min_bound, 3 , Min),
     utils__round_real(Max_bound, 3 , Max).
 
@@ -222,9 +196,4 @@ utils__round_real(Number, Places, Result) :-
     Temp is Number * Multiplier,
     TempRounded is round(Temp),
     Result is TempRounded / Multiplier.
-
-
-
-
-
 
