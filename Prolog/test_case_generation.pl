@@ -1,4 +1,4 @@
-:- use_module(c_array).
+% :- use_module(c_array).
 :- use_module(c_var).
 
 %% Generate multiple test cases through failing backtrack
@@ -172,30 +172,57 @@ create_declaration(Variable, Declaration) :-
     c_var__is_variable(Variable),
     c_var__get_in_var(Variable, Ptc_in_var),
     c_var__get_type(Variable, Type),
+
+    handle_pointer_type(Type, Cleaned_c_type),
+
     determine_variable_value(Ptc_in_var, Variable_value, Type),
     c_var__get_name(Variable, Var_name),
     c_var__get_scope(Variable, Scope),
-    generate_declaration(Scope, Type, Var_name, Variable_value, Declaration).
+    generate_declaration(Scope, Cleaned_c_type, Var_name, Variable_value, Declaration).
 
 %% Create the appropriate value for the variable, based on its type
+
 determine_variable_value(Ptc_in_var, Variable_value, Type) :-
     (integer(Ptc_in_var) ->
-            (
-                (Type = char ->
-                    char_code(Variable_value, Ptc_in_var)
-                ;
-                    Variable_value = Ptc_in_var
-                )
-            )
-        ;
-            (
-                (breal(Ptc_in_var) ->
+        (
+            (Type = char ->
+                (Ptc_in_var >= 32, Ptc_in_var =< 126 ->
                     (
-                        ptc_solver__label_reals([Ptc_in_var], [Float_labelled]),
-                        utils__round_real(Float_labelled, 3, Variable_value)
+                        %% Check if Return_value is a single quote
+                        (Ptc_in_var =:= 39 ->
+                            (
+                                Variable_value = "'\\''"
+                            )
+                        ;
+                        Ptc_in_var =:= 92 ->
+                            (
+                                Variable_value = "'\\\\'"
+                            )
+                        ;
+                            (
+                                string_codes(Value_as_string, [Ptc_in_var]),
+                                concat_string(["'", Value_as_string, "'"], Variable_value)
+                            )
+                        )
+                    )
+                ;
+                    (
+                        term_string(Ptc_in_var, Variable_value)
                     )
                 )
+            ;
+                Variable_value = Ptc_in_var
             )
+        )
+    ;
+        (
+            (breal(Ptc_in_var) ->
+                (
+                    ptc_solver__label_reals([Ptc_in_var], [Float_labelled]),
+                    utils__round_real(Float_labelled, 3, Variable_value)
+                )
+            )
+        )
     ).
 
 %% Generate the declaration string based on scope, type, variable name and value
@@ -208,7 +235,15 @@ generate_declaration(Scope, Type, Var_name, Value, Declaration) :-
                 ;
                     sprintf(Declaration, "\t%s %s = %f;\n", [Type, Var_name, Value])
             )
-            ;
+        ;
+        string(Value) ->
+            (
+                Scope = global ->
+                    sprintf(Declaration, "\t%s = %s;\n", [Var_name, Value])
+                ;
+                    sprintf(Declaration, "\t%s %s = %s;\n", [Type, Var_name, Value])
+            )
+        ;
             (
                 Scope = global ->
                     sprintf(Declaration, "\t%s = %d;\n", [Var_name, Value])
@@ -256,3 +291,33 @@ create_return(Return_value, _Type, Return_value_as_string) :-
     float(Return_value),
     term_string(Return_value, Return_value_as_string),
     !.
+
+%% Creates a pointer-asterisk type string of the underlying type
+%% For example, if the type is 'intpointerpointer', then the result will be 'int**'
+%% Parameters:
+%% Type: The type of the variable as an atom
+%% Result (out): The predicate result as a string
+handle_pointer_type(Type, Result) :-
+    (
+        sub_atom(Type, _, _, _, 'pointer') ->
+            handle_pointer_type(Type, "", Result)
+        ;
+            Result = Type %FIXME: If not a pointer type, an atom is returned instead of a string
+    ).
+handle_pointer_type(Type, Accumulator, Result) :-
+    % Check if the atom Type contains 'pointer'
+    % If it does, then we need to add an asterisk to the declaration
+    (
+        sub_atom(Type, Pointer_subatom_start_index, _, _, 'pointer') ->
+            (
+                %% Remove the 'pointer' substring from Type
+                sub_atom(Type, 0, Pointer_subatom_start_index, 7, New_type),
+                concat_string([Accumulator, New_type, "*"], New_accumulator),
+                handle_pointer_type(New_type, New_accumulator, Result)
+            )
+        ;
+            (
+                Result = Accumulator
+            )
+    ).
+

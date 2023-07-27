@@ -1,6 +1,6 @@
 :- lib(ptc_solver).
 
-:- use_module(c_array).
+% :- use_module(c_array).
 :- use_module(c_var).
 
 %% Groups variables by type and labels them collectively instead of individually

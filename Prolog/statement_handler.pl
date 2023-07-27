@@ -89,7 +89,7 @@ handle(return, return(Return_value, Return_type)) :-
 %% Return statement with value to return
 %% Eg: return 5;
 handle(return(Expression), return(Return_value, Return_type)) :-
-    once evaluate_expression(Expression, Return_expression),
+    evaluate_expression(Expression, Return_expression),
     ptc_solver__variable([Return_variable], Return_type),
 
     %% Check if demotion (Downcasting) is required
@@ -103,7 +103,8 @@ handle(return(Expression), return(Return_value, Return_type)) :-
     ),
     ptc_solver__sdl(eq_cast(Return_variable, Return)),
     c_var__create(Return_type, Return_variable, local, "__return__", _, Return_value),
-    writeln(Return_variable).
+    writeln(Return_variable),
+    !.
 
 %% Function call that is assigned to a variable
 %% Eg:

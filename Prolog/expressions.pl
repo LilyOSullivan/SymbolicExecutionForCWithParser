@@ -158,19 +158,26 @@ evaluate_expression(-Expression, -Expression_result) :-
     evaluate_expression(Expression, Expression_result).
 
 % assignment(rec(LC_p1_6, age) , 5)
-evaluate_expression(assignment(rec(Assign_to, Field), Expression), Expression_result) :-
-    evaluate_expression(Expression, Right_result),
-    c_var__get_out_var(Assign_to, Out_var),
-    ptc_solver__sdl(up_rec(Out_var, Field, Right_result)),
-    Expression_result = Right_result,
-    !.
+% evaluate_expression(assignment(rec(Assign_to, Field), Expression), Expression_result) :-
+%     evaluate_expression(Expression, Right_result),
+%     c_var__get_out_var(Assign_to, Out_var),
+%     ptc_solver__sdl(up_rec(Out_var, Field, Right_result)),
+%     Expression_result = Right_result,
+%     !.
 
 %% Assignment operator (=)
 %% Eg: x = 2
 evaluate_expression(assignment(Assign_to, Expression), Expression_result) :-
     evaluate_expression(Expression, Right_result),
-    utils__assignment(Assign_to, Right_result, Expression_result),
-    !.
+
+    (c_var__is_variable(Assign_to) ->
+        Variable_to_assign = Assign_to
+    ;
+        % Assign_to can be as expression such as in pointer assignment
+        % Eg: *x = 2 becomes assignment(dereference(LC_x_1) , 2))
+        evaluate_expression(Assign_to, Variable_to_assign)
+    ),
+    utils__assignment(Variable_to_assign, Right_result, Expression_result).
 
 %% Handle the += operator
 %%  Breakdown: Variable += Expression
@@ -222,13 +229,25 @@ evaluate_expression(post_decrement(Assign_to, Expression), Expression_result) :-
 evaluate_expression(pre_decrement(Assign_to, Expression), Expression_result) :-
     evaluate_expression(assignment(Assign_to, Expression), Expression_result).
 
+%% Returns the address of a variable in the memory model
 evaluate_expression(address_of(Variable), Expression_result) :-
     c_var__get_address(Variable, Expression_result).
 
+%% Dereference operator (Unary *)
+%% Eg: *x
+%% This returns the c_var at the memory address
 evaluate_expression(dereference(Expression), Expression_result) :-
     evaluate_expression(Expression, Address),
     get_from_memory(Address, Content_at_address),
-    evaluate_expression(Content_at_address, Expression_result). % Should this be evaluated?
+    Content_at_address = Expression_result.
+
+%% Dereference operator (Unary *)
+%% Eg: *x
+%% This returns the 'out' ptc variable of a c_var from a memory address
+evaluate_expression(dereference(Expression), Expression_result) :-
+    evaluate_expression(Expression, Address),
+    get_from_memory(Address, Content_at_address),
+    evaluate_expression(Content_at_address, Expression_result).
 
 %% Function call as expression
 %% Eg: int x = 2+give_five();
