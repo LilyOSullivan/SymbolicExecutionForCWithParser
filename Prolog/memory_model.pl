@@ -39,7 +39,7 @@ get_from_memory(Address, Value) :-
     (hash_get(Memory, Address, Value) ->
         true
     ;
-        random(Random_value_at_address), % Will this work for floats?
+        random(Random_value_at_address), % Will this work for floats? Should it be a cvar?
         hash_set(Memory, Address, Random_value_at_address),
         Value = Random_value_at_address
     ).

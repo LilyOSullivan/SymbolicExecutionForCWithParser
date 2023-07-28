@@ -6,6 +6,8 @@
 :- import atom_length/2 from iso_light.
 
 declaration(Type, [C_variable], Assignment) :-
+
+    % TODO: Check why choice-point left behind
     declaration__get_variable_name(C_variable, C_name),
     get_free_address(Memory_model_address),
 
@@ -13,11 +15,9 @@ declaration(Type, [C_variable], Assignment) :-
     (
         sub_atom(Type, After, _, _, 'pointer') ->
             (
-                % Count the number of 'pointer' occurrences in the type-atom
-                % sub_atom(Type, After, _, _, Sub_atom), % sub_atom(Type, 0, After, _, Sub_atom),
+                % Gets the type without pointer
+                 % sub_atom(Type, 0, After, _, Sub_atom),
 
-                % atom_length(Sub_atom, Length),
-                % Number_of_pointers is Length / 7,
 
                 ptc_solver__subtype(Type, integer),
                 ptc_solver__variable([In], Type),

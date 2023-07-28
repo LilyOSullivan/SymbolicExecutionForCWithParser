@@ -1,6 +1,6 @@
 :- module(c_array).
 
-:- [utils].
+% :- [utils].
 :- lib(ptc_solver).
 
 :- export c_array__create/6.
@@ -12,7 +12,7 @@
 :- export c_array__get_out_var/2.
 :- export c_array__get_size/2.
 :- export c_array__is_array/1.
-:- export c_array__create_declaration/2.
+% :- export c_array__create_declaration/2.
 
 %%  c_array{c_type,ptc_type,In,Out,variable_name,array_size}
 :- meta_attribute(c_array, [unify:unify_c_array/2, print:print_c_array/2]).
@@ -93,33 +93,33 @@ c_array__is_array(_Var{C_array}) :-
     -?->
         C_array = carray(_, _, _, _, _, _).
 
-c_array__create_declaration(Variable,Declaration) :-
-    c_array__is_array(Variable),
-    c_array__get_ptc_type(Variable,Type),
-    c_array__create_declaration(Variable,Type,Declaration).
+% c_array__create_declaration(Variable,Declaration) :-
+%     c_array__is_array(Variable),
+%     c_array__get_ptc_type(Variable,Type),
+%     c_array__create_declaration(Variable,Type,Declaration).
 
-c_array__create_declaration(Variable,intpointer,Declaration) :-
-    c_array__get_all(Variable,_,Ptc_in_var,Variable_name,Size),
-    ptc_solver__get_array_index_elements(Ptc_in_var, Indexs),
-    utils__get_all_array_inputs(Indexs, Values),
-    ( foreach(Value, Values), foreach(Value_with_comma, Values_as_string) do
-        term_string(Value, Value_as_string),
-        concat_string([Value_as_string, ","], Value_with_comma)
-    ),
-    utils__join(Values_as_string, Values_joined),
-    utils__strip_right_comma(Values_joined, Values_stripped),
-    term_string(Size, Size_as_string),
-    sprintf(Declaration, "\t%s %s[%s] = {%s};\n", ["int", Variable_name, Size_as_string, Values_stripped]).
+% c_array__create_declaration(Variable,intpointer,Declaration) :-
+%     c_array__get_all(Variable,_,Ptc_in_var,Variable_name,Size),
+%     ptc_solver__get_array_index_elements(Ptc_in_var, Indexs),
+%     utils__get_all_array_inputs(Indexs, Values),
+%     ( foreach(Value, Values), foreach(Value_with_comma, Values_as_string) do
+%         term_string(Value, Value_as_string),
+%         concat_string([Value_as_string, ","], Value_with_comma)
+%     ),
+%     utils__join(Values_as_string, Values_joined),
+%     utils__strip_right_comma(Values_joined, Values_stripped),
+%     term_string(Size, Size_as_string),
+%     sprintf(Declaration, "\t%s %s[%s] = {%s};\n", ["int", Variable_name, Size_as_string, Values_stripped]).
 
-c_array__create_declaration(Variable,charpointer,Declaration) :-
-    c_array__get_all(Variable,_,Ptc_in_var,Variable_name,Size),
-    ptc_solver__get_array_index_elements(Ptc_in_var, Indexs),
-    utils__get_all_array_inputs(Indexs, Values),
-    ( foreach(Value, Values), foreach(Value_with_comma, Values_as_string) do
-        string_codes(Value_as_string, [Value]),
-        concat_string(["'", Value_as_string, "',"], Value_with_comma)
-    ),
-    utils__join(Values_as_string, Values_joined),
-    utils__strip_right_comma(Values_joined, Values_stripped),
-    term_string(Size, Size_as_string),
-    sprintf(Declaration, "\t%s %s[%s] = {%s};\n", ["char", Variable_name, Size_as_string, Values_stripped]).
+% c_array__create_declaration(Variable,charpointer,Declaration) :-
+%     c_array__get_all(Variable,_,Ptc_in_var,Variable_name,Size),
+%     ptc_solver__get_array_index_elements(Ptc_in_var, Indexs),
+%     utils__get_all_array_inputs(Indexs, Values),
+%     ( foreach(Value, Values), foreach(Value_with_comma, Values_as_string) do
+%         string_codes(Value_as_string, [Value]),
+%         concat_string(["'", Value_as_string, "',"], Value_with_comma)
+%     ),
+%     utils__join(Values_as_string, Values_joined),
+%     utils__strip_right_comma(Values_joined, Values_stripped),
+%     term_string(Size, Size_as_string),
+%     sprintf(Declaration, "\t%s %s[%s] = {%s};\n", ["char", Variable_name, Size_as_string, Values_stripped]).

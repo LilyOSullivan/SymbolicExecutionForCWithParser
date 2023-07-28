@@ -173,7 +173,14 @@ create_declaration(Variable, Declaration) :-
     c_var__get_in_var(Variable, Ptc_in_var),
     c_var__get_type(Variable, Type),
 
-    handle_pointer_type(Type, Cleaned_c_type),
+    (
+        c_var__is_pointer(Variable) ->
+            handle_pointer_type(Type, Cleaned_c_type),
+            get_from_memory(Ptc_in_var, Variable_value)
+            % evaluate_expression(dereference(Variable), Value)
+        ;
+            Variable_value = Ptc_in_var
+    ),
 
     determine_variable_value(Ptc_in_var, Variable_value, Type),
     c_var__get_name(Variable, Var_name),

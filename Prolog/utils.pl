@@ -197,3 +197,14 @@ utils__round_real(Number, Places, Result) :-
     TempRounded is round(Temp),
     Result is TempRounded / Multiplier.
 
+% WIP below
+utils__get_number_of_pointers(Variable, Number_of_pointers) :-
+    c_var__get_type(Variable, Type),
+    sub_atom(Type, After, _, _, 'pointer'),
+    atom_length(Type, Type_length),
+    Sub_atom_length is Type_length - After,
+
+    %Count the number of 'pointer' occurrences in the type-atom
+    sub_atom(Type, After, Sub_atom_length, _, Sub_atom),
+    atom_length(Sub_atom, Length),
+    Number_of_pointers is Length / 7,

@@ -2,6 +2,8 @@
 
 :- lib(ptc_solver).
 
+:- import sub_atom/5 from iso_light.
+
 :- export c_var__create/6.
 :- export c_var__get_name/2.
 :- export c_var__get_in_var/2.
@@ -111,3 +113,8 @@ c_var__is_variable(_Var{C_var}) :-
     -?->
         C_var = cvar(_, _, _, _, Name, _),
         nonvar(Name).
+
+c_var__is_pointer(C_var) :-
+    -?->
+        c_var__get_type(C_var, Type),
+        sub_atom(Type, _, _, _, 'pointer')

@@ -233,6 +233,8 @@ evaluate_expression(pre_decrement(Assign_to, Expression), Expression_result) :-
 evaluate_expression(address_of(Variable), Expression_result) :-
     c_var__get_address(Variable, Expression_result).
 
+
+%IDEA: Create a suspension of if pointer not yet initialised.
 %% Dereference operator (Unary *)
 %% Eg: *x
 %% This returns the c_var at the memory address
@@ -240,7 +242,6 @@ evaluate_expression(dereference(Expression), Expression_result) :-
     evaluate_expression(Expression, Address),
     get_from_memory(Address, Content_at_address),
     Content_at_address = Expression_result.
-
 %% Dereference operator (Unary *)
 %% Eg: *x
 %% This returns the 'out' ptc variable of a c_var from a memory address
