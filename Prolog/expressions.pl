@@ -14,7 +14,7 @@ evaluate_expression(not(Expression)) :-
 %% 0 is false, anything else is true
 evaluate_expression(Expression) :-
     evaluate_expression(Expression, Expression_result),
-    ptc_solver__sdl(Expression_result <> 0).
+    ptc_solver__sdl(Expression_result <> 0). %BUG: Will will fail if the assignment is 0? Eg if(x=0)
 
 %% Returns the 'out' ptc_variable of a c_var
 evaluate_expression(Expression, Ptc_variable) :-
@@ -72,7 +72,15 @@ evaluate_expression(Left==Right, Expression_result) :-
     evaluate_expression(Left, Left_result),
     evaluate_expression(Right, Right_result),
     ptc_solver__variable([Expression_result], boolean_int),
-    ptc_solver__sdl(reif(Left_result = Right_result, Expression_result)).
+
+    (
+        c_var__is_variable(Left_result) ->
+            c_var__get_out_var(Left_result, Left_result_out)
+        ;
+            Left_result_out = Left_result
+    ),
+
+    ptc_solver__sdl(reif(Left_result_out = Right_result, Expression_result)).
 
 %% Greater than Boolean Operator (>)
 evaluate_expression(Left>Right, Expression_result) :-
@@ -122,8 +130,8 @@ evaluate_expression(Left/Right, Left_result/Right_result) :-
     evaluate_expression(Left, Left_result),
     evaluate_expression(Right, Right_result).
 
-% % Increment with ++ on the right side (Post-increment)
-% % Eg: x++
+%% Increment with ++ on the right side (Post-increment)
+%% Eg: x++
 evaluate_expression(post_increment(Assign_to, Increment_operation), Expression_result) :-
     evaluate_expression(Assign_to, Expression_result),
     evaluate_expression(Increment_operation, Increment_operation_result),
@@ -245,10 +253,10 @@ evaluate_expression(dereference(Expression), Expression_result) :-
 %% Dereference operator (Unary *)
 %% Eg: *x
 %% This returns the 'out' ptc variable of a c_var from a memory address
-evaluate_expression(dereference(Expression), Expression_result) :-
-    evaluate_expression(Expression, Address),
-    get_from_memory(Address, Content_at_address),
-    evaluate_expression(Content_at_address, Expression_result).
+% evaluate_expression(dereference(Expression), Expression_result) :-
+%     evaluate_expression(Expression, Address),
+%     get_from_memory(Address, Content_at_address),
+%     evaluate_expression(Content_at_address, Expression_result).
 
 %% Function call as expression
 %% Eg: int x = 2+give_five();

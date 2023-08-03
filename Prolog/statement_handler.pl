@@ -93,7 +93,7 @@ handle(return(Expression), return(Return_value, Return_type)) :-
     ptc_solver__variable([Return_variable], Return_type),
 
     %% Check if demotion (Downcasting) is required
-    ptc_solver__integer_range(Return_variable, Min, Max),
+    ptc_solver__variable_range(Return_variable, Min, Max),
     (ptc_solver__sdl(Return_expression >= Min),
      ptc_solver__sdl(Return_expression <= Max)
      ->

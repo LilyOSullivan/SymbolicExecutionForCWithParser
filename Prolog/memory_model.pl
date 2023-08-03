@@ -35,14 +35,43 @@ add_to_memory(Value, Type_byte_size) :-
     setref(memory_model, Memory_model).
 
 get_from_memory(Address, Value) :-
+    (
+        c_var__is_variable(Address) ->
+            c_var__get_out_var(Address, Use_address)
+        ;
+            Use_address = Address
+    ),
+
+    %% Suspend unless Address is ground
     getref(memory_model, Memory),
-    (hash_get(Memory, Address, Value) ->
+    (hash_get(Memory, Use_address, Value) ->
         true
     ;
-        random(Random_value_at_address), % Will this work for floats? Should it be a cvar?
-        hash_set(Memory, Address, Random_value_at_address),
-        Value = Random_value_at_address
+        random(Random_value_at_address), % Will this work for floats?
+        %% ptc_solver__variable([Value], int),
+        c_var__create(int, Random_value_at_address, _, "__memory_model_junk__", Use_address, Value),
+        hash_set(Memory, Use_address, Value)
     ).
+
+
+% get_from_memory(Address, Value) :-
+%     %% Suspend unless Address is ground
+%     (
+%         nonground(Address) ->
+%             suspend(get_from_memory(Address, Value), 3, Address->inst)
+%         ;
+%             getref(memory_model, Memory),
+%             (hash_get(Memory, Address, Value) ->
+%                 true
+%             ;
+%                 % random(Random_value_at_address), % Will this work for floats?
+%                 ptc_solver__variable([Value], int),
+%                 % c_var__create(int, Random_value_at_address, _, _, Address, Value),
+%                 hash_set(Memory, Address, Value)
+%             )
+%     ).
+
+
 
 get_free_address(Free_address) :-
     getval(free_address, Free_address).

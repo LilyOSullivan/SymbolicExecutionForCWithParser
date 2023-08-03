@@ -15,6 +15,7 @@
 :- export c_var__set_scope/2.
 :- export c_var__get_address/2.
 :- export c_var__set_address/2.
+:- export c_var__is_pointer/1.
 
 %% The module for the c_var attributed variable
 %% It maintains meta-data about a singular non-collection variable

@@ -13,14 +13,11 @@ declaration(Type, [C_variable], Assignment) :-
 
     % Check if the type-atom ends with 'pointer'
     (
-        sub_atom(Type, After, _, _, 'pointer') ->
+        sub_atom(Type, _, _, _, 'pointer') ->
             (
-                % Gets the type without pointer
-                 % sub_atom(Type, 0, After, _, Sub_atom),
-
-
                 ptc_solver__subtype(Type, integer),
                 ptc_solver__variable([In], Type),
+                ptc_solver__label_integers([In]), %% FIXME: THis is a test
                 c_var__create(Type, In, local, C_name, Memory_model_address, C_variable),
                 add_pointer_to_memory_model(C_variable)
             )
