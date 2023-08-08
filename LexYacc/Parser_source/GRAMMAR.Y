@@ -2230,6 +2230,15 @@ initializer_list
 	}
 	| initializer_list ',' designation initializer
 	| initializer_list ',' initializer
+	{
+		$$ = (char*) malloc(strlen($1) + 1 + strlen($3) + 1);
+		strcpy($$, $1); 
+		strcat($$, ","); 
+		strcat($$, $3);
+
+		free($1);
+		free($3);
+	}
 	;
 
 designation

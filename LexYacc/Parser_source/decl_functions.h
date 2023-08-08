@@ -194,7 +194,7 @@ void addvariables(char* declarator, int Param)
 		and the assignmentstring (none given in this function) into the linked list ListOfVars
 	*/
 
-	char* vardetails = (char*)malloc(18 + 1); // holds variable details e.g.pointer, array..
+	char* vardetails = (char*)malloc((strlen(declarator)*7) + 1); // holds variable details e.g.pointer, array..
 
 	char* varscope = (char*)malloc(6 + 1);	// scope of the variable - local or global
 
@@ -215,7 +215,13 @@ void addvariables(char* declarator, int Param)
 	else if (strstr(declarator_copy, "*") != NULL)
 	{
 		// POINTER TYPES
-		strcpy(vardetails, "pointer");				// store variable details
+		int amount_of_pointers = strstrcount(declarator_copy, "*");
+		strcpy(vardetails, ""); // Initalise string
+		while (amount_of_pointers != 0) {
+			strcat(vardetails, "pointer");
+			amount_of_pointers--;
+		}
+
 		char* declarator_without_star = removestar(declarator_copy); // remove the '*' from declarator
 		char* declarator_name = case_name(declarator_without_star);
 		PushVar(declarator_name, Param);					// push onto stack (scopes.h)
@@ -542,12 +548,19 @@ void addvariabledetails(char varname[], char varconstant[])
 	// POINTER TYPES
 	if (strstr(variable_name, "*") != NULL)
 	{
+		int amount_of_pointers = strstrcount(variable_name, "*");
+
+		while (amount_of_pointers != 0) {
+			strcat(vardetails, "pointer");
+			amount_of_pointers--;
+		}
+
+
 		strcpy(variable_name, removestar(variable_name));	// remove the '*' from varname
 		strcpy(variable_name, case_name(variable_name));	// add prolog terms "LC_" or "UC_" - OUTPUT_FUNCTIONS.H
 		PushVar(variable_name, NO);	// Push onto Stack, not a parameter variable (NO)
 		// from SCOPES.H
 		strcpy(variable_name, scope_details(variable_name, NO));// append scope number if applicable - OUTPUT_FUNCTIONS.H
-		strcpy(vardetails, "pointer");			// store details
 		strcpy(assigndetails, "\nassignment(");	// build assignment string
 		strcat(assigndetails, variable_name);
 		strcat(assigndetails, " , ");
@@ -744,10 +757,13 @@ char* findvariabledetails(char vartype[])
 					if (traverse_types(vartype) == 1)	// TYPEDEF_FUNCTIONS.H
 						strcat(declstring, ", pointer , [");
 					else
-						strcat(declstring, "pointer , [");
+						strcat(declstring, varnode->variabledetails);
+					strcat(declstring, " , [");
 					strcat(declstring, varnode->variablename);
-					strcat(declstring, "]),");
+					strcat(declstring, "], [");
+					strip_last_comma(varnode->assignstring);
 					strcat(declstring, varnode->assignstring);
+					strcat(declstring, "]),");
 				}
 			}
 			// CHECK ARRAY TYPES
@@ -832,7 +848,7 @@ char* findvariabledetails(char vartype[])
 					strcat(declstring, vartype);
 					strcat(declstring, ", [");
 					strcat(declstring, varnode->variablename);
-					strcat(declstring, "],[");
+					strcat(declstring, "], [");
 					strip_last_comma(varnode->assignstring);
 					strcat(declstring, varnode->assignstring);
 					strcat(declstring, "]),");
