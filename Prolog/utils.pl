@@ -5,19 +5,39 @@ utils__get_all_array_inputs([], []).
 utils__get_all_array_inputs([(_, Value) | Rest], [Value | Rest2]) :-
 	utils__get_all_array_inputs(Rest, Rest2).
 
+%% is_static_declaration/1
+%% is_static_declaration(+Declaration)
+%% Checks if a declaration is a for a static variable
+%% Parameters:
+%%  Declaration: The declaration to check if it is static
 is_static_declaration(declaration(Functor, [Variable], _)) :-
     atom(Functor),
     var(Variable),
     sub_atom(Functor, 0, _, _, 'static_').
 
+%% is_static_declared/1
+%% is_static_declared(+Declaration)
+%% Checks if a declaration is a for a static variable that has already been declared
+%% Parameters:
+%%  Declaration: The declaration to check if it is static and declared
 is_static_declared(declaration(Functor, [Variable], _)) :-
     is_static_declaration(declaration(Functor, [Variable], _)),
     c_var__is_variable(Variable).
 
+%% is_static_undeclared/1
+%% is_static_undeclared(+Declaration)
+%% Checks if a declaration is a for a static variable that has not been declared
+%% Parameters:
+%%  Declaration: The declaration to check if it is static and undeclared
 is_static_undeclared(declaration(Functor, [Variable], _)) :-
     is_static_declaration(declaration(Functor, [Variable], _)),
     not c_var__is_variable(Variable).
 
+%% declare_static_variables/1
+%% declare_static_variables(+Statements)
+%% Checks if a list of statements contains any static variables that have not been declared, and declares them
+%% Parameters:
+%%  Statements: The list of statements to check for static variables
 declare_static_variables([]).
 declare_static_variables([Statement | More_statements]) :-
     ( is_static_undeclared(Statement) ->
@@ -83,6 +103,13 @@ utils__assignment(Assign_to, Value, Assigned_value) :-
     ptc_solver__sdl(Assigned_value = Value_to_assign),
     c_var__set_out_var(Assign_to, Assigned_value).
 
+%% utils__get_appropriate_cvar_type/2
+%% utils__get_appropriate_cvar_type(+Variable, -Type)
+%% If c_var is a pointer type, returns an int type, otherwise returns
+%% the type of the c_var. This is for the ptc_solver to declare pointers as integers.
+%% Parameters:
+%%  Variable: The c_var to get the type of
+%%  Type: The type of the c_var for the ptc_solver
 utils__get_appropriate_cvar_type(Variable, Type) :-
     (c_var__is_pointer(Variable) ->
         Type = int
@@ -90,10 +117,26 @@ utils__get_appropriate_cvar_type(Variable, Type) :-
         c_var__get_type(Variable, Type)
     ).
 
+%% utils__get_ptc_out_if_cvar/4
+%% utils__get_ptc_out_if_cvar(+Left_value, +Right_value, -Left_result, -Right_result)
+%% A shorthand predicate to calling `utils__get_ptc_out_if_cvar/2` twice. Particularly useful in expressions.pl
+%% Parameters:
+%%  Left_value: The left value to get the 'out' variable of
+%%  Right_value: The right value to get the 'out' variable of
+%%  Left_result: The 'out' variable of the left value
+%%  Right_result: The 'out' variable of the right value
 utils__get_ptc_out_if_cvar(Left_value, Right_value, Left_result, Right_result) :-
     utils__get_ptc_out_if_cvar(Left_value, Left_result),
     utils__get_ptc_out_if_cvar(Right_value, Right_result).
 
+%% utils__get_ptc_out_if_cvar/2
+%% utils__get_ptc_out_if_cvar(+Value, -Out_value)
+%% If Value is a c_var, returns the 'out' variable of the c_var, otherwise returns value entered.
+%% This is to facilitate interaction to ptc_solver__sdl/1, as passing a c_var to ptc_solver__sdl/1
+%% is illogical.
+%% Parameters:
+%%  Value: The value to get the 'out' variable of
+%%  Out_value: The 'out' variable of the value
 utils__get_ptc_out_if_cvar(Value, Out_value) :-
     (c_var__get_out_var(Value, Out_value) ->
         true
@@ -112,8 +155,6 @@ utils__assign_arguments_to_parameters([Argument | More_arguments], [declaration(
     Parameters = [Parameter | _],
     utils__assignment(Parameter, Argument, _),
     utils__assign_arguments_to_parameters(More_arguments, More_parameters).
-
-
 
 %% utils__error_if_false/2
 %% utils__error_if_false(+Goal, +Error_message)

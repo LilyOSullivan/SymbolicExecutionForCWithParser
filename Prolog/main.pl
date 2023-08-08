@@ -60,20 +60,30 @@ main(Filename_without_extension, Function_name, Path_to_C_file, Override_globals
     process_data(Prolog_filepath, Override_globals, Function_name, Params, Body, Return_type),
     function_handler(Filename_without_extension, Function_name, Body, Params, Return_type). % From Statement_handler.pl
 
+%% validate_inputs/4
+%% validate_inputs(+Filename_without_extension, +Function_name, +Path_to_C_file, +Override_globals)
+%% Validates the inputs to main/4
+%% Parameters:
+%%  Filename_without_extension: The name of the file without the .pl extension
+%%  Function_name: The entry function to be tested. This should be an atom.
+%%  Path_to_C_file: The folder-path to the C file to be symbolically executed.
+%%  Override_globals: A boolean option if global variables should be overridden at test-generation time
 validate_inputs(Filename_without_extension, Function_name, Path_to_C_file, Override_globals) :-
     utils__error_if_false(string(Filename_without_extension), "Filename must be a string"),
-    utils__error_if_false(not string_contains(Filename_without_extension, "."), "Filename should not contain an extension"),
+    utils__error_if_false(not string_contains(Filename_without_extension, ".pl"), "Filename should not contain an extension"),
     utils__error_if_false(atom(Function_name), "Function name must be an atom"),
     utils__error_if_false(string(Path_to_C_file), "Path to C file must be a string"),
     utils__error_if_false(get_file_info(Path_to_C_file, type, directory), "Path to C file is not a valid directory-path"),
     utils__error_if_false(once member(Override_globals, [false,true]), "Override globals option must be an atom-boolean ('true' or 'false')").
 
+%% setup_test_driver/2
+%% setup_test_driver(+Function_name, +Path_to_C_file)
 %% Setup for the test-driver
 %% Parameters:
 %%  Function_name: The entry function to be tested. This should be an atom.
 %%                 Eg: get_sign
-%%  Path_to_C_file: The folder-path to the C file to be symbolically executed.
-setup_test_driver(Function_name,Path_to_C_file) :-
+%%  Path_to_C_file: The folder-path to the C file to be symbolically executed. This is a string
+setup_test_driver(Function_name, Path_to_C_file) :-
     % Format: 24Hours_Minutes_Seconds__days_months_year
     % Eg: 14_34_18__03_02_23
     get_flag(unix_time, Unix_time),
@@ -101,6 +111,16 @@ setup_ptc_solver :-
     ptc_solver__type(boolean_int, integer, range_bounds(0, 1)),
     ptc_solver__subtype(int, integer).
 
+%% process_data/6
+%% process_data(+Prolog_filepath, +Override_globals, +Function_name, -Processed_parameters, -Body, -Return_type)
+%% Reads the parser-result prolog file, and returns the function_info of the entry function
+%% Parameters:
+%%  Prolog_filepath: The path to the prolog file to be read. This is a string
+%%  Override_globals: A boolean option if global variables should be overridden at test-generation time
+%%  Function_name: The name of the function to be found. This is an atom
+%%  Processed_parameters: The list of parameters to the entry function
+%%  Body: The body of the entry function
+%%  Return_type: The return type of the entry function
 process_data(Prolog_filepath, Override_globals, Function_name, Processed_parameters, Body, Return_type) :-
     read_prolog_file(Prolog_filepath, Terms),
     process_global_variables(Terms, All_globals),
@@ -148,7 +168,8 @@ process_global_variables([global_variables([Declaration | _], _) | More_terms], 
 process_global_variables([_ | More_terms], Global_declaration_accumulator, List_of_global_declarations) :-
     process_global_variables(More_terms, Global_declaration_accumulator, List_of_global_declarations).
 
-%%
+%% declare_static_variables/1
+%% declare_static_variables(+Body)
 %% Declares functions as attributed variables and returns a desired function_info
 %% Parameters:
 %%  Terms: The contents of the parser-result prolog file

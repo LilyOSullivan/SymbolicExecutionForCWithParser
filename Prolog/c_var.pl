@@ -92,18 +92,22 @@ c_var__set_out_var(_Var{C_var}, New_out_variable) :-
     -?->
         setarg(3, C_var, New_out_variable).
 
+%% Returns the scope of the c_var
 c_var__get_scope(_Var{C_var}, Scope) :-
     -?->
         C_var = cvar(_, _, _, Scope, _, _).
 
+%% Sets the scope of the c_var
 c_var__set_scope(_Var{C_var}, New_scope) :-
     -?->
         setarg(4, C_var, New_scope).
 
+%% Sets the memory-model address of the c_var
 c_var__set_address(_Var{C_var}, New_address) :-
     -?->
         setarg(6, C_var, New_address).
 
+%% Returns the address of the c_var
 c_var__get_address(_Var{C_var}, Address) :-
     -?->
         C_var = cvar(_, _, _, _, _, Address).
@@ -115,6 +119,8 @@ c_var__is_variable(_Var{C_var}) :-
         C_var = cvar(_, _, _, _, Name, _),
         nonvar(Name).
 
+%% Passes if the variable is c_var and of a pointer type
+%% Fails otherwise
 c_var__is_pointer(C_var) :-
     -?->
         c_var__get_type(C_var, Type),
