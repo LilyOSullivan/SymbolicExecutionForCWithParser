@@ -180,13 +180,10 @@ evaluate_expression(-Expression, -Expression_result_out) :-
 evaluate_expression(assignment(Assign_to, Expression), Expression_result) :-
     evaluate_expression(Expression, Right_result),
 
-    (c_var__is_variable(Assign_to) ->
-        Variable_to_assign = Assign_to
-    ;
-        % Assign_to can be as expression such as in pointer assignment
-        % Eg: *x = 2 becomes assignment(dereference(LC_x_1) , 2))
-        evaluate_expression(Assign_to, Variable_to_assign)
-    ),
+    % Assign_to can be as expression such as in pointer assignment
+    % Eg: *x = 2 becomes assignment(dereference(LC_x_1) , 2))
+    evaluate_expression(Assign_to, Variable_to_assign),
+
     utils__assignment(Variable_to_assign, Right_result, Expression_result).
 
 %% Handle the += operator
