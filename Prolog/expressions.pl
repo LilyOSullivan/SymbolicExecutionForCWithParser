@@ -8,18 +8,19 @@
 evaluate_expression(not(Expression)) :-
     !,
     evaluate_expression(Expression, Expression_result),
-    ptc_solver__sdl(not (Expression_result <> 0)).
+    utils__get_ptc_out_if_cvar(Expression_result, Expression_result_out),
+    ptc_solver__sdl(not (Expression_result_out <> 0)).
 
 %% Evaluate an expression. Failing if it is invalid, passing if it is valid.
 %% 0 is false, anything else is true
 evaluate_expression(Expression) :-
     evaluate_expression(Expression, Expression_result),
-    ptc_solver__sdl(Expression_result <> 0). %BUG: Will will fail if the assignment is 0? Eg if(x=0)
+    utils__get_ptc_out_if_cvar(Expression_result, Expression_result_out),
+    ptc_solver__sdl(Expression_result_out <> 0).
 
-%% Returns the 'out' ptc_variable of a c_var
-evaluate_expression(Expression, Ptc_variable) :-
-    var(Expression),
-    c_var__get_out_var(Expression, Ptc_variable),
+%% Returns the expression if it is a singular c_var
+evaluate_expression(Expression, Expression) :-
+    c_var__is_variable(Expression),
     !.
 
 %% Returns a number-constant
@@ -40,113 +41,121 @@ evaluate_expression(andop(Left, Right), Expression_result) :-
     evaluate_expression(Left, Left_result),
     evaluate_expression(Right, Right_result),
     ptc_solver__variable([Expression_result], boolean_int),
-    ptc_solver__sdl(reif(Left_result = 1 and_then Right_result = 1, Expression_result)).
+    utils__get_ptc_out_if_cvar(Left_result, Right_result, Left_out, Right_out),
+    ptc_solver__sdl(reif(Left_out = 1 and_then Right_out = 1, Expression_result)).
 
 %% Or Operator (||)
 evaluate_expression(orop(Left, Right), Expression_result) :-
     evaluate_expression(Left, Left_result),
     evaluate_expression(Right, Right_result),
     ptc_solver__variable([Expression_result], boolean_int),
-    ptc_solver__sdl(reif(Left_result = 1 or_else Right_result = 1, Expression_result)).
+    utils__get_ptc_out_if_cvar(Left_result, Right_result, Left_out, Right_out),
+    ptc_solver__sdl(reif(Left_out = 1 or_else Right_out = 1, Expression_result)).
 
 %% Not Operator (!)
 evaluate_expression(exclamation(Expression), Expression_result) :-
     evaluate_expression(Expression, Result),
     ptc_solver__variable([Expression_result], boolean_int),
-    ptc_solver__sdl(reif(Result = 0, Expression_result)).
+    utils__get_ptc_out_if_cvar(Result, Result_out),
+    ptc_solver__sdl(reif(Result_out = 0, Expression_result)).
 
 %% Modulo Operator (%)
-evaluate_expression(mod(Left ,Right), Left_result mod Right_result) :-
+evaluate_expression(mod(Left ,Right), Left_result_out mod Right_result_out) :-
     evaluate_expression(Left, Left_result),
-    evaluate_expression(Right, Right_result).
+    evaluate_expression(Right, Right_result),
+    utils__get_ptc_out_if_cvar(Left_result, Right_result, Left_result_out, Right_result_out).
 
 %% Not Equal (!=)
 evaluate_expression(Left<>Right, Expression_result) :-
     evaluate_expression(Left, Left_result),
     evaluate_expression(Right, Right_result),
     ptc_solver__variable([Expression_result], boolean_int),
-    ptc_solver__sdl(reif(Left_result <> Right_result, Expression_result)).
+    utils__get_ptc_out_if_cvar(Left_result, Right_result, Left_out, Right_out),
+    ptc_solver__sdl(reif(Left_out <> Right_out, Expression_result)).
 
 %% Equal Boolean Operator (==)
 evaluate_expression(Left==Right, Expression_result) :-
     evaluate_expression(Left, Left_result),
     evaluate_expression(Right, Right_result),
     ptc_solver__variable([Expression_result], boolean_int),
-
-    (
-        c_var__is_variable(Left_result) ->
-            c_var__get_out_var(Left_result, Left_result_out)
-        ;
-            Left_result_out = Left_result
-    ),
-
-    ptc_solver__sdl(reif(Left_result_out = Right_result, Expression_result)).
+    utils__get_ptc_out_if_cvar(Left_result, Right_result, Left_out, Right_out),
+    ptc_solver__sdl(reif(Left_out = Right_out, Expression_result)).
 
 %% Greater than Boolean Operator (>)
 evaluate_expression(Left>Right, Expression_result) :-
     evaluate_expression(Left, Left_result),
     evaluate_expression(Right, Right_result),
     ptc_solver__variable([Expression_result], boolean_int),
-    ptc_solver__sdl(reif(Left_result > Right_result, Expression_result)).
+    utils__get_ptc_out_if_cvar(Left_result, Right_result, Left_out, Right_out),
+    ptc_solver__sdl(reif(Left_out > Right_out, Expression_result)).
 
 %% Greater than or equal Boolean Operator (>=)
 evaluate_expression(Left>=Right, Expression_result) :-
     evaluate_expression(Left, Left_result),
     evaluate_expression(Right, Right_result),
     ptc_solver__variable([Expression_result], boolean_int),
-    ptc_solver__sdl(reif(Left_result >= Right_result, Expression_result)).
+    utils__get_ptc_out_if_cvar(Left_result, Right_result, Left_out, Right_out),
+    ptc_solver__sdl(reif(Left_out >= Right_out, Expression_result)).
 
 %% Less than Boolean Operator (<)
 evaluate_expression(Left<Right, Expression_result) :-
     evaluate_expression(Left, Left_result),
     evaluate_expression(Right, Right_result),
     ptc_solver__variable([Expression_result], boolean_int),
-    ptc_solver__sdl(reif(Left_result < Right_result, Expression_result)).
+    utils__get_ptc_out_if_cvar(Left_result, Right_result, Left_out, Right_out),
+    ptc_solver__sdl(reif(Left_out < Right_out, Expression_result)).
 
 %% Less than or equal Boolean Operator (<=)
 evaluate_expression(Left<=Right, Expression_result) :-
     evaluate_expression(Left, Left_result),
     evaluate_expression(Right, Right_result),
     ptc_solver__variable([Expression_result], boolean_int),
-    ptc_solver__sdl(reif(Left_result <= Right_result, Expression_result)).
+    utils__get_ptc_out_if_cvar(Left_result, Right_result, Left_out, Right_out),
+    ptc_solver__sdl(reif(Left_out <= Right_out, Expression_result)).
 
 %% Subtraction (Minus) Operator for two expressions (-)
-evaluate_expression(Left-Right, Left_result-Right_result) :-
+evaluate_expression(Left-Right, Left_result_out-Right_result_out) :-
     evaluate_expression(Left, Left_result),
-    evaluate_expression(Right, Right_result).
+    evaluate_expression(Right, Right_result),
+    utils__get_ptc_out_if_cvar(Left_result, Right_result, Left_result_out, Right_result_out).
 
 %% Addition Operator (+)
-evaluate_expression(Left+Right, Left_result+Right_result) :-
+evaluate_expression(Left+Right, Left_result_out+Right_result_out) :-
     evaluate_expression(Left, Left_result),
-    evaluate_expression(Right, Right_result).
+    evaluate_expression(Right, Right_result),
+    utils__get_ptc_out_if_cvar(Left_result, Right_result, Left_result_out, Right_result_out).
 
 %% Multiplication Operator for two expressions (*)
-evaluate_expression(multiply(Left, Right), Left_result*Right_result) :-
+evaluate_expression(multiply(Left, Right), Left_result_out*Right_result_out) :-
     evaluate_expression(Left, Left_result),
-    evaluate_expression(Right, Right_result).
+    evaluate_expression(Right, Right_result),
+    utils__get_ptc_out_if_cvar(Left_result, Right_result, Left_result_out, Right_result_out).
 
 %% Division Operator (/)
-evaluate_expression(Left/Right, Left_result/Right_result) :-
+evaluate_expression(Left/Right, Left_result_out/Right_result_out) :-
     evaluate_expression(Left, Left_result),
-    evaluate_expression(Right, Right_result).
+    evaluate_expression(Right, Right_result),
+    utils__get_ptc_out_if_cvar(Left_result, Right_result, Left_result_out, Right_result_out).
 
 %% Increment with ++ on the right side (Post-increment)
 %% Eg: x++
 evaluate_expression(post_increment(Assign_to, Increment_operation), Expression_result) :-
-    evaluate_expression(Assign_to, Expression_result),
+    c_var__get_out_var(Assign_to, Expression_result),
     evaluate_expression(Increment_operation, Increment_operation_result),
+    utils__get_ptc_out_if_cvar(Increment_operation_result, Increment_operation_result_out),
     c_var__get_type(Assign_to, Type),
     ptc_solver__variable([Temp], Type),
-    ptc_solver__sdl(Temp = Increment_operation_result),
+    ptc_solver__sdl(Temp = Increment_operation_result_out),
     c_var__set_out_var(Assign_to, Temp).
 
 %% Increment with ++ on the left side (Pre-increment)
 %% Eg: ++x
 evaluate_expression(pre_increment(Assign_to, Increment_operation), Expression_result) :-
     evaluate_expression(Increment_operation, Increment_operation_result),
+    utils__get_ptc_out_if_cvar(Increment_operation_result, Increment_operation_result_out),
     c_var__get_type(Assign_to, Type),
     ptc_solver__variable([Expression_result], Type),
-    ptc_solver__sdl(Expression_result = Increment_operation_result),
+    ptc_solver__sdl(Expression_result = Increment_operation_result_out),
     c_var__set_out_var(Assign_to, Expression_result).
 
 % %% Increment with -- on the right side (Post-decrement)
@@ -162,16 +171,9 @@ evaluate_expression(pre_decrement(Assign_to, Decrement_operation), Expression_re
 %% Negation operator (Unary minus)
 %% A value's sign being flipped with the minus operator
 %% Eg: -x
-evaluate_expression(-Expression, -Expression_result) :-
-    evaluate_expression(Expression, Expression_result).
-
-% assignment(rec(LC_p1_6, age) , 5)
-% evaluate_expression(assignment(rec(Assign_to, Field), Expression), Expression_result) :-
-%     evaluate_expression(Expression, Right_result),
-%     c_var__get_out_var(Assign_to, Out_var),
-%     ptc_solver__sdl(up_rec(Out_var, Field, Right_result)),
-%     Expression_result = Right_result,
-%     !.
+evaluate_expression(-Expression, -Expression_result_out) :-
+    evaluate_expression(Expression, Expression_result),
+    utils__get_ptc_out_if_cvar(Expression_result, Expression_result_out).
 
 %% Assignment operator (=)
 %% Eg: x = 2
@@ -241,8 +243,6 @@ evaluate_expression(pre_decrement(Assign_to, Expression), Expression_result) :-
 evaluate_expression(address_of(Variable), Expression_result) :-
     c_var__get_address(Variable, Expression_result).
 
-
-%IDEA: Create a suspension of if pointer not yet initialised.
 %% Dereference operator (Unary *)
 %% Eg: *x
 %% This returns the c_var at the memory address
@@ -250,23 +250,16 @@ evaluate_expression(dereference(Expression), Expression_result) :-
     evaluate_expression(Expression, Address),
     get_from_memory(Address, Content_at_address),
     Content_at_address = Expression_result.
-%% Dereference operator (Unary *)
-%% Eg: *x
-%% This returns the 'out' ptc variable of a c_var from a memory address
-% evaluate_expression(dereference(Expression), Expression_result) :-
-%     evaluate_expression(Expression, Address),
-%     get_from_memory(Address, Content_at_address),
-%     evaluate_expression(Content_at_address, Expression_result).
 
 %% Function call as expression
-%% Eg: int x = 2+give_five();
+%% Eg: int x = 2 + give_five();
 evaluate_expression(function_call(Function_info, Arguments), Expression_result) :-
     maplist(evaluate_expression, Arguments, Arguments_result),
     function_handler(Function_info, Arguments_result, Expression_result). % Statement_handler.pl
 
 %% Accessing an array element (Indexing)
 %% Eg: Arr[2]
-evaluate_expression(Array[Index], element(Var, [Expression_result])) :-
-    c_array__get_out_var(Array, Var),
-    % The index could be an expression (Eg: Arr[2+2])
-    evaluate_expression(Index, Expression_result).
+% evaluate_expression(Array[Index], element(Var, [Expression_result])) :-
+%     c_array__get_out_var(Array, Var),
+%     % The index could be an expression (Eg: Arr[2+2])
+%     evaluate_expression(Index, Expression_result).

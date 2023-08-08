@@ -1,33 +1,24 @@
 :- lib(ptc_solver).
+:- lib(regex).
 
 :- use_module(c_var).
 
-:- import sub_atom/5 from iso_light.
-:- import atom_length/2 from iso_light.
-
 declaration(Type, [C_variable], Assignment) :-
-
-    % TODO: Check why choice-point left behind
     declaration__get_variable_name(C_variable, C_name),
-    get_free_address(Memory_model_address),
 
-    % Check if the type-atom ends with 'pointer'
-    (
-        sub_atom(Type, _, _, _, 'pointer') ->
-            (
-                ptc_solver__subtype(Type, integer),
-                ptc_solver__variable([In], Type),
-                ptc_solver__label_integers([In]), %% FIXME: THis is a test
-                c_var__create(Type, In, local, C_name, Memory_model_address, C_variable),
-                add_pointer_to_memory_model(C_variable)
-            )
-        ;
-            (
-                ptc_solver__variable([In], Type),
-                c_var__create(Type, In, local, C_name, Memory_model_address, C_variable),
-                add_variable_to_memory_model(C_variable)
-            )
+    % Check if it is a pointer type
+    (sub_atom(Type, _, _, _, 'pointer') ->
+        (
+            ptc_solver__variable([In], int),
+            once ptc_solver__label_integers([In], 'indomain_random')
+        )
+    ;
+        (
+            ptc_solver__variable([In], Type)
+        )
     ),
+    c_var__create(Type, In, local, C_name, _, C_variable),
+    add_to_memory(C_variable),
     handle(Assignment, _),
     !.
 
@@ -42,14 +33,18 @@ declaration(Type, [C_variable], Assignment) :-
 %     c_array__create(int, intpointer, In, Name_stripped, Size, C_variable),
 %     !.
 
+%% declaration__get_variable_name/2
+%% declaration__get_variable_name(+Variable, -Name)
 %% Gets a clean variable name as a string from the parser-output
 %% Parameters:
 %%  Variable: The variable to get the name of
 %%  Name: The name of the variable, as a string
 %% Eg: declaration__get_variable_name(LC_x_83, Result) -> Result = "x"
 declaration__get_variable_name(Variable, Name) :-
-    get_var_info(Variable, name, Parser_name),
+    once get_var_info(Variable, name, Parser_name),
     atom_string(Parser_name, Parser_name_as_string),
     % Strip 'LC_' or 'UC_' from the variable name
-    sub_string(Parser_name_as_string, 3, _, 0, Stripped_parser_name),
-    utils__strip_suffix(Stripped_parser_name, Name).
+    sub_string(Parser_name_as_string, 3, _, 0, Parser_name_as_string_without_lc_or_uc),
+    % Removes the line number suffix from a string, added by the parser.
+    % Eg: "__x__183" becomes "__x_"
+    split("(_[0-9]+)$", Parser_name_as_string_without_lc_or_uc, [], [Name | _]).

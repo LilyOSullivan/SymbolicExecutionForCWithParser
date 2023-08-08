@@ -176,13 +176,13 @@ create_declaration(Variable, Declaration) :-
     c_var__get_scope(Variable, Scope),
     (
         c_var__is_pointer(Variable) ->
-            %handle_pointer_type(Type, Cleaned_c_type), %TODO: Remove this?
             once sub_atom(Type, Before, _, _, 'pointer'),
             sub_atom(Type, 0, Before, _, Base_type),
 
-            utils__get_number_of_pointers(Variable, Number_of_pointers),
+            get_number_of_pointers(Variable, Number_of_pointers),
             get_pointer_value(Variable, Number_of_pointers, Pointer_value),
-            determine_variable_value(Pointer_value, Variable_value, Base_type),
+            c_var__get_out_var(Pointer_value, Pointer_value_out),
+            determine_variable_value(Pointer_value_out, Variable_value, Base_type),
 
             %TODO: This does not account for scope
             generate_pointer_declaration(Base_type, Number_of_pointers, Variable_value, Var_name, Declaration)
@@ -191,8 +191,6 @@ create_declaration(Variable, Declaration) :-
             generate_declaration(Scope, Type, Var_name, Variable_value, Declaration)
     ),
     !.
-
-
 
 %% Create the appropriate value for the variable, based on its type
 determine_variable_value(Ptc_in_var, Variable_value, Type) :-
@@ -305,31 +303,6 @@ create_return(Return_value, _Type, Return_value_as_string) :-
     term_string(Return_value, Return_value_as_string),
     !.
 
-%% Creates a pointer-asterisk type string of the underlying type
-%% For example, if the type is 'intpointerpointer', then the result will be 'int**'
-%% Parameters:
-%% Type: The type of the variable as an atom
-%% Result (out): The predicate result as a string
-handle_pointer_type(Type, Result) :-
-    handle_pointer_type(Type, "", Result).
-
-handle_pointer_type(Type, Accumulator, Result) :-
-    % Check if the atom Type contains 'pointer'
-    % If it does, then we need to add an asterisk to the declaration
-    (
-        sub_atom(Type, Pointer_subatom_start_index, _, _, 'pointer') ->
-            (
-                %% Remove the 'pointer' substring from Type
-                sub_atom(Type, 0, Pointer_subatom_start_index, 7, New_type),
-                concat_string([Accumulator, New_type, "*"], New_accumulator),
-                handle_pointer_type(New_type, New_accumulator, Result)
-            )
-        ;
-            (
-                Result = Accumulator
-            )
-    ).
-
 %% Dereference a pointer to get it's value.
 get_pointer_value(Variable, 0, Variable).
 get_pointer_value(Variable, Number_of_pointers, Variable_value) :-
@@ -338,14 +311,12 @@ get_pointer_value(Variable, Number_of_pointers, Variable_value) :-
     New_number_of_pointers is Number_of_pointers - 1,
     get_pointer_value(Dereferenced_variable, New_number_of_pointers, Variable_value).
 
-
-
 % Function to generate C pointer declaration
 generate_pointer_declaration(Type, Num_Pointers, Pointer_Value, Top_Level_Pointer, Result_String) :-
     % Generate the name for the initial value
     sprintf(Initial_Value_Name, "pointer_value_%d", [Pointer_Value]),
     % Generate the string for the initial value declaration
-    sprintf(Initial_Declaration, "%s %s = %d;\n", [Type, Initial_Value_Name, Pointer_Value]),
+    sprintf(Initial_Declaration, "\t%s %s = %d;\n", [Type, Initial_Value_Name, Pointer_Value]),
     % Generate the pointer declarations
     Remaining_Pointers is Num_Pointers - 1,
     generate_pointer_indirections(Type, Remaining_Pointers, Initial_Value_Name, Initial_Declaration, 1, Result_String, Top_Level_Pointer).
@@ -361,7 +332,7 @@ generate_pointer_indirections(Type, Num_Pointers, Current_Pointer, Current_Strin
     % Generate the string of asterisks for the new pointer declaration
     generate_asterisks_string(Num_Asterisks, Asterisks_String),
     % Generate the string for the new pointer declaration
-    sprintf(Pointer_Declaration, "%s%s %s = &%s;\n", [Type, Asterisks_String, New_Pointer_Name, Current_Pointer]),
+    sprintf(Pointer_Declaration, "\t%s%s %s = &%s;\n", [Type, Asterisks_String, New_Pointer_Name, Current_Pointer]),
     % Concatenate the current string with the new pointer declaration
     concat_string([Current_String, Pointer_Declaration], Updated_String),
     (Num_Pointers = 0 ->
@@ -384,3 +355,20 @@ generate_asterisks_string(Count, Asterisks_String) :-
     length(L, Count),
     maplist(=("*"), L),
     concat_string(L, Asterisks_String).
+
+%% get_number_of_pointers/2
+%% get_number_of_pointers(+Variable, -Number_of_pointers)
+%% Gets the number of pointer indirection in a variable's type
+%% Parameters:
+%% Variable: The variable to get the number of indirections from
+%% Number_of_pointers: The number of pointer indirections
+%% Eg: get_number_of_pointers(LC_x_83{"x"}, Result) -> Result = 2 (Assuming type intpointerpointer)
+get_number_of_pointers(Variable, Number_of_pointers) :-
+    c_var__get_type(Variable, Type),
+    sub_atom(Type, After, _, _, 'pointer'),
+    atom_length(Type, Type_length),
+    Sub_atom_length is Type_length - After,
+    %Count the number of 'pointer' occurrences in the type-atom
+    sub_atom(Type, After, Sub_atom_length, _, Sub_atom),
+    atom_length(Sub_atom, Length),
+    Number_of_pointers is Length div 7.

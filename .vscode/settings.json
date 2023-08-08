@@ -2,6 +2,8 @@
     "cSpell.words": [
         "andop",
         "asserta",
+        "breal",
+        "bytesize",
         "carray",
         "charpointer",
         "concat",
@@ -15,6 +17,7 @@
         "maplist",
         "nonvar",
         "orop",
+        "retractall",
         "setarg",
         "setref",
         "setval",

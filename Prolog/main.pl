@@ -37,7 +37,6 @@ regression_main(Function_name) :-
 
 %% A shortcut predicate to main/3 outputting to the Prolog directory
 %% Useful for development. This is not called in code, only by a developer
-%% main/1 is used during development of the test-driver
 main(Function_name) :-
     main("sign", Function_name, "./", false).
 
@@ -54,42 +53,20 @@ main(Function_name) :-
 %%                          This should be either the atoms true or false.
 %%                 Eg: true
 main(Filename_without_extension, Function_name, Path_to_C_file, Override_globals) :-
-    util__error_if_false(string(Filename_without_extension), "Filename must be a string"),
-    util__error_if_false(not string_contains(Filename_without_extension, "."), "Filename should not contain an extension"),
-    util__error_if_false(atom(Function_name), "Function name must be an atom"),
-    util__error_if_false(string(Path_to_C_file), "Path to C file must be a string"),
-    util__error_if_false(get_file_info(Path_to_C_file, type, directory), "Path to C file is not a valid directory-path"),
-    util__error_if_false(is_boolean(Override_globals), "Override globals option must be a boolean"),
+    validate_inputs(Filename_without_extension, Function_name, Path_to_C_file, Override_globals),
     setup_test_driver(Function_name, Path_to_C_file),
     setup_ptc_solver,
-    concat_string([Path_to_C_file, "/", Filename_without_extension, ".pl"], Prolog_file),
-    read_prolog_file(Prolog_file, Terms),
-
-    (Override_globals = true ->
-            process_global_variables(Terms, [], All_globals),
-            declare_functions(Terms),
-            find_function_information(Terms, Function_name, Function_info),
-            function_info__get_clean_function(Function_info, _, Parameters, Body, Return_type),
-            (
-                Parameters = [void] ->
-                    (
-                        Params = All_globals
-                    )
-                ;
-                    (
-                        append(All_globals, Parameters, Params)
-                    )
-            )
-        ;
-            process_global_variables(Terms),
-            declare_functions(Terms),
-            find_function_information(Terms, Function_name, Function_info),
-            function_info__get_clean_function(Function_info, _, Params, Body, Return_type)
-    ),
-
-    util__error_if_false(Return_type \= void, "No unit tests to generate for a void-returning function"),
-    declare_static_variables(Body),
+    concat_string([Path_to_C_file, "/", Filename_without_extension, ".pl"], Prolog_filepath),
+    process_data(Prolog_filepath, Override_globals, Function_name, Params, Body, Return_type),
     function_handler(Filename_without_extension, Function_name, Body, Params, Return_type). % From Statement_handler.pl
+
+validate_inputs(Filename_without_extension, Function_name, Path_to_C_file, Override_globals) :-
+    utils__error_if_false(string(Filename_without_extension), "Filename must be a string"),
+    utils__error_if_false(not string_contains(Filename_without_extension, "."), "Filename should not contain an extension"),
+    utils__error_if_false(atom(Function_name), "Function name must be an atom"),
+    utils__error_if_false(string(Path_to_C_file), "Path to C file must be a string"),
+    utils__error_if_false(get_file_info(Path_to_C_file, type, directory), "Path to C file is not a valid directory-path"),
+    utils__error_if_false(once member(Override_globals, [false,true]), "Override globals option must be an atom-boolean ('true' or 'false')").
 
 %% Setup for the test-driver
 %% Parameters:
@@ -100,9 +77,8 @@ setup_test_driver(Function_name,Path_to_C_file) :-
     % Format: 24Hours_Minutes_Seconds__days_months_year
     % Eg: 14_34_18__03_02_23
     get_flag(unix_time, Unix_time),
-    local_time_string(Unix_time,"%H_%M_%S__%d_%m_%y", Current_date_as_string),
-    concat_string([Function_name, "_tests_", Current_date_as_string], Folder_name),
-    concat_string([Path_to_C_file, "/", Folder_name, "/"], Path_to_test_directory),
+    local_time_string(Unix_time,"%H_%M_%S__%d_%m_%y", Date_string),
+    concat_string([Path_to_C_file, "/", Function_name, "_tests_", Date_string, "/"], Path_to_test_directory),
 
     % Foldername used for the generated test-cases
     setval(test_folder_path, Path_to_test_directory),
@@ -118,91 +94,81 @@ setup_test_driver(Function_name,Path_to_C_file) :-
     setval(free_address, 1000),
     initialise_memory_model.
 
-%% Reads the parser-result prolog file, and returns its' contents
-%% This is used in place of the compile predicate. The compile predicate
-%% strips variable names when compiling.
-%% Parameters:
-%%  Relative_path: The path to the prolog file to be read
-%%  Result: The contents of the prolog file
-read_prolog_file(Relative_path, Result) :-
-    open(Relative_path, read, Stream),
-    % Asserting breaks the variable links.
-    % Return the content directly instead.
-    read_term(Stream, Parsed_terms, []),
-    close(Stream),
-    Parsed_terms = parsed(Result).
-
-%% Initialise global variables
-%% Parameters:
-%%  Terms: The contents of the parser-result prolog file
-process_global_variables([], List_of_global_declarations, List_of_global_declarations).
-process_global_variables([Term | More_terms], Global_variable_declaration_accumulator, List_of_global_declarations) :-
-    % Statements 999 is a dummy variable created by the parser
-    ( Term = global_variables(Statements, _), Statements \== 999 ->
-        Statements = [Declaration | _],
-        Declaration, % From declaration.pl
-        term_variables(Declaration, [Var|_]),
-        c_var__set_scope(Var, global),
-
-        append([Declaration], Global_variable_declaration_accumulator, New_global_variable_accumulator),
-        process_global_variables(More_terms, New_global_variable_accumulator, List_of_global_declarations)
-    ;
-        process_global_variables(More_terms, Global_variable_declaration_accumulator, List_of_global_declarations)
-    ).
-process_global_variables([]).
-process_global_variables([Term | More_terms]) :-
-    ( Term = global_variables(Statements, _), Statements \== 999 ->
-        handle(Statements, return(_, _)), % From Statement_handler.pl
-        process_global_variables(More_terms)
-    ;
-        process_global_variables(More_terms)
-    ).
-
-%% Finds the function definition for a desired function
-%% Parameters:
-%%  Terms: The contents of the parser-result prolog file
-%%  Function_name: The name of the function to be found
-%%  Params: The parameters of the function to be found
-%%  Body: The body of the function to be found
-%%  Return_type: The return type of the function to be found
-find_function_information([function_definition(Function_info, _, _, _) | More_terms], Function_name, Return_function_info) :-
-    !,
-    function_info__get_name(Function_info, Current_function_name),
-    (Current_function_name == Function_name ->
-        (
-            Return_function_info = Function_info,
-            !
-        )
-    ;
-        (
-            find_function_information(More_terms, Function_name, Return_function_info)
-        )
-    ).
-find_function_information([_ | More_terms], Function_name, Return_function_info) :-
-    !,
-    find_function_information(More_terms, Function_name, Return_function_info).
-find_function_information([], Function_name, _) :-
-    !,
-    sprintf(Error_message, "The entry function %a cannot be found", [Function_name]),
-    util__error_if_false(false, Error_message).
-
-declare_functions([]).
-declare_functions([function_definition(Function_info, Params, Body, Return_type) | More_terms]) :-
-    get_var_info(Function_info, name, Function_name_as_atom),
-    !,
-    % Strip 'LC_' or 'UC_' from the function name
-    sub_atom(Function_name_as_atom, 3, _, 0, Stripped_function_name),
-    function_info__create(function_definition(Stripped_function_name, Params, Body, Return_type), Function_info),
-    declare_functions(More_terms).
-declare_functions([_ | More_terms]) :-
-    declare_functions(More_terms).
-
-is_boolean(true).
-is_boolean(false).
-
 setup_ptc_solver :-
     ptc_solver__clean_up,
     ptc_solver__default_declarations,
     ptc_solver__type(char, integer, range_bounds(-128, 127)),
     ptc_solver__type(boolean_int, integer, range_bounds(0, 1)),
     ptc_solver__subtype(int, integer).
+
+process_data(Prolog_filepath, Override_globals, Function_name, Processed_parameters, Body, Return_type) :-
+    read_prolog_file(Prolog_filepath, Terms),
+    process_global_variables(Terms, All_globals),
+
+    declare_functions(Terms, Function_name, Function_info),
+    sprintf(Error_message, "The entry function '%a' cannot be found", [Function_name]),
+    utils__error_if_false(not free(Function_info), Error_message),
+
+    function_info__get_clean_function(Function_info, _, Parameters, Body, Return_type),
+    utils__error_if_false(Return_type \= void, "No unit tests to generate for a void-returning function"),
+    declare_static_variables(Body),
+    override_globals(Override_globals, All_globals, Parameters, Processed_parameters).
+
+%% read_prolog_file/2
+%% read_prolog_file(+Relative_path, -Read_prolog_terms)
+%% Reads the parser-result prolog file, and returns its' contents
+%% This is used in place of the compile predicate. The compile predicate
+%% strips variable names when compiling.
+%% Parameters:
+%%  Relative_path: The path to the prolog file to be read
+%%  Read_prolog_terms: The contents of the prolog file
+read_prolog_file(Relative_path, Read_prolog_terms) :-
+    open(Relative_path, read, Stream),
+    % Asserting breaks the variable links.
+    % Return the content directly instead.
+    read_term(Stream, Parsed_terms, []),
+    close(Stream),
+    Parsed_terms = parsed(Read_prolog_terms).
+
+%% process_global_variables/2
+%% process_global_variables(+Terms, -List_of_global_declarations)
+%% Initialise global variables
+%% Parameters:
+%%  Terms: The contents of the parser-result prolog file
+%%  List_of_global_declarations: The list of global declarations
+process_global_variables(Terms, List_of_global_declarations) :-
+    process_global_variables(Terms, [], List_of_global_declarations).
+
+process_global_variables([], List_of_global_declarations, List_of_global_declarations) :- !.
+process_global_variables([global_variables([Declaration | _], _) | More_terms], Global_declaration_accumulator, List_of_global_declarations) :-
+    Declaration, % From declaration.pl
+    term_variables(Declaration, [Global_variable | _]),
+    c_var__set_scope(Global_variable, global),
+    process_global_variables(More_terms, [Declaration | Global_declaration_accumulator], List_of_global_declarations).
+process_global_variables([_ | More_terms], Global_declaration_accumulator, List_of_global_declarations) :-
+    process_global_variables(More_terms, Global_declaration_accumulator, List_of_global_declarations).
+
+%%
+%% Declares functions as attributed variables and returns a desired function_info
+%% Parameters:
+%%  Terms: The contents of the parser-result prolog file
+%%  Function_name: The name of the function to be found
+%%  Function_info: The function_info matching to the function_name
+declare_functions([], _, _).
+declare_functions([function_definition(Function_info, Params, Body, Return_type) | More_terms], Function_name_to_be_found, Found_function) :-
+    get_var_info(Function_info, name, Function_name_as_atom),
+    !,
+    % Strip 'LC_' or 'UC_' from the function name
+    sub_atom(Function_name_as_atom, 3, _, 0, Stripped_function_name),
+    function_info__create(function_definition(Stripped_function_name, Params, Body, Return_type), Function_info),
+    (Stripped_function_name = Function_name_to_be_found ->
+        Found_function = Function_info
+    ),
+    declare_functions(More_terms, Function_name_to_be_found, Found_function).
+declare_functions([_ | More_terms], Function_name_to_be_found, Function_info) :-
+    declare_functions(More_terms, Function_name_to_be_found, Function_info).
+
+override_globals(true, All_globals, [void], All_globals) :- !.
+override_globals(true, All_globals, Function_parameters, Parameters) :-
+    append(All_globals, Function_parameters, Parameters).
+override_globals(false, _, Parameters, Parameters).

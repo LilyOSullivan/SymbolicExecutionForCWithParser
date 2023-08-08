@@ -1,11 +1,9 @@
 :- lib(ptc_solver).
-:- lib(regex).
 
 % From Eileen's Code
 utils__get_all_array_inputs([], []).
 utils__get_all_array_inputs([(_, Value) | Rest], [Value | Rest2]) :-
 	utils__get_all_array_inputs(Rest, Rest2).
-
 
 is_static_declaration(declaration(Functor, [Variable], _)) :-
     atom(Functor),
@@ -28,36 +26,27 @@ declare_static_variables([Statement | More_statements]) :-
         sub_atom(Type, 7, _, 0, Type_without_static),
         declaration(Type_without_static, [Variable], Assignment),
         ( Assignment = [] ->
-                %% 6.7.9 Initialization - clause 10
-                %% "If an object that has static.. storage duration... is not initialized explicitly...
-                %%  if it has arithmetic type, it is initialized to (positive or unsigned) zero"
-                utils__assignment(Variable, 0, _)
-            ;
-                true
+            %% 6.7.9 Initialization - clause 10
+            %% "If an object that has static.. storage duration... is not initialized explicitly...
+            %%  if it has arithmetic type, it is initialized to (positive or unsigned) zero"
+            utils__assignment(Variable, 0, _)
+        ;
+            true
         )
     ;
         true
     ),
     declare_static_variables(More_statements).
 
-%% Removes the line number suffix from a string, output by the parser (Eg: "_183").
-%% Parameters:
-%%  String_with_suffix: The string to remove the suffix from
-%%  String_without_suffix: The string without the suffix
-%% Eg: utils__strip_suffix("__x__183", Result) -> Result = "__x_"
-utils__strip_suffix(String_with_suffix, Result_without_suffix) :-
-    split("(_[0-9]+)$", String_with_suffix, [], [Result_without_suffix | _]).
-
 %% Removes the last character if it is a comma
 %% Parameters:
 %%  String_with_comma: The string to remove the comma from
 %%  String_without_comma: The string without the comma
 utils__strip_right_comma(String_with_comma, String_without_comma) :-
-    (
-        sub_string(String_with_comma, _, 1, 0, ",") ->
-            sub_string(String_with_comma, 0, _, 1, String_without_comma)
-        ;
-            String_without_comma = String_with_comma
+    (sub_string(String_with_comma, _, 1, 0, ",") ->
+        sub_string(String_with_comma, 0, _, 1, String_without_comma)
+    ;
+        String_without_comma = String_with_comma
     ).
 
 %% Join a list of strings together
@@ -88,19 +77,29 @@ utils__join([String | More_strings], Separator, Result) :-
 %% Eg: utils__assignment(Assign_to{"x"}, 5, Result) -> Result = 5
 utils__assignment(Assign_to, Value, Assigned_value) :-
     c_var__is_variable(Assign_to),
-    c_var__get_type(Assign_to, Type),
+    utils__get_appropriate_cvar_type(Assign_to, Type),
     ptc_solver__variable([Assigned_value], Type),
-    (c_var__is_variable(Value) ->
-        (
-            c_var__get_out_var(Value,Value_to_assign)
-        )
-    ;
-        (
-            Value_to_assign = Value
-        )
-    ),
+    utils__get_ptc_out_if_cvar(Value, Value_to_assign),
     ptc_solver__sdl(Assigned_value = Value_to_assign),
     c_var__set_out_var(Assign_to, Assigned_value).
+
+utils__get_appropriate_cvar_type(Variable, Type) :-
+    (c_var__is_pointer(Variable) ->
+        Type = int
+    ;
+        c_var__get_type(Variable, Type)
+    ).
+
+utils__get_ptc_out_if_cvar(Left_value, Right_value, Left_result, Right_result) :-
+    utils__get_ptc_out_if_cvar(Left_value, Left_result),
+    utils__get_ptc_out_if_cvar(Right_value, Right_result).
+
+utils__get_ptc_out_if_cvar(Value, Out_value) :-
+    (c_var__get_out_var(Value, Out_value) ->
+        true
+    ;
+        Out_value = Value
+    ).
 
 %% Assigns arguments to parameters in a function call
 %% Parameters:
@@ -114,15 +113,21 @@ utils__assign_arguments_to_parameters([Argument | More_arguments], [declaration(
     utils__assignment(Parameter, Argument, _),
     utils__assign_arguments_to_parameters(More_arguments, More_parameters).
 
-%%
-util__error_if_false(Goal, Error_message) :-
-    (
-        Goal ->
-            true
-        ;
-            concat_string(["Error: ", Error_message], Error_message_complete),
-            writeln(Error_message_complete),
-            abort
+
+
+%% utils__error_if_false/2
+%% utils__error_if_false(+Goal, +Error_message)
+%% This predicate takes a Goal and an Error_message as input. It evaluates the Goal and if it fails, it prints an error message and aborts the program.
+%% Parameters:
+%%  Goal: The goal to be evaluated.
+%%  Error_message: The error message to be printed if the Goal fails.
+utils__error_if_false(Goal, Error_message) :-
+    (Goal ->
+        true
+    ;
+        concat_string(["Error: ", Error_message], Error_message_complete),
+        writeln(Error_message_complete),
+        abort
     ).
 
 %% Truncate a whole number by its binary digits to fit an integer range.
@@ -163,13 +168,16 @@ utils__truncate(Number_to_truncate, Min_bound, Max_bound, Result) :-
     % interpret Number_mod_mask as a negative number in two's complement and adjust it by subtracting 2^Bit_length
     % Otherwise, use Number_mod_mask as it is
     (Min_bound < 0, Number_mod_mask >= Mid_point ->
-        Result is Number_mod_mask - (1 << Bit_length)
+        Temp_result is Number_mod_mask - (1 << Bit_length)
     ;
-        Result = Number_mod_mask
+        Temp_result = Number_mod_mask
     ),
 
-    Result >= Min_bound,
-    Result =< Max_bound.
+    % Ensure the result lies within the specified range by adjusting it with modulo of the range size
+    Adjusted_temp_result is (Temp_result - Min_bound) mod Range_size,
+    Result is Adjusted_temp_result + Min_bound.
+
+
 
 %% Calculates the number of bits necessary to represent a non-negative integer in binary
 %% Parameters:
@@ -185,7 +193,6 @@ bit_length(Int, Bit_length) :-
     % Add 1 to the result, because each iteration of the recursion represents one bit of Int
     Bit_length is Temp_length + 1.
 
-
 util__get_breal_bounds(Breal, Min, Max) :-
     ptc_solver__variable_range(Breal, Min_bound, Max_bound),
     utils__round_real(Min_bound, 3 , Min),
@@ -197,15 +204,3 @@ utils__round_real(Number, Places, Result) :-
     TempRounded is round(Temp),
     Result is TempRounded / Multiplier.
 
-% WIP below
-% TODO: Move this to the c_var module
-utils__get_number_of_pointers(Variable, Number_of_pointers) :-
-    c_var__get_type(Variable, Type),
-    sub_atom(Type, After, _, _, 'pointer'),
-    atom_length(Type, Type_length),
-    Sub_atom_length is Type_length - After,
-
-    %Count the number of 'pointer' occurrences in the type-atom
-    sub_atom(Type, After, Sub_atom_length, _, Sub_atom),
-    atom_length(Sub_atom, Length),
-    Number_of_pointers is Length div 7.
