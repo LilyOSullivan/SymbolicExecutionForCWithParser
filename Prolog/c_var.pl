@@ -10,6 +10,7 @@
 :- export c_var__get_out_var/2.
 :- export c_var__set_out_var/2.
 :- export c_var__get_type/2.
+:- export c_var__get_pointer_base_type/2.
 :- export c_var__is_variable/1.
 :- export c_var__get_scope/2.
 :- export c_var__set_scope/2.
@@ -71,6 +72,12 @@ c_var__create(Type, Ptc_variable_in, Variable_scope, Var_name, Address, C_var_in
 c_var__get_type(_Var{C_var}, Type) :-
     -?->
         C_var = cvar(Type, _, _, _, _, _).
+
+c_var__get_pointer_base_type(C_var, Base_type) :-
+    -?->
+        c_var__get_type(C_var, Type),
+        once sub_atom(Type, Before, _, _, 'pointer'),
+        sub_atom(Type, 0, Before, _, Base_type).
 
 %% Returns the name in the source code of the c_var
 c_var__get_name(_Var{C_var}, Name) :-

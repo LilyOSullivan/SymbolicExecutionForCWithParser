@@ -176,9 +176,7 @@ create_declaration(Variable, Declaration) :-
     c_var__get_scope(Variable, Scope),
     (
         c_var__is_pointer(Variable) ->
-            once sub_atom(Type, Before, _, _, 'pointer'),
-            sub_atom(Type, 0, Before, _, Base_type),
-
+            c_var__get_pointer_base_type(Variable, Base_type),
             get_number_of_pointers(Variable, Number_of_pointers),
             get_pointer_value(Variable, Number_of_pointers, Pointer_value),
             c_var__get_out_var(Pointer_value, Pointer_value_out),

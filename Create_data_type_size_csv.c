@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <limits.h>
+#include <float.h>
 
 // A sample structure
 struct sampleStruct {
@@ -19,53 +21,53 @@ int main(void) {
     }
 
     // Writing the headers
-    fprintf(file, "Type,Size_in_bytes\n");
+    fprintf(file, "Type,Size_in_bytes,Minimum,Maximum\n");
 
-    fprintf(file, "char,%lu\n", sizeof(char));
-    fprintf(file, "signed char,%lu\n", sizeof(signed char));
-    fprintf(file, "unsigned char,%lu\n", sizeof(unsigned char));
+    fprintf(file, "char,%lu,%d,%d\n", sizeof(char), CHAR_MIN, CHAR_MAX);
+    fprintf(file, "signed char,%lu,%d,%d\n", sizeof(signed char), SCHAR_MIN, SCHAR_MAX);
+    fprintf(file, "unsigned char,%lu,0,%u\n", sizeof(unsigned char), UCHAR_MAX);
 
-    fprintf(file, "short,%lu\n", sizeof(short));
-    fprintf(file, "signed short,%lu\n", sizeof(signed short));
-    fprintf(file, "unsigned short,%lu\n", sizeof(unsigned short));
+    fprintf(file, "short,%lu,%d,%d\n", sizeof(short), SHRT_MIN, SHRT_MAX);
+    fprintf(file, "signed short,%lu,%d,%d\n", sizeof(signed short), SHRT_MIN, SHRT_MAX);
+    fprintf(file, "unsigned short,%lu,0,%u\n", sizeof(unsigned short), USHRT_MAX);
 
-    fprintf(file, "short int,%lu\n", sizeof(short int));
-    fprintf(file, "signed short int,%lu\n", sizeof(signed short int));
-    fprintf(file, "unsigned short int,%lu\n", sizeof(unsigned short int));
+    fprintf(file, "short int,%lu,%d,%d\n", sizeof(short int), SHRT_MIN, SHRT_MAX);
+    fprintf(file, "signed short int,%lu,%d,%d\n", sizeof(signed short int), SHRT_MIN, SHRT_MAX);
+    fprintf(file, "unsigned short int,%lu,0,%u\n", sizeof(unsigned short int), USHRT_MAX);
 
-    fprintf(file, "int,%lu\n", sizeof(int));
-    fprintf(file, "signed int,%lu\n", sizeof(signed int));
-    fprintf(file, "unsigned int,%lu\n", sizeof(unsigned int));
-    fprintf(file, "signed,%lu\n", sizeof(signed));
-    fprintf(file, "unsigned,%lu\n", sizeof(unsigned));
+    fprintf(file, "int,%lu,%d,%d\n", sizeof(int), INT_MIN, INT_MAX);
+    fprintf(file, "signed int,%lu,%d,%d\n", sizeof(signed int), INT_MIN, INT_MAX);
+    fprintf(file, "unsigned int,%lu,0,%u\n", sizeof(unsigned int), UINT_MAX);
+    fprintf(file, "signed,%lu,%d,%d\n", sizeof(signed), INT_MIN, INT_MAX);
+    fprintf(file, "unsigned,%lu,0,%u\n", sizeof(unsigned), UINT_MAX);
 
-    fprintf(file, "long,%lu\n", sizeof(long));
-    fprintf(file, "unsigned long,%lu\n", sizeof(unsigned long));
-    fprintf(file, "signed long,%lu\n", sizeof(signed long));
+    fprintf(file, "long,%lu,%ld,%ld\n", sizeof(long), LONG_MIN, LONG_MAX);
+    fprintf(file, "signed long,%lu,%ld,%ld\n", sizeof(signed long), LONG_MIN, LONG_MAX);
+    fprintf(file, "unsigned long,%lu,0,%lu\n", sizeof(unsigned long), ULONG_MAX);
 
-    fprintf(file, "long int,%lu\n", sizeof(long int));
-    fprintf(file, "signed long int,%lu\n", sizeof(signed long int));
-    fprintf(file, "unsigned long int,%lu\n", sizeof(unsigned long int));
+    fprintf(file, "long int,%lu,%ld,%ld\n", sizeof(long int), LONG_MIN, LONG_MAX);
+    fprintf(file, "signed long int,%lu,%ld,%ld\n", sizeof(signed long int), LONG_MIN, LONG_MAX);
+    fprintf(file, "unsigned long int,%lu,0,%lu\n", sizeof(unsigned long int), ULONG_MAX);
 
+    fprintf(file, "long long,%lu,%lld,%lld\n", sizeof(long long), LLONG_MIN, LLONG_MAX);
+    fprintf(file, "signed long long,%lu,%lld,%lld\n", sizeof(signed long long), LLONG_MIN, LLONG_MAX);
+    fprintf(file, "unsigned long long,%lu,0,%llu\n", sizeof(unsigned long long), ULLONG_MAX);
 
-    fprintf(file, "long long,%lu\n", sizeof(long long));
-    fprintf(file, "unsigned long long,%lu\n", sizeof(unsigned long long));
-    fprintf(file, "signed long long,%lu\n", sizeof(signed long long));
+    fprintf(file, "long long int,%lu,%lld,%lld\n", sizeof(long long int), LLONG_MIN, LLONG_MAX);
+    fprintf(file, "signed long long int,%lu,%lld,%lld\n", sizeof(signed long long int), LLONG_MIN, LLONG_MAX);
+    fprintf(file, "unsigned long long int,%lu,0,%llu\n", sizeof(unsigned long long int), ULLONG_MAX);
 
-    fprintf(file, "long long int,%lu\n", sizeof(long long int));
-    fprintf(file, "signed long long int,%lu\n", sizeof(signed long long int));
-    fprintf(file, "unsigned long long int,%lu\n", sizeof(unsigned long long int));
+    fprintf(file, "float,%lu,%g,%g\n", sizeof(float), FLT_MIN, FLT_MAX);
+    fprintf(file, "double,%lu,%g,%g\n", sizeof(double), DBL_MIN, DBL_MAX);
+    fprintf(file, "long double,%lu,%Lg,%Lg\n", sizeof(long double), LDBL_MIN, LDBL_MAX);
 
-    fprintf(file, "float,%lu\n", sizeof(float));
-    fprintf(file, "double,%lu\n", sizeof(double));
-    fprintf(file, "long double,%lu\n", sizeof(long double));
+    fprintf(file, "pointer,%lu,0,%d\n", sizeof(void*), 0, UINTPTR_MAX);
+    fprintf(file, "_Bool,%lu,%d,%d\n", sizeof(_Bool), 0, 1);
 
-    fprintf(file, "pointer,%lu\n", sizeof(void*));
-    fprintf(file, "_Bool,%lu\n", sizeof(_Bool));
+    fprintf(file, "enum,%lu,%d,%d\n", sizeof(enum week), INT_MIN, INT_MAX); // Enumerated types usually have the size of 'int'
 
 //    fprintf(file, "sampleStruct,%lu\n", sizeof(struct sampleStruct)); // This has alignment/padding to account for. 8 * 3 = 24
 //    fprintf(file, "int array[10],%lu\n", sizeof(int[10]));
-    fprintf(file, "enum,%lu\n", sizeof(enum week)); // Usually int size
 
     fclose(file);
     printf("File created and data written successfully.\n");

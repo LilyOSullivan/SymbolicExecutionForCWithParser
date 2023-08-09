@@ -9,7 +9,7 @@ declaration(Type, [C_variable], Assignment) :-
     % Check if it is a pointer type
     (sub_atom(Type, _, _, _, 'pointer') ->
         (
-            ptc_solver__variable([In], int),
+            ptc_solver__variable([In], pointer),
             once ptc_solver__label_integers([In], 'indomain_random')
         )
     ;
