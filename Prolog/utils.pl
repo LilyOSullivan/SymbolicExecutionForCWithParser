@@ -115,7 +115,7 @@ utils__get_appropriate_cvar_type(Variable, pointer) :-
     c_var__is_pointer(Variable),
     !.
 utils__get_appropriate_cvar_type(Variable, Type) :-
-    c_var__get_base_type(Variable, Type).
+    c_var__get_type(Variable, Type).
 
 %% utils__get_ptc_out_if_cvar/4
 %% utils__get_ptc_out_if_cvar(+Left_value, +Right_value, -Left_result, -Right_result)

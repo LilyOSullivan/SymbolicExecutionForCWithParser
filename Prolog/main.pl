@@ -4,6 +4,7 @@
 :- use_module(c_var).
 :- use_module(function_info).
 
+:- ['variable_sizes'].
 :- ['memory_model'].
 :- ['declaration'].
 :- ['expressions'].
@@ -16,16 +17,6 @@
 
 %$ Used in regression_main/1 to convert an atom to a string
 :- import atom_codes/2 from iso_light.
-
-%% get_type_information/4
-%% get_type_information(+Type, -Size_in_bytes, -Minimum_bound, -Maximum_bound)
-%% Gets the size of a c type in bytes
-%% Parameters:
-%%   Type: The type to get the size of
-%%   Size_in_bytes: The size of the type in bytes
-%%   Minimum_bound: The minimum value of the type
-%%   Maximum_bound: The maximum value of the type
-:- dynamic get_type_information/4.
 
 %% Prolog Global values (getval/2, setval/2):
 %%  test_folder_path (String): The path to the folder where the test-cases are generated
@@ -67,7 +58,6 @@ main(Filename_without_extension, Function_name, Path_to_C_file, Override_globals
     validate_inputs(Filename_without_extension, Function_name, Path_to_C_file, Override_globals),
     setup_test_driver(Function_name, Path_to_C_file),
     setup_ptc_solver,
-    read_variable_size_file,
     concat_string([Path_to_C_file, "/", Filename_without_extension, ".pl"], Prolog_filepath),
     process_data(Prolog_filepath, Override_globals, Function_name, Params, Body, Return_type),
     function_handler(Filename_without_extension, Function_name, Body, Params, Return_type). % From Statement_handler.pl
@@ -119,8 +109,12 @@ setup_test_driver(Function_name, Path_to_C_file) :-
 setup_ptc_solver :-
     ptc_solver__clean_up,
     ptc_solver__default_declarations,
-    ptc_solver__type(boolean_int, integer, range_bounds(0, 1)).
-    % ptc_solver__type(char, integer, range_bounds(-128, 127)),
+    ptc_solver__type(boolean_int, integer, range_bounds(0, 1)),
+
+
+
+    %%read_variable_size_file.
+    ptc_solver__type(char, integer, range_bounds(-128, 127)).
     % ptc_solver__subtype(int, integer).
 
 read_variable_size_file :-
@@ -151,11 +145,8 @@ read_variable_size_file :-
         fail
     ;
         retract(get_type_information(pointer, Byte_size , _, _)), % Get the size of a pointer
-        % get_type_information(_, Byte_size , 0, Max), % An unsigned value of this byte size.
-        % !,
-        % Maximum is Max div 12, % ptc solver limit?
-        assert(get_type_information(pointer, Byte_size, 0, 200000000)),
-        ptc_solver__type('pointer', integer, range_bounds(0, 200000000))
+        assert(get_type_information(pointer, Byte_size, 0, 2000000)),
+        ptc_solver__type('pointer', integer, range_bounds(0, 20000000))
     ).
 
 %% process_data/6

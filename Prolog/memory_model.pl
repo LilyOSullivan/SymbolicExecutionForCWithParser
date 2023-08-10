@@ -35,18 +35,18 @@ add_to_memory(Value) :-
 %%   Address: The address of the desired value
 %%   Value_at_address: The value at the given address
 get_from_memory(Address, Return_value_at_address) :-
-    c_var__get_out_var(Address, Use_address),
-    utils__get_appropriate_cvar_type(Address, Type),
-    % utils__get_ptc_out_if_cvar(Address, Use_address),
+    % c_var__get_out_var(Address, Use_address),
+    % utils__get_appropriate_cvar_type(Address, Type),
+    utils__get_ptc_out_if_cvar(Address, Use_address),
 
     getref(memory_model, Memory_model),
-    (hash_get(Memory_model, Use_address, Value_at_address) ->
+    (hash_get(Memory_model, Use_address, Return_value_at_address) ->
         true
     ;
         random(Random_value_at_address), % QUESTION: Will this work for floats?
         % utils__demotion(Random_value_at_address, Type, Demoted_value),
-        c_var__create(int, Demoted_value, _, "__memory_model_junk__", Use_address, Value_at_address),
-        hash_set(Memory_model, Use_address, Value_at_address)
+        c_var__create(int, Random_value_at_address, _, "__memory_model_junk__", Use_address, Return_value_at_address),
+        hash_set(Memory_model, Use_address, Return_value_at_address)
     ).
 
 %% get_free_address/1
