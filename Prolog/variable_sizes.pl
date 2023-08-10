@@ -36,6 +36,6 @@ get_type_information(unsigned_long_long_int,8,0,18446744073709551615).
 get_type_information(float,4,1.17549e-38,3.40282e+38).
 get_type_information(double,8,2.22507e-308,1.79769e+308).
 get_type_information(long_double,8,2.22507e-308,1.79769e+308).
-get_type_information(pointer,8,0,0).
+get_type_information(pointer,8,0,200000).
 get_type_information(_Bool,1,0,1).
 get_type_information(enum,4,-2147483648,2147483647).

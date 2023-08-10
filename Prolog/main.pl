@@ -114,8 +114,9 @@ setup_ptc_solver :-
 
 
     %%read_variable_size_file.
-    ptc_solver__type(char, integer, range_bounds(-128, 127)).
-    % ptc_solver__subtype(int, integer).
+    ptc_solver__type(char, integer, range_bounds(-128, 127)),
+    ptc_solver__type(pointer, integer, range_bounds(0, 200000)),
+    ptc_solver__subtype(int, integer).
 
 read_variable_size_file :-
      % % Ensure "variable_sizes.csv" exists
