@@ -1,1 +1,4 @@
 sha,filename,url,lines,title,comment,priority,category,additional,id,private
+"a10cdb576ebe8fa12da59ff48ba9ea021ac4b608","\Prolog\main.pl","","168:0-169:66","Readiability","Very weird and confusing way of issuing error message. Impedes readability. In addition the ""if false"" introduces double negatives most the time.\nPut the if here","0","Code-Style","","337eb818-bf7a-4a5f-a3a3-12be1a9186e4","0"
+"a10cdb576ebe8fa12da59ff48ba9ea021ac4b608","\Prolog\main.pl","","163:0-163:12","poor naming","process data is much too generic, find a more descriptive name","0","Code-Style","","714cc8a2-75e8-4e17-8820-de4ed60669c9","0"
+"a10cdb576ebe8fa12da59ff48ba9ea021ac4b608","\Prolog\main.pl","","63:4-63:20","naming","rename 'symbolically_execute_function' ? 'handler' is too generic and does not help the reader","0","Code-Style","","ca9ac322-d81d-4a89-a5cb-f5e62e4f8145","0"
