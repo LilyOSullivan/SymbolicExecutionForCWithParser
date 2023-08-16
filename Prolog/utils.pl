@@ -96,12 +96,24 @@ utils__join([String | More_strings], Separator, Result) :-
 %%  Assigned_value: The value assigned that has been assigned
 %% Eg: utils__assignment(Assign_to{"x"}, 5, Result) -> Result = 5
 utils__assignment(Assign_to, Value, Assigned_value) :-
-    c_var__is_variable(Assign_to),
     utils__get_appropriate_cvar_type(Assign_to, Type),
-    utils__get_ptc_out_if_cvar(Value, Out_value),
     ptc_solver__variable([Assigned_value], Type),
-    utils__demotion(Out_value, Type, Value_to_assign),
-    ptc_solver__sdl(eq_cast(Assigned_value,Value_to_assign)),
+    (c_var__is_variable(Value) ->
+        (
+            c_var__get_out_var(Value,Value_to_assign)
+        )
+    ;
+        (
+            Value_to_assign = Value
+        )
+    ),
+
+    % c_var__is_variable(Assign_to),
+    % utils__get_appropriate_cvar_type(Assign_to, Type),
+    % utils__get_ptc_out_if_cvar(Value, Out_value),
+    % ptc_solver__variable([Assigned_value], Type),
+    utils__demotion(Value_to_assign, Type, Value_to_assign_demoted),
+    ptc_solver__sdl(eq_cast(Assigned_value, Value_to_assign_demoted)),
     c_var__set_out_var(Assign_to, Assigned_value).
 
 %% utils__get_appropriate_cvar_type/2
@@ -137,9 +149,10 @@ utils__get_ptc_out_if_cvar(Left_value, Right_value, Left_result, Right_result) :
 %% Parameters:
 %%  Value: The value to get the 'out' variable of
 %%  Out_value: The 'out' variable of the value
-utils__get_ptc_out_if_cvar(Value, Out_value) :-
-    c_var__get_out_var(Value, Out_value),
-    !.
+% utils__get_ptc_out_if_cvar(Value, Out_value) :-
+%     c_var__is_variable(Value),
+%     c_var__get_out_var(Value, Out_value),
+%     !.
 utils__get_ptc_out_if_cvar(Value, Value).
 
 %% Assigns arguments to parameters in a function call
@@ -187,11 +200,11 @@ utils__demotion(Number_to_demote, Type, Result) :-
     utils__demotion(Number_to_demote, Min_bound, Max_bound, Result).
 utils__demotion(Number_to_demote, Min_bound, Max_bound, Result) :-
     Range = Max_bound - Min_bound + 1,
-    (Number_to_demote > Max_bound ->
-        utils__demotion(Number_to_demote - Range, Min_bound, Max_bound, Result)
+    (ptc_solver__sdl((Number_to_demote) > Max_bound) ->
+        utils__demotion((Number_to_demote) - Range, Min_bound, Max_bound, Result)
     ;
-    Number_to_demote < Min_bound ->
-        utils__demotion(Number_to_demote + Range, Min_bound, Max_bound, Result)
+    ptc_solver__sdl((Number_to_demote) < Min_bound) ->
+        utils__demotion((Number_to_demote) + Range, Min_bound, Max_bound, Result)
     ;
         Result = Number_to_demote
     ).

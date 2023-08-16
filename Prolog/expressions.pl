@@ -19,8 +19,9 @@ evaluate_expression(Expression) :-
     ptc_solver__sdl(Expression_result_out <> 0).
 
 %% Returns the expression if it is a singular c_var
-evaluate_expression(Expression, Expression) :-
-    c_var__is_variable(Expression),
+evaluate_expression(Expression, Ptc_variable) :-
+    var(Expression),
+    c_var__get_out_var(Expression, Ptc_variable),
     !.
 
 %% Returns a number-constant
@@ -140,10 +141,14 @@ evaluate_expression(Left/Right, Left_result_out/Right_result_out) :-
 %% Increment with ++ on the right side (Post-increment)
 %% Eg: x++
 evaluate_expression(post_increment(Assign_to, Increment_operation), Expression_result) :-
-    c_var__get_out_var(Assign_to, Expression_result),
+    (c_var__is_variable(Assign_to) ->
+        c_var__get_out_var(Assign_to, Expression_result)
+        c_var__get_type(Assign_to, Type),
+    ;
+        evaluate_expression(Assign_to, Expression_result)
+    ),
     evaluate_expression(Increment_operation, Increment_operation_result),
     utils__get_ptc_out_if_cvar(Increment_operation_result, Increment_operation_result_out),
-    c_var__get_type(Assign_to, Type),
     ptc_solver__variable([Temp], Type),
     ptc_solver__sdl(Temp = Increment_operation_result_out),
     c_var__set_out_var(Assign_to, Temp).
@@ -182,7 +187,11 @@ evaluate_expression(assignment(Assign_to, Expression), Expression_result) :-
 
     % Assign_to can be as expression such as in pointer assignment
     % Eg: *x = 2 becomes assignment(dereference(LC_x_1) , 2))
-    evaluate_expression(Assign_to, Variable_to_assign),
+    (c_var__is_variable(Assign_to) ->
+        Variable_to_assign = Assign_to
+    ;
+        evaluate_expression(Assign_to, Variable_to_assign)
+    ),
 
     utils__assignment(Variable_to_assign, Right_result, Expression_result).
 
@@ -252,7 +261,7 @@ evaluate_expression(dereference(Expression), Expression_result) :-
 %% Eg: int x = 2 + give_five();
 evaluate_expression(function_call(Function_info, Arguments), Expression_result) :-
     maplist(evaluate_expression, Arguments, Arguments_result),
-    function_handler(Function_info, Arguments_result, Expression_result). % Statement_handler.pl
+    symbolically_execute_function(Function_info, Arguments_result, Expression_result). % Statement_handler.pl
 
 %% Accessing an array element (Indexing)
 %% Eg: Arr[2]

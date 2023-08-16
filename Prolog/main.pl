@@ -1,5 +1,4 @@
 :- lib(ptc_solver).
-:- lib(csv).
 
 :- use_module(c_var).
 :- use_module(function_info).
@@ -59,8 +58,8 @@ main(Filename_without_extension, Function_name, Path_to_C_file, Override_globals
     setup_test_driver(Function_name, Path_to_C_file),
     setup_ptc_solver,
     concat_string([Path_to_C_file, "/", Filename_without_extension, ".pl"], Prolog_filepath),
-    process_data(Prolog_filepath, Override_globals, Function_name, Params, Body, Return_type),
-    function_handler(Filename_without_extension, Function_name, Body, Params, Return_type). % From Statement_handler.pl
+    get_function_information_from_parsed_file(Prolog_filepath, Override_globals, Function_name, Params, Body, Return_type),
+    symbolically_execute_function(Filename_without_extension, Function_name, Body, Params, Return_type). % From Statement_handler.pl
 
 %% validate_inputs/4
 %% validate_inputs(+Filename_without_extension, +Function_name, +Path_to_C_file, +Override_globals)
@@ -76,7 +75,7 @@ validate_inputs(Filename_without_extension, Function_name, Path_to_C_file, Overr
     utils__error_if_false(atom(Function_name), "Function name must be an atom"),
     utils__error_if_false(string(Path_to_C_file), "Path to C file must be a string"),
     utils__error_if_false(get_file_info(Path_to_C_file, type, directory), "Path to C file is not a valid directory-path"),
-    utils__error_if_false(once member(Override_globals, [false,true]), "Override globals option must be an atom-boolean ('true' or 'false')").
+    utils__error_if_false(once member(Override_globals, [false, true]), "Override globals option must be an atom of a boolean ('true' or 'false')").
 
 %% setup_test_driver/2
 %% setup_test_driver(+Function_name, +Path_to_C_file)
@@ -110,58 +109,35 @@ setup_ptc_solver :-
     ptc_solver__clean_up,
     ptc_solver__default_declarations,
     ptc_solver__type(boolean_int, integer, range_bounds(0, 1)),
+    % ptc_solver__subtype(int, integer),
+    declare_c_types_to_ptc_solver.
+    % ptc_solver__type(char, integer, range_bounds(-128, 127)),
+    % ptc_solver__type(pointer, integer, range_bounds(0, 200000)).
 
-
-
-    %%read_variable_size_file.
-    ptc_solver__type(char, integer, range_bounds(-128, 127)),
-    ptc_solver__type(pointer, integer, range_bounds(0, 200000)),
-    ptc_solver__subtype(int, integer).
-
-read_variable_size_file :-
-     % % Ensure "variable_sizes.csv" exists
-    % open("variable_sizes.csv", read, Stream),
-    % close(Stream),
-
-    % Ensure sizes are up to date on each run, without previous run influence.
-    retractall(get_type_information(_,_,_,_)),
-
-    % Reads as a list of lists. Each row is a list.
-    % The first row is the header row, which is not needed, it is removed with the `|` operator.
-    % Csv_file is a list of lists, each list is a row.
-    % Eg: [[int,4],[float,4],[double,8],[char,1],[pointer,4]]
-    csv_read("variable_sizes.csv", [_ | Csv_file], []),
-
-    (
-        member([C_type, Size_in_bytes, Min, Max], Csv_file),
-        atom_string(C_type_atom,C_type),
-
-        assert(get_type_information(C_type_atom, Size_in_bytes, Min, Max)),
-        C_type_atom \= pointer,
-        (integer(Min) ->
-            ptc_solver__type(C_type_atom, integer, range_bounds(Min, Max))
-        ;
-            ptc_solver__type(C_type_atom, float, range_bounds(Min, Max))
-        ),
-        fail
+declare_c_types_to_ptc_solver :-
+    get_type_information(Type, _, Minimum_bound, Maximum_bound),
+    (integer(Maximum_bound) ->
+        ptc_solver__type(Type, integer, range_bounds(Minimum_bound, Maximum_bound))
     ;
-        retract(get_type_information(pointer, Byte_size , _, _)), % Get the size of a pointer
-        assert(get_type_information(pointer, Byte_size, 0, 2000000)),
-        ptc_solver__type('pointer', integer, range_bounds(0, 20000000))
-    ).
+        true
+        % Type \= float
+        % ptc_solver__type(Type, float, range_bounds(Minimum_bound, Maximum_bound))
+    ),
+    fail.
+declare_c_types_to_ptc_solver.
 
-%% process_data/6
-%% process_data(+Prolog_filepath, +Override_globals, +Function_name, -Processed_parameters, -Body, -Return_type)
+%% get_function_information_from_parsed_file/6
+%% get_function_information_from_parsed_file(+Parsed_file_path, +Override_globals, +Function_name, -Processed_parameters, -Body, -Return_type)
 %% Reads the parser-result prolog file, and returns the function_info of the entry function
 %% Parameters:
-%%  Prolog_filepath: The path to the prolog file to be read. This is a string
+%%  Parsed_file_path: The path to the prolog file to be read. This is a string
 %%  Override_globals: A boolean option if global variables should be overridden at test-generation time
 %%  Function_name: The name of the function to be found. This is an atom
 %%  Processed_parameters: The list of parameters to the entry function
 %%  Body: The body of the entry function
 %%  Return_type: The return type of the entry function
-process_data(Prolog_filepath, Override_globals, Function_name, Processed_parameters, Body, Return_type) :-
-    read_prolog_file(Prolog_filepath, Terms),
+get_function_information_from_parsed_file(Parsed_file_path, Override_globals, Function_name, Processed_parameters, Body, Return_type) :-
+    read_prolog_file(Parsed_file_path, Terms),
     process_global_variables(Terms, All_globals),
 
     declare_functions(Terms, Function_name, Function_info),
@@ -223,6 +199,8 @@ declare_functions([function_definition(Function_info, Params, Body, Return_type)
     function_info__create(function_definition(Stripped_function_name, Params, Body, Return_type), Function_info),
     (Stripped_function_name = Function_name_to_be_found ->
         Found_function = Function_info
+    ;
+        true
     ),
     declare_functions(More_terms, Function_name_to_be_found, Found_function).
 declare_functions([_ | More_terms], Function_name_to_be_found, Function_info) :-

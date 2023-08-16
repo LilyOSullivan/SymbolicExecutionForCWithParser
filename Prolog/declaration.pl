@@ -19,7 +19,7 @@ declaration(Type, [C_variable], Assignment) :-
     ),
     c_var__create(Type, In, local, C_name, _, C_variable),
     add_to_memory(C_variable),
-    handle(Assignment, _),
+    statement_handler(Assignment, _),
     !.
 
 % %% Declare an integer array

@@ -89,3 +89,6 @@ Prolog/gtest/
 LexYacc/parsing/x64/
 
 .vs/
+
+LexYacc/regression_tests/*.pl
+LexYacc/regression_tests/*.i
