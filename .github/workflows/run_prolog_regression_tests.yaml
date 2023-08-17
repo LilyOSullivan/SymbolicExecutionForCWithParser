@@ -18,7 +18,7 @@ jobs:
 
     - name: Add ptc_solver to ECLiPSe Prolog
       run: |
-        cp ".\.github\workflows\ptc_solver\*" "C:\\Program Files\\ECLiPSe 7.1\\lib\\"
+        cp ".\\.github\\workflows\\ptc_solver\\*" "C:\\Program Files\\ECLiPSe 7.1\\lib\\"
 
     - name: Write hello world from ECLiPSe Prolog
       run: |
