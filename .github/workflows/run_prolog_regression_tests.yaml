@@ -12,13 +12,13 @@ jobs:
 
     - name: Install ECLiPSe Prolog
       run: |
-        .\$GITHUB_WORKSPACE\.github\workflows\ECLiPSe_7.1_13_x86_64_nt.exe /S
+        .\.github\workflows\ECLiPSe_7.1_13_x86_64_nt.exe /S
         # curl -O https://eclipseclp.org/Distribution/Builds/7.1_13/x86_64_nt/ECLiPSe_7.1_13_x86_64_nt.exe
         # .\ECLiPSe_7.1_13_x86_64_nt.exe.exe /S
 
     - name: Add ptc_solver to ECLiPSe Prolog
       run: |
-        cp $GITHUB_WORKSPACE\.github\workflows\ptc_solver\* "C:\Program Files\ECLiPSe 7.1\lib"
+        cp ".\.github\workflows\ptc_solver\*" "C:\Program Files\ECLiPSe 7.1\lib\"
 
     - name: Write hello world from ECLiPSe Prolog
       run: |

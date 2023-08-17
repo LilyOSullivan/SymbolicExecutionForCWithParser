@@ -19,13 +19,13 @@
 
 %% Prolog Global values (getval/2, setval/2):
 %%  test_folder_path (String): The path to the folder where the test-cases are generated
-%%  test_id (Number, value:1): This is an Id used to identify test cases generated
-%%  tests (List, value:[]): This list holds the names of the generated test cases
+%%  test_id (integer, default: 1): This is an Id used to identify test cases generated
+%%  tests (List, default: []): This list holds the names of the generated test cases
 %%      Eg: ["test_1", "test_2", "test_3"...]
-%%  free_address (Number, value: 1000): This is the address of the next free memory location in the memory model
+%%  free_address (integer, default: 1000): This is the address of the next free memory location in the memory model
 
 %% Prolog Global References (getref/2, setref/2):
-%%  memory_model (hash, key: integer(getval(free_address)), value: c_var): Global memory model (In the form of a hash table)
+%%  memory_model (hash -- key: integer(getval(free_address)), value: c_var): Global memory model (In the form of a hash table)
 
 %% A shortcut predicate to main/3 outputting to the Prolog directory
 %% Useful for development. This is not called in code,
@@ -101,26 +101,27 @@ setup_test_driver(Function_name, Path_to_C_file) :-
     % when generating the '_main' cunit .c file
     setval(tests, []),
 
-    % A value holding the next free address in the memory model. Used in memory_model.pl
-    setval(free_address, 1000),
     initialise_memory_model.
 
+%% setup_ptc_solver/0
+%% setup_ptc_solver
+%% Setup for the ptc_solver, additionally declaring the C types to the solver
 setup_ptc_solver :-
     ptc_solver__clean_up,
     ptc_solver__default_declarations,
     ptc_solver__type(boolean_int, integer, range_bounds(0, 1)),
-    % ptc_solver__subtype(int, integer),
     declare_c_types_to_ptc_solver.
-    % ptc_solver__type(char, integer, range_bounds(-128, 127)),
-    % ptc_solver__type(pointer, integer, range_bounds(0, 200000)).
 
+%% declare_c_types_to_ptc_solver/0
+%% 
 declare_c_types_to_ptc_solver :-
     get_type_information(Type, _, Minimum_bound, Maximum_bound),
     (integer(Maximum_bound) ->
         ptc_solver__type(Type, integer, range_bounds(Minimum_bound, Maximum_bound))
     ;
+        % For the moment, floating-point types outside of the built-in ptc 'float' type are unsupported
         true
-        % Type \= float
+        % Type \= float % The ptc_solver already has a definition of a 'float' type - It can be override if desired
         % ptc_solver__type(Type, float, range_bounds(Minimum_bound, Maximum_bound))
     ),
     fail.
