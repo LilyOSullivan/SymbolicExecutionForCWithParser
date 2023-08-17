@@ -107,11 +107,6 @@ utils__assignment(Assign_to, Value, Assigned_value) :-
             Value_to_assign = Value
         )
     ),
-
-    % c_var__is_variable(Assign_to),
-    % utils__get_appropriate_cvar_type(Assign_to, Type),
-    % utils__get_ptc_out_if_cvar(Value, Out_value),
-    % ptc_solver__variable([Assigned_value], Type),
     utils__demotion(Value_to_assign, Type, Value_to_assign_demoted),
     ptc_solver__sdl(eq_cast(Assigned_value, Value_to_assign_demoted)),
     c_var__set_out_var(Assign_to, Assigned_value).
@@ -128,32 +123,6 @@ utils__get_appropriate_cvar_type(Variable, pointer) :-
     !.
 utils__get_appropriate_cvar_type(Variable, Type) :-
     c_var__get_type(Variable, Type).
-
-%% utils__get_ptc_out_if_cvar/4
-%% utils__get_ptc_out_if_cvar(+Left_value, +Right_value, -Left_result, -Right_result)
-%% A shorthand predicate to calling `utils__get_ptc_out_if_cvar/2` twice. Particularly useful in expressions.pl
-%% Parameters:
-%%  Left_value: The left value to get the 'out' variable of
-%%  Right_value: The right value to get the 'out' variable of
-%%  Left_result: The 'out' variable of the left value
-%%  Right_result: The 'out' variable of the right value
-utils__get_ptc_out_if_cvar(Left_value, Right_value, Left_result, Right_result) :-
-    utils__get_ptc_out_if_cvar(Left_value, Left_result),
-    utils__get_ptc_out_if_cvar(Right_value, Right_result).
-
-%% utils__get_ptc_out_if_cvar/2
-%% utils__get_ptc_out_if_cvar(+Value, -Out_value)
-%% If Value is a c_var, returns the 'out' variable of the c_var, otherwise returns value entered.
-%% This is to facilitate interaction to ptc_solver__sdl/1,
-%% as passing a c_var to ptc_solver__sdl/1 is illogical.
-%% Parameters:
-%%  Value: The value to get the 'out' variable of
-%%  Out_value: The 'out' variable of the value
-% utils__get_ptc_out_if_cvar(Value, Out_value) :-
-%     c_var__is_variable(Value),
-%     c_var__get_out_var(Value, Out_value),
-%     !.
-utils__get_ptc_out_if_cvar(Value, Value).
 
 %% Assigns arguments to parameters in a function call
 %% Parameters:

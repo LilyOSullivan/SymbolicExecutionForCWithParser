@@ -90,8 +90,7 @@ statement_handler(return, return(Return_value, Return_type)) :-
 %% Eg: return 5;
 statement_handler(return(Expression), return(Return_value, Return_type)) :-
     evaluate_expression(Expression, Return_expression),
-    utils__get_ptc_out_if_cvar(Return_expression, Return_expression_out),
-    utils__demotion(Return_expression_out, Return_type, Demoted_return),
+    utils__demotion(Return_expression, Return_type, Demoted_return),
     ptc_solver__variable([Return_variable], Return_type),
     ptc_solver__sdl(eq_cast(Return_variable, Demoted_return)),
     c_var__create(Return_type, Return_variable, local, "__return__", _, Return_value),
