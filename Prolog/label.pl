@@ -1,6 +1,5 @@
 :- lib(ptc_solver).
 
-% :- use_module(c_array).
 :- use_module(c_var).
 
 %% Groups variables by type and labels them collectively instead of individually
@@ -49,11 +48,4 @@ label([label_variables(_Type, Variables_to_label) | More_to_label]) :-
     ),
     label(More_to_label).
 
-% label([label_variables(intpointer, Values_to_label) | More_to_label]) :-
-%     ( foreach(Value, Values_to_label), foreach(Array_inputs, Array_values) do
-%         ptc_solver__get_array_index_elements(Value, Indexs),
-%         utils__get_all_array_inputs(Indexs, Array_inputs)
-%     ),
-%     ptc_solver__label_integers(Array_values),
-%     label(More_to_label).
 

@@ -1,6 +1,5 @@
 :- lib(ptc_solver).
 
-:- use_module(c_array).
 :- use_module(c_var).
 
 %% Evaluate a not expression (!). Failing if it is invalid, passing if it is valid.
@@ -245,10 +244,4 @@ evaluate_expression(dereference(Expression), Expression_result) :-
 evaluate_expression(function_call(Function_info, Arguments), Expression_result) :-
     maplist(evaluate_expression, Arguments, Arguments_result),
     symbolically_execute_function(Function_info, Arguments_result, Expression_result). % Statement_handler.pl
-
-%% Accessing an array element (Indexing)
-%% Eg: Arr[2]
-% evaluate_expression(Array[Index], element(Var, [Expression_result])) :-
-%     c_array__get_out_var(Array, Var),
-%     % The index could be an expression (Eg: Arr[2+2])
-%     evaluate_expression(Index, Expression_result).
+    

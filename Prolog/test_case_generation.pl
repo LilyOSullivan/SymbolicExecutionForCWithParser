@@ -1,4 +1,3 @@
-% :- use_module(c_array).
 :- use_module(c_var).
 
 %% Generate multiple test cases through failing backtrack

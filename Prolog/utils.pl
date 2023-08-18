@@ -1,10 +1,5 @@
 :- lib(ptc_solver).
 
-% From Eileen's Code
-utils__get_all_array_inputs([], []).
-utils__get_all_array_inputs([(_, Value) | Rest], [Value | Rest2]) :-
-	utils__get_all_array_inputs(Rest, Rest2).
-
 %% is_static_declaration/1
 %% is_static_declaration(+Declaration)
 %% Checks if a declaration is a for a static variable
@@ -68,26 +63,6 @@ utils__strip_right_comma(String_with_comma, String_without_comma) :-
     ;
         String_without_comma = String_with_comma
     ).
-
-%% Join a list of strings together
-%% Parameters:
-%%  Strings: The list of strings to join
-%%  Result: The joined string
-%% Eg: join(["a","b","c"], Result) -> Result = "abc"
-utils__join(Strings, Result) :-
-    utils__join(Strings, "", Result).
-
-%% Join a list of strings together with a string separator
-%% Parameters:
-%%  Strings: The list of strings to join
-%%  Separator: The string to join the strings with
-%%  Result: The joined string
-%% Eg: utils__join(["a","b","c"], "|", Result) -> Result = "a|b|c"
-utils__join([], _, "").
-utils__join([String], _, String) :- !.
-utils__join([String | More_strings], Separator, Result) :-
-    once utils__join(More_strings, Separator, More_strings_result),
-    concat_string([String, Separator, More_strings_result], Result).
 
 %% Assigns a value to a variable, with a return of the assigned value
 %% Parameters:
@@ -158,12 +133,14 @@ utils__error_if_false(Goal, Error_message) :-
 %%  Number_to_demote: the value to be demoted
 %%  Type: the type to demote to
 %%  Result: the final truncated number
-
+%% ----------------------------------
+%% From the C standard:
 %% 6.3.1.3 Signed and unsigned integers - Clause 2
 %%      "the value is converted by repeatedly adding or subtracting one more
 %%      than the maximum value that can be represented in the new type until the value
 %%      is in the range of the new type."
 %% https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1570.pdf
+%% ----------------------------------
 utils__demotion(Number_to_demote, Type, Result) :-
     get_type_information(Type, _Byte_size, Min_bound, Max_bound),
     utils__demotion(Number_to_demote, Min_bound, Max_bound, Result).
