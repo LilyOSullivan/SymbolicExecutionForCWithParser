@@ -73,6 +73,9 @@ c_var__get_type(_Var{C_var}, Type) :-
     -?->
         C_var = cvar(Type, _, _, _, _, _).
 
+%% Returns the base type of a pointer variable
+%% Eg. int** -> int
+%% Eg. float* -> float
 c_var__get_pointer_base_type(C_var, Base_type) :-
     -?->
         c_var__get_type(C_var, Type),

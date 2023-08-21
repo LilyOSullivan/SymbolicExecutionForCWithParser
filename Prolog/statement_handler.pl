@@ -10,7 +10,7 @@ symbolically_execute_function(Filename, Function_name, Body, Params, Function_re
     statement_handler(Body, return(Return_value, Function_return_type)),
     label_collectively(Params),
     c_var__get_out_var(Return_value, Return_value_normalised),
-    write_test_case_all(Filename, Function_name, Params, Return_value_normalised, Function_return_type).
+    write_test_case(Filename, Function_name, Params, Return_value_normalised, Function_return_type).
 symbolically_execute_function(_, _, _, _, _).
 
 %% This variant of the function handler is used for function calls inside a function.

@@ -64,6 +64,15 @@ utils__strip_right_comma(String_with_comma, String_without_comma) :-
         String_without_comma = String_with_comma
     ).
 
+%% utils__string_contains/2
+%% utils__string_contains(+Original, +Substring)
+%% Check if a string contains a substring
+%% Parameters:
+%%  Original:The string to check if it contains the substring
+%%  Substring: The string to be checked if contained within the first parameter
+utils__string_contains(Original, Substring) :-
+    once sub_string(Original, _, _, _, Substring).
+
 %% Assigns a value to a variable, with a return of the assigned value
 %% Parameters:
 %%  Assign_to: The variable to assign to

@@ -20,8 +20,6 @@
 %% Prolog Global values (getval/2, setval/2):
 %%  test_folder_path (String): The path to the folder where the test-cases are generated
 %%  test_id (integer, default: 1): This is an Id used to identify test cases generated
-%%  tests (List, default: []): This list holds the names of the generated test cases
-%%      Eg: ["test_1", "test_2", "test_3"...]
 %%  free_address (integer, default: 1000): This is the address of the next free memory location in the memory model
 
 %% Prolog Global References (getref/2, setref/2):
@@ -71,7 +69,7 @@ main(Filename_without_extension, Function_name, Path_to_C_file, Override_globals
 %%  Override_globals: A boolean option if global variables should be overridden at test-generation time
 validate_inputs(Filename_without_extension, Function_name, Path_to_C_file, Override_globals) :-
     utils__error_if_false(string(Filename_without_extension), "Filename must be a string"),
-    utils__error_if_false(not string_contains(Filename_without_extension, ".pl"), "Filename should not contain an extension"),
+    utils__error_if_false(not utils__string_contains(Filename_without_extension, ".pl"), "Filename should not contain an extension"),
     utils__error_if_false(atom(Function_name), "Function name must be an atom"),
     utils__error_if_false(string(Path_to_C_file), "Path to C file must be a string"),
     utils__error_if_false(get_file_info(Path_to_C_file, type, directory), "Path to C file is not a valid directory-path"),
@@ -96,10 +94,6 @@ setup_test_driver(Function_name, Path_to_C_file) :-
 
     % The initial Id used to identify test cases generated. Used in test_generation.pl
     setval(test_id, 1),
-
-    % A list holding the names of test cases in the form ["test_1","test_2"...] used in test_generation.pl
-    % when generating the '_main' cunit .c file
-    setval(tests, []),
 
     initialise_memory_model.
 

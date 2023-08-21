@@ -171,8 +171,8 @@ evaluate_expression(assignment(Assign_to, Expression), Expression_result) :-
         Variable_to_assign = Assign_to
     ;
     Assign_to = dereference(Assignment_expression) ->
-        evaluate_expression(Assignment_expression, Assignment_expression_result),
-        get_from_memory(Assignment_expression_result, Variable_to_assign)
+            evaluate_expression(Assignment_expression, Assignment_expression_result),
+            get_from_memory(Assignment_expression_result, Variable_to_assign) 
     ),
 
     utils__assignment(Variable_to_assign, Right_result, Expression_result).
@@ -235,9 +235,15 @@ evaluate_expression(address_of(Variable), Expression_result) :-
 %% Eg: *x
 %% This returns the c_var at the memory address
 evaluate_expression(dereference(Expression), Expression_result) :-
+    % (c_var__is_variable(Expression) ->
+
+    % )
+    % ptc_solver__variable([X], int), ptc_solver__sdl(X = bw_and(X,10,8,signed))
+
     evaluate_expression(Expression, Address),
     get_from_memory(Address, Value_at_address),
     evaluate_expression(Value_at_address, Expression_result).
+    % ptc_solver__sdl()
 
 %% Function call as expression
 %% Eg: int x = 2 + give_five();
